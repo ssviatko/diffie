@@ -5,8 +5,8 @@ CC = gcc
 CPP = g++
 LD = g++
 LDFLAGS = -lgmp
-TARGET = dhtest
-OBJS = main.o dh.o aes.o
+TARGET = dhmtest
+OBJS = main.o dhm.o aes.o
 
 all: $(TARGET)
 
