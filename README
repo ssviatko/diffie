@@ -1,0 +1,13 @@
+*** A Diffie/Hellman/Merkle implementation in C ***
+
+Contents:
+
+dh.h
+dh.c - Diffie Hellman implementation
+aes.h
+aes.c - Reference AES implementation
+main.c - Command line program
+
+When compiled, it produces a program that can be used to nail up a TCP socket server or initiate a client connection that will use the Diffie-Hellman (Merkle) protocol to establish a shared secret key which will be used to encrypt a short message using AES to send back and forth on the wire.
+
+
