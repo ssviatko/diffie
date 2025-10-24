@@ -5,6 +5,7 @@ const char *dhm_error_string[] = {
 	"unable to open /dev/urandom",
 	"unable to read /dev/urandom",
 	"unable to close /dev/urandom",
+	"value error",
 	"general unspecified error"
 };
 
@@ -31,6 +32,12 @@ dhm_error_t dhm_init_session(dhm_session_t *a_session, int a_debug)
 			return DHM_ERR_READURANDOM;
 		}
 	}
+	
+	// populate GUID field
+	res = read(a_session->urandom_fd, a_session->guid, GUIDSIZE);
+	if (res != GUIDSIZE) {
+		return DHM_ERR_READURANDOM;
+	}
 
 	return DHM_ERR_NONE;
 }
@@ -47,7 +54,20 @@ dhm_error_t dhm_end_session  (dhm_session_t *a_session, int a_debug)
 
 dhm_error_t dhm_get_alice(dhm_session_t *a_session, dhm_alice_t *a_alice, dhm_private_t *a_alice_private, int a_debug)
 {
+	int i;
 	int res;
+	if (a_debug) {
+		// show our session GUID
+		printf("dhm_get_alice: session guid ");
+		for (i = 0; i < GUIDSIZE; ++i) {
+			printf("%02X", a_session->guid[i]);
+		}
+		printf("\n");
+	}
+	
+	// zero out our Alice packet
+	memset(a_alice, 0, sizeof(dhm_alice_t));
+	
 	// prepare random n-bit odd number for DH p factor
 	res = read(a_session->urandom_fd, a_alice->p, PUBSIZE);
 	if (res != PUBSIZE) {
@@ -74,5 +94,35 @@ dhm_error_t dhm_get_alice(dhm_session_t *a_session, dhm_alice_t *a_alice, dhm_pr
 	l_pp = mpz_probab_prime_p(l_p_import, 50);
 	if (a_debug)
 		printf("dhm_get_alice: mpz_probab_prime_p now returns %d.\n", l_pp);
+	// stick our p value in the Alice data structure
+	size_t l_written = 0;
+	mpz_export(a_alice->p, &l_written, 1, sizeof(unsigned char), 0, 0, l_p_import);
+	if (a_debug)
+		printf("dhm_get_alice: wrote %ld bytes to p field of Alice data structure.\n", l_written);
+	// police our written value
+	if (l_written != PUBSIZE) {
+		return DHM_ERR_VALUE;
+	}
+	
+	if (a_debug)
+		printf("dhm_get_alice: preparing g value...\n");
+	mpz_t l_g;
+	mpz_init(l_g);
+	unsigned int l_g_rand;
+	res = read(a_session->urandom_fd, &l_g_rand, sizeof(l_g_rand));
+	if (res != sizeof(l_g_rand)) {
+		return DHM_ERR_READURANDOM;
+	}
+	// l_g_rand even/odd?
+	if ((l_g_rand & 0x01) == 0) {
+		mpz_set_ui(l_g, 3);
+		a_alice->g = htons(3);
+	} else {
+		mpz_set_ui(l_g, 5);
+		a_alice->g = htons(5);
+	}
+	if (a_debug)
+		gmp_printf("dhm_get_alice: g = %Zd\n", l_g);
+
 	return DHM_ERR_NONE;
 }

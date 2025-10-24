@@ -4,11 +4,13 @@
 #pragma pack(1)
 
 #include <stdio.h>
+#include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <gmp.h>
+#include <arpa/inet.h>
 
 #define PUBBITS 2176
 #define PUBSIZE 272
@@ -37,6 +39,7 @@ typedef enum {
 	DHM_ERR_OPENURANDOM,
 	DHM_ERR_READURANDOM,
 	DHM_ERR_CLOSEURANDOM,
+	DHM_ERR_VALUE,
 	DHM_ERR_GENERAL
 } dhm_error_t;
 

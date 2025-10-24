@@ -6,16 +6,19 @@
 
 struct option g_options[] = {
 	{ "debug", no_argument, NULL, 'd' },
+	{ "showpacks", no_argument, NULL, 'p' },
 	{ "help", no_argument, NULL, '?' },
 	{ NULL, 0, NULL, 0 }
 };
 
 int g_debug = 0;
+int g_showpacks = 0;
 
 int main(int argc, char **argv)
 {
+	int i;
 	int opt;
-	while ((opt = getopt_long(argc, argv, "d?", g_options, NULL)) != -1) {
+	while ((opt = getopt_long(argc, argv, "dp?", g_options, NULL)) != -1) {
 		switch (opt) {
 			case 'd':
 				{
@@ -23,9 +26,15 @@ int main(int argc, char **argv)
 					printf("debug mode enabled.\n");
 				}
 				break;
+			case 'p':
+				{
+					g_showpacks = 1;
+					printf("showing constructed packets.\n");
+				}
+				break;
 			case '?':
 				{
-					printf("usage: dhmtest <-d/--debug>\n");
+					printf("usage: dhmtest <-d/--debug> <-p/--showpacks>\n");
 					exit(EXIT_SUCCESS);
 				}
 				break;
@@ -65,6 +74,16 @@ int main(int argc, char **argv)
 	if (dhm_result != DHM_ERR_NONE) {
 		fprintf(stderr, "unable to dhm_get_alice: %s\n", dhm_strerror(dhm_result));
 		exit(EXIT_FAILURE);
+	}
+	
+	if (g_showpacks == 1) {
+		printf("local: completed Alice packet\n");
+		printf("p: ");
+		for (i = 0; i < PUBSIZE; ++i) {
+			printf("%02X", l_alice->p[i]);
+		}
+		printf("\n");
+		printf("g: %d\n", ntohs(l_alice->g));
 	}
 	
 	// clean up
