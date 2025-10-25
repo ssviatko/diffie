@@ -67,7 +67,11 @@ void mode_local()
 	
 	if (g_showpacks == 1) {
 		printf("local (Alice): completed Alice packet\n");
-		printf("guid: ");
+		printf("hash: ");
+		for (i = 0; i < SHASIZE; ++i) {
+			printf("%02X", l_alice->hash[i]);
+		}
+		printf("\nguid: ");
 		for (i = 0; i < GUIDSIZE; ++i) {
 			printf("%02X", l_alice->guid[i]);
 		}

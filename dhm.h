@@ -12,12 +12,15 @@
 #include <gmp.h>
 #include <arpa/inet.h>
 
+#include "sha2.h"
+
 #define PUBBITS 2176
 #define PUBSIZE 272
 #define PRIVBITS 368
 #define PRIVSIZE 46
 
 #define GUIDSIZE 12 // size of unique session ID token
+#define SHASIZE 28 // size of a SHA2-224 hash
 
 typedef struct {
 	int urandom_fd;
@@ -26,6 +29,8 @@ typedef struct {
 } dhm_session_t;
 
 typedef struct {
+	uint16_t packtype;
+	uint8_t hash[SHASIZE]; // hash of everything subsequent to this field
 	uint8_t guid[GUIDSIZE];
 	uint16_t g;
 	uint8_t p[PUBSIZE];
@@ -33,6 +38,8 @@ typedef struct {
 } dhm_alice_t;
 
 typedef struct {
+	uint16_t packtype;
+	uint8_t hash[SHASIZE];
 	uint8_t guid[GUIDSIZE];
 	uint8_t B[PUBSIZE];
 } dhm_bob_t;
@@ -47,7 +54,9 @@ typedef enum {
 	DHM_ERR_READURANDOM,
 	DHM_ERR_CLOSEURANDOM,
 	DHM_ERR_VALUE,
-	DHM_ERR_GENERAL
+	DHM_ERR_GENERAL,
+	DHM_ERR_WRONG_PACKTYPE,
+	DHM_ERR_HASH_FAILURE
 } dhm_error_t;
 
 const char *dhm_strerror     (dhm_error_t a_errno);

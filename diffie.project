@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CodeLite_Project Name="diffie" Version="11000" InternalType="">
   <VirtualDirectory Name="diffie">
+    <File Name="sha2.h"/>
+    <File Name="sha2.c"/>
     <File Name="main.c"/>
     <File Name="aes.c"/>
     <File Name="aes.h"/>

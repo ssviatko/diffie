@@ -6,7 +6,7 @@ CPP = g++
 LD = g++
 LDFLAGS = -lgmp
 TARGET = dhmtest
-OBJS = main.o dhm.o aes.o
+OBJS = main.o dhm.o aes.o sha2.o
 
 all: $(TARGET)
 

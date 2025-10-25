@@ -6,8 +6,16 @@ const char *dhm_error_string[] = {
 	"unable to read /dev/urandom",
 	"unable to close /dev/urandom",
 	"value error",
-	"general unspecified error"
+	"general unspecified error",
+	"unrecognized packet type",
+	"packet hash check failure"
 };
+
+// note: packtype field (packet type) for Alice packet is 0xC1A5
+// packet type for Bob packet is 0xC2A5. These are stored in network byte order
+
+const uint16_t dhm_alice_packtype = 0xc1a5;
+const uint16_t dhm_bob_packtype = 0xc2a5;
 
 static void right_justify(size_t a_size, size_t a_offset, char *a_buff)
 {
@@ -72,6 +80,9 @@ dhm_error_t dhm_get_alice(dhm_session_t *a_session, dhm_alice_t *a_alice, dhm_pr
 	
 	// zero out our Alice packet
 	memset(a_alice, 0, sizeof(dhm_alice_t));
+	
+	// set type
+	a_alice->packtype = htons(dhm_alice_packtype);
 	
 	// copy our session GUID into Alice packet
 	memcpy(a_alice->guid, a_session->guid, GUIDSIZE);
@@ -172,6 +183,22 @@ dhm_error_t dhm_get_alice(dhm_session_t *a_session, dhm_alice_t *a_alice, dhm_pr
 	mpz_clear(l_a_import);
 	mpz_clear(l_A);
 	
+	// set packet hash
+	size_t l_hstart = sizeof(a_alice->packtype) + SHASIZE;
+	size_t l_hsize = sizeof(dhm_alice_t) - l_hstart;
+	sha224_ctx l_ctx;
+	sha224_init(&l_ctx);
+	// guid is first field after packet type and hash
+	sha224_update(&l_ctx, (const uint8_t *)a_alice->guid, l_hsize);
+	sha224_final(&l_ctx, a_alice->hash);
+	if (a_debug) {
+		printf("dhm_get_alice: packet hash: ");
+		for (i = 0; i < SHASIZE; ++i) {
+			printf("%02X", a_alice->hash[i]);
+		}
+		printf("\n");
+	}
+
 	return DHM_ERR_NONE;
 }
 
@@ -180,8 +207,34 @@ dhm_error_t dhm_get_bob(dhm_session_t *a_session, dhm_alice_t *a_alice, dhm_bob_
 	int i;
 	int res;
 	
+	// vet our Alice packet to see if it is OK
+	if (a_alice->packtype != ntohs(dhm_alice_packtype)) {
+		return DHM_ERR_WRONG_PACKTYPE;
+	}
+	// check Alice hash
+	uint8_t l_digest[SHASIZE];
+	size_t l_hstart = sizeof(a_alice->packtype) + SHASIZE;
+	size_t l_hsize = sizeof(dhm_alice_t) - l_hstart;
+	sha224_ctx l_ctx;
+	sha224_init(&l_ctx);
+	sha224_update(&l_ctx, (const uint8_t *)a_alice->guid, l_hsize);
+	sha224_final(&l_ctx, l_digest);
+	if (memcmp(l_digest, a_alice->hash, SHASIZE) != 0) {
+		return DHM_ERR_HASH_FAILURE;
+	}
+	if (a_debug) {
+		printf("dhm_get_bob: Alice packet hash OK (");
+		for (i = 0; i < SHASIZE; ++i) {
+			printf("%02X", l_digest[i]);
+		}
+		printf(")\n");
+	}
+
 	// zero out our Bob packet
 	memset(a_bob, 0, sizeof(dhm_bob_t));
+	
+	// set packet type
+	a_bob->packtype = htons(dhm_bob_packtype);
 	
 	// copy our session GUID from Alice packet into Bob packet AND set as session GUID
 	memcpy(a_session->guid, a_alice->guid, GUIDSIZE);
@@ -261,12 +314,49 @@ dhm_error_t dhm_get_bob(dhm_session_t *a_session, dhm_alice_t *a_alice, dhm_bob_
 	mpz_clear(l_B);
 	mpz_clear(l_sb);
 	
+	// set packet hash
+	l_hstart = sizeof(a_bob->packtype) + SHASIZE;
+	l_hsize = sizeof(dhm_bob_t) - l_hstart;
+	sha224_ctx l_ctx_b;
+	sha224_init(&l_ctx_b);
+	// guid is first field after packet type and hash
+	sha224_update(&l_ctx_b, (const uint8_t *)a_bob->guid, l_hsize);
+	sha224_final(&l_ctx_b, a_bob->hash);
+	if (a_debug) {
+		printf("dhm_get_bob: packet hash: ");
+		for (i = 0; i < SHASIZE; ++i) {
+			printf("%02X", a_bob->hash[i]);
+		}
+		printf("\n");
+	}
 	return DHM_ERR_NONE;
 }
 
 dhm_error_t dhm_alice_secret (dhm_session_t *a_session, dhm_alice_t *a_alice, dhm_bob_t *a_bob, dhm_private_t *a_alice_private, int a_debug)
 {
 	int i;
+	// check Bob packet type
+	if (a_bob->packtype != ntohs(dhm_bob_packtype)) {
+		return DHM_ERR_WRONG_PACKTYPE;
+	}
+	// check Bob hash
+	uint8_t l_digest[SHASIZE];
+	size_t l_hstart = sizeof(a_bob->packtype) + SHASIZE;
+	size_t l_hsize = sizeof(dhm_bob_t) - l_hstart;
+	sha224_ctx l_ctx;
+	sha224_init(&l_ctx);
+	sha224_update(&l_ctx, (const uint8_t *)a_bob->guid, l_hsize);
+	sha224_final(&l_ctx, l_digest);
+	if (memcmp(l_digest, a_bob->hash, SHASIZE) != 0) {
+		return DHM_ERR_HASH_FAILURE;
+	}
+	if (a_debug) {
+		printf("dhm_alice_secret: Bob packet hash OK (");
+		for (i = 0; i < SHASIZE; ++i) {
+			printf("%02X", l_digest[i]);
+		}
+		printf(")\n");
+	}
 	if (a_debug) {
 		// show our session GUID in Bob packet
 		printf("dhm_alice_secret: session guid ");
