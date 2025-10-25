@@ -1,9 +1,19 @@
 #include <stdio.h>
+#include <string.h>
+#include <errno.h>
 #include <stdint.h>
 #include <getopt.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+
+#pragma pack(1)
 
 #include "dhm.h"
 #include "aes.h"
+
+#define BUFFLEN 1024
 
 struct option g_options[] = {
 	{ "debug", no_argument, NULL, 'd' },
@@ -12,23 +22,146 @@ struct option g_options[] = {
 	{ "server", no_argument, NULL, 's' },
 	{ "help", no_argument, NULL, '?' },
 	{ "port", required_argument, NULL, 'o' },
+	{ "greeting", required_argument, NULL, 'g' },
 	{ NULL, 0, NULL, 0 }
 };
 
 int g_debug = 0;
 int g_showpacks = 0;
-char g_host[256];
+char g_host[BUFFLEN];
 int g_mode = 0; // 0=local, 1=client, 2=server
 uint16_t g_port = 9734;
+char g_greeting[BUFFLEN];
 
 void mode_client()
 {
 	printf("attempting to connect to: %s on port %d\n", g_host, g_port);
+	int sockfd;
+	int len;
+	struct sockaddr_in address;
+	int res;
+	uint8_t l_buff[BUFFLEN];
+
+	// create a socket for the client
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
+	// name the socket as agreed with the server
+	address.sin_family = AF_INET;
+	address.sin_addr.s_addr = inet_addr(g_host);
+	address.sin_port = htons(g_port);
+	len = sizeof(address);
+
+	// connect our socket to the server's socket
+	res = connect(sockfd, (struct sockaddr *)&address, len);
+	if (res < 0) {
+		fprintf(stderr, "client: can't connect to %s: %s\n", g_host, strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+
+	// read and write via sockfd
+	int writelen;
+	writelen = write(sockfd, g_greeting, strlen(g_greeting));
+	if (writelen == 0) {
+		fprintf(stderr, "client: EOF detected, exiting\n");
+		close(sockfd);
+		return;
+	} else if (writelen < 0) {
+		// problems writing, fatal error
+		fprintf(stderr, "client: can't write: %s\n", strerror(errno));
+		close(sockfd);
+		return;
+	}
+	printf("client: write %d bytes to server.\n", writelen);
+	int readlen;
+	readlen = read(sockfd, l_buff, BUFFLEN);
+	if (readlen == 0) {
+		// handle EOF
+		fprintf(stderr, "client: EOF detected, exiting\n");
+		close(sockfd);
+		return;
+	} else if (readlen < 0) {
+		fprintf(stderr, "client: can't read: %s\n", strerror(errno));
+		close(sockfd);
+		return;
+	}
+	printf("client: read %d bytes from the server.\nread string: %s\n", readlen, l_buff);
+	close(sockfd);
 }
 
 void mode_server()
 {
 	printf("establishing a TCP server on port %d\n", g_port);
+
+	// set up variables
+	int res;
+	int server_sockfd, client_sockfd;
+	unsigned int server_len, client_len;
+	struct sockaddr_in server_address;
+	struct sockaddr_in client_address;
+	uint8_t l_buff[4096];
+
+	// remove any old sockets and create an unnamed socket for the server
+	server_sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
+	// name the socket
+	server_address.sin_family = AF_INET;
+	server_address.sin_addr.s_addr = htonl(INADDR_ANY);
+	server_address.sin_port = htons(g_port);
+	server_len = sizeof(server_address);
+	int reuse = 1;
+	if (setsockopt(server_sockfd, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse)) < 0) {
+		// can't setsockopt, this is a fatal error
+		fprintf(stderr, "server: can't setsockopt: %s\n", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+	res = bind(server_sockfd, (struct sockaddr *)&server_address, server_len);
+	if (res < 0) {
+		// can't bind, this is a fatal error
+		fprintf(stderr, "server: can't bind: %s\n", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+	// create a connection queue and wait for clients
+	listen(server_sockfd, 5);
+	while (1) {
+		printf("server: waiting for connection...\n");
+		
+		// accept a connection
+		client_len = sizeof(client_address);
+		client_sockfd = accept(server_sockfd, (struct sockaddr *)&client_address, &client_len);
+
+		printf("server: client %08X connecting...\n", ntohl(client_address.sin_addr.s_addr));
+
+		// read and write to client on client_sockfd
+		int readlen;
+		readlen = read(client_sockfd, l_buff, BUFFLEN);
+		if (readlen == 0) {
+			// handle EOF
+			fprintf(stderr, "server: EOF detected, hanging up\n");
+			close(client_sockfd);
+			continue;
+		} else if (readlen < 0) {
+			// problems reading, nonfatal error that will recycle the server
+			fprintf(stderr, "server: can't read: %s\n", strerror(errno));
+			close(client_sockfd);
+			continue;
+		}
+		// echo the string back
+		int writelen;
+		writelen = write(client_sockfd, g_greeting, strlen(g_greeting));
+		if (writelen == 0) {
+			fprintf(stderr, "server: EOF detected, hanging up\n");
+			close(client_sockfd);
+			continue;
+			// handle EOF
+		} else if (writelen < 0) {
+			// problems reading, nonfatal error that will recycle the server
+			fprintf(stderr, "server: can't write: %s\n", strerror(errno));
+			close(client_sockfd);
+			continue;
+		}
+		printf("server: write %d bytes back to client.\n", writelen);
+		close(client_sockfd);
+	}
 }
 
 void mode_local()
@@ -209,7 +342,10 @@ int main(int argc, char **argv)
 	printf("Diffie/Hellman/Merkle C Library Demonstration program\n");
 	printf("-? or --help for usage and information.\n");
 	
-	while ((opt = getopt_long(argc, argv, "dp?c:so:", g_options, NULL)) != -1) {
+	// set up default greeting in case user doesn't enter one
+	strcpy(g_greeting, "Default greeting");
+	
+	while ((opt = getopt_long(argc, argv, "dp?c:so:g:", g_options, NULL)) != -1) {
 		switch (opt) {
 			case 'd':
 				{
@@ -243,6 +379,11 @@ int main(int argc, char **argv)
 					g_mode = 2;
 				}
 				break;
+			case 'g':
+				{
+					strcpy(g_greeting, optarg);
+				}
+				break;
 			case '?':
 				{
 					printf("usage: dhmtest <options>\n");
@@ -250,6 +391,7 @@ int main(int argc, char **argv)
 					printf("  -p (--showpacks) show completed packets\n");
 					printf("  -? (--help) this screen\n");
 					printf("  -o (--port) specify IP port to use (default 9734)\n");
+					printf("  -g (--greeting) specify greeting message for socket communications\n");
 					printf("  -c (--connect) <host> select client mode, specify host\n");
 					printf("  -s (--server) select server mode\n");
 					exit(EXIT_SUCCESS);
