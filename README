@@ -2,8 +2,8 @@
 
 Contents:
 
-dh.h
-dh.c - Diffie Hellman implementation
+dhm.h
+dhm.c - Diffie Hellman implementation
 aes.h
 aes.c - Reference AES implementation
 sha2.h
