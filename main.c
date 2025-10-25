@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdint.h>
 #include <getopt.h>
 
 #include "dhm.h"
@@ -10,6 +11,7 @@ struct option g_options[] = {
 	{ "connect", required_argument, NULL, 'c' },
 	{ "server", no_argument, NULL, 's' },
 	{ "help", no_argument, NULL, '?' },
+	{ "port", required_argument, NULL, 'o' },
 	{ NULL, 0, NULL, 0 }
 };
 
@@ -17,15 +19,16 @@ int g_debug = 0;
 int g_showpacks = 0;
 char g_host[256];
 int g_mode = 0; // 0=local, 1=client, 2=server
+uint16_t g_port = 9734;
 
 void mode_client()
 {
-	
+	printf("attempting to connect to: %s on port %d\n", g_host, g_port);
 }
 
 void mode_server()
 {
-	
+	printf("establishing a TCP server on port %d\n", g_port);
 }
 
 void mode_local()
@@ -204,8 +207,9 @@ int main(int argc, char **argv)
 	int opt;
 
 	printf("Diffie/Hellman/Merkle C Library Demonstration program\n");
+	printf("-? or --help for usage and information.\n");
 	
-	while ((opt = getopt_long(argc, argv, "dp?c:s", g_options, NULL)) != -1) {
+	while ((opt = getopt_long(argc, argv, "dp?c:so:", g_options, NULL)) != -1) {
 		switch (opt) {
 			case 'd':
 				{
@@ -219,14 +223,17 @@ int main(int argc, char **argv)
 					printf("showing constructed packets.\n");
 				}
 				break;
+			case 'o':
+				{
+					g_port = atoi(optarg);
+				}
+				break;
 			case 'c':
 				{
 					if (g_mode != 0)
 						break; // do nothing if we already selected something else
 					g_mode = 1; // client mode
 					strcpy(g_host, optarg);
-					printf("selecting client mode\n");
-					printf("attempting to connect to: %s\n", g_host);
 				}
 				break;
 			case 's':
@@ -234,7 +241,6 @@ int main(int argc, char **argv)
 					if (g_mode != 0)
 						break;
 					g_mode = 2;
-					printf("selecting server mode\n");
 				}
 				break;
 			case '?':
@@ -243,6 +249,7 @@ int main(int argc, char **argv)
 					printf("  -d (--debug) enable debug mode\n");
 					printf("  -p (--showpacks) show completed packets\n");
 					printf("  -? (--help) this screen\n");
+					printf("  -o (--port) specify IP port to use (default 9734)\n");
 					printf("  -c (--connect) <host> select client mode, specify host\n");
 					printf("  -s (--server) select server mode\n");
 					exit(EXIT_SUCCESS);
@@ -253,12 +260,15 @@ int main(int argc, char **argv)
 	
 	switch (g_mode) {
 		case 0:
+			printf("selecting local mode\n");
 			mode_local();
 			break;
 		case 1:
+			printf("selecting client mode\n");
 			mode_client();
 			break;
 		case 2:
+			printf("selecting server mode\n");
 			mode_server();
 			break;
 		default:
