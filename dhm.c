@@ -167,6 +167,11 @@ dhm_error_t dhm_get_alice(dhm_session_t *a_session, dhm_alice_t *a_alice, dhm_pr
 		right_justify(l_written, PUBSIZE - l_written, (char *)a_alice->A);
 	}
 
+	mpz_clear(l_p_import);
+	mpz_clear(l_g);
+	mpz_clear(l_a_import);
+	mpz_clear(l_A);
+	
 	return DHM_ERR_NONE;
 }
 
@@ -249,6 +254,13 @@ dhm_error_t dhm_get_bob(dhm_session_t *a_session, dhm_alice_t *a_alice, dhm_bob_
 		right_justify(l_written, PUBSIZE - l_written, (char *)a_session->s);
 	}
 
+	mpz_clear(l_b_import);
+	mpz_clear(l_p_import);
+	mpz_clear(l_g_import);
+	mpz_clear(l_A_import);
+	mpz_clear(l_B);
+	mpz_clear(l_sb);
+	
 	return DHM_ERR_NONE;
 }
 
@@ -295,5 +307,10 @@ dhm_error_t dhm_alice_secret (dhm_session_t *a_session, dhm_alice_t *a_alice, dh
 		right_justify(l_written, PUBSIZE - l_written, (char *)a_session->s);
 	}
 
+	mpz_clear(l_p_import);
+	mpz_clear(l_B_import);
+	mpz_clear(l_a_import);
+	mpz_clear(l_sa);
+	
 	return DHM_ERR_NONE;
 }
