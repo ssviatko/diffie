@@ -73,6 +73,7 @@ void mode_client()
 	}
 	printf("client: write %d bytes to server.\n", writelen);
 	int readlen;
+	memset(l_buff, 0, BUFFLEN);
 	readlen = read(sockfd, l_buff, BUFFLEN);
 	if (readlen == 0) {
 		// handle EOF
@@ -129,10 +130,11 @@ void mode_server()
 		client_len = sizeof(client_address);
 		client_sockfd = accept(server_sockfd, (struct sockaddr *)&client_address, &client_len);
 
-		printf("server: client %08X connecting...\n", ntohl(client_address.sin_addr.s_addr));
+		printf("server: client %s:%d connecting...\n", inet_ntoa(client_address.sin_addr), ntohs(client_address.sin_port));
 
 		// read and write to client on client_sockfd
 		int readlen;
+		memset(l_buff, 0, BUFFLEN);
 		readlen = read(client_sockfd, l_buff, BUFFLEN);
 		if (readlen == 0) {
 			// handle EOF
@@ -145,6 +147,7 @@ void mode_server()
 			close(client_sockfd);
 			continue;
 		}
+		printf("server: read %d bytes from the client.\nread string: %s\n", readlen, l_buff);
 		// echo the string back
 		int writelen;
 		writelen = write(client_sockfd, g_greeting, strlen(g_greeting));
@@ -392,7 +395,7 @@ int main(int argc, char **argv)
 					printf("  -? (--help) this screen\n");
 					printf("  -o (--port) specify IP port to use (default 9734)\n");
 					printf("  -g (--greeting) specify greeting message for socket communications\n");
-					printf("  -c (--connect) <host> select client mode, specify host\n");
+					printf("  -c (--connect) <IP> select client mode, specify host in dotted IP format\n");
 					printf("  -s (--server) select server mode\n");
 					exit(EXIT_SUCCESS);
 				}
