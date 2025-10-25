@@ -56,17 +56,21 @@ dhm_error_t dhm_get_alice(dhm_session_t *a_session, dhm_alice_t *a_alice, dhm_pr
 {
 	int i;
 	int res;
+	
+	// zero out our Alice packet
+	memset(a_alice, 0, sizeof(dhm_alice_t));
+	
+	// copy our session GUID into Alice packet
+	memcpy(a_alice->guid, a_session->guid, GUIDSIZE);
+	
 	if (a_debug) {
 		// show our session GUID
 		printf("dhm_get_alice: session guid ");
 		for (i = 0; i < GUIDSIZE; ++i) {
-			printf("%02X", a_session->guid[i]);
+			printf("%02X", a_alice->guid[i]);
 		}
 		printf("\n");
 	}
-	
-	// zero out our Alice packet
-	memset(a_alice, 0, sizeof(dhm_alice_t));
 	
 	// prepare random n-bit odd number for DH p factor
 	res = read(a_session->urandom_fd, a_alice->p, PUBSIZE);
@@ -123,6 +127,33 @@ dhm_error_t dhm_get_alice(dhm_session_t *a_session, dhm_alice_t *a_alice, dhm_pr
 	}
 	if (a_debug)
 		gmp_printf("dhm_get_alice: g = %Zd\n", l_g);
+
+	if (a_debug)
+		printf("dhm_get_alice: preparing private key...\n");
+	res = read(a_session->urandom_fd, a_alice_private->key, PRIVSIZE);
+	if (res != PRIVSIZE) {
+		return DHM_ERR_READURANDOM;
+	}
+	mpz_t l_a_import;
+	mpz_init(l_a_import);
+	mpz_import(l_a_import, PRIVSIZE, 1, sizeof(unsigned char), 0, 0, a_alice_private->key);
+	if (a_debug)
+		gmp_printf("dhm_get_alice: a = %Zx\n", l_a_import);
+
+	// generate A
+	mpz_t l_A;
+	mpz_init(l_A);
+	mpz_powm(l_A, l_g, l_a_import, l_p_import);
+	if (a_debug)
+		gmp_printf("dhm_get_alice: A = %Zx\n", l_A);
+	mpz_export(a_alice->A, &l_written, 1, sizeof(unsigned char), 0, 0, l_A);
+	if (a_debug)
+		printf("dhm_get_alice: wrote %ld bytes to A field of Alice data structure.\n", l_written);
+	// police our written value
+	if (l_written != PUBSIZE) {
+		return DHM_ERR_VALUE;
+	}
+	
 
 	return DHM_ERR_NONE;
 }

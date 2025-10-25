@@ -22,13 +22,19 @@
 typedef struct {
 	int urandom_fd;
 	uint8_t guid[GUIDSIZE];
+	uint8_t s[PUBSIZE];
 } dhm_session_t;
 
 typedef struct {
+	uint8_t guid[GUIDSIZE];
 	uint16_t g;
 	uint8_t p[PUBSIZE];
 	uint8_t A[PUBSIZE];
 } dhm_alice_t;
+
+typedef struct {
+	uint8_t guid[GUIDSIZE];
+} dhm_bob_t;
 
 typedef struct {
 	uint8_t key[PRIVSIZE];
