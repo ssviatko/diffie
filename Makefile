@@ -1,5 +1,5 @@
 INCL = -I.
-CFLAGS = -Wall -O3 $(INCL)
+CFLAGS = -Wall -Wno-format-overflow -g -O3 $(INCL)
 UNAME = $(shell uname)
 CC = gcc
 CPP = g++
