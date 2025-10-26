@@ -15,6 +15,22 @@
 
 #define BUFFLEN 1024
 
+/* protocol stuff */
+
+const uint16_t outer_packtype_current_version = 0x0101;
+const uint16_t outer_packtype_textecho = 0xd4d3;
+const uint16_t outer_packtype_alice = 0xd4d4; // packet contains an Alice packet
+const uint16_t outer_packtype_bob = 0xd4d5; // packet contains a Bob packet
+const uint16_t outer_packtype_aes = 0xd4d6; // packet contains AES256/CTR encrypted data
+
+typedef struct {
+	uint16_t version;
+	uint16_t packtype;
+	uint16_t size; // size of payload
+} outer_packet_header_t;
+
+/* getopt */
+
 struct option g_options[] = {
 	{ "debug", no_argument, NULL, 'd' },
 	{ "showpacks", no_argument, NULL, 'p' },
@@ -33,31 +49,9 @@ int g_mode = 0; // 0=local, 1=client, 2=server
 uint16_t g_port = 9734;
 char g_greeting[BUFFLEN];
 
-void mode_client()
+void client_action(int sockfd)
 {
-	printf("attempting to connect to: %s on port %d\n", g_host, g_port);
-	int sockfd;
-	int len;
-	struct sockaddr_in address;
-	int res;
 	uint8_t l_buff[BUFFLEN];
-
-	// create a socket for the client
-	sockfd = socket(AF_INET, SOCK_STREAM, 0);
-
-	// name the socket as agreed with the server
-	address.sin_family = AF_INET;
-	address.sin_addr.s_addr = inet_addr(g_host);
-	address.sin_port = htons(g_port);
-	len = sizeof(address);
-
-	// connect our socket to the server's socket
-	res = connect(sockfd, (struct sockaddr *)&address, len);
-	if (res < 0) {
-		fprintf(stderr, "client: can't connect to %s: %s\n", g_host, strerror(errno));
-		exit(EXIT_FAILURE);
-	}
-
 	// read and write via sockfd
 	int writelen;
 	writelen = write(sockfd, g_greeting, strlen(g_greeting));
@@ -89,6 +83,71 @@ void mode_client()
 	close(sockfd);
 }
 
+void mode_client()
+{
+	printf("attempting to connect to: %s on port %d\n", g_host, g_port);
+	int sockfd;
+	int len;
+	struct sockaddr_in address;
+	int res;
+
+	// create a socket for the client
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
+	// name the socket as agreed with the server
+	address.sin_family = AF_INET;
+	address.sin_addr.s_addr = inet_addr(g_host);
+	address.sin_port = htons(g_port);
+	len = sizeof(address);
+
+	// connect our socket to the server's socket
+	res = connect(sockfd, (struct sockaddr *)&address, len);
+	if (res < 0) {
+		fprintf(stderr, "client: can't connect to %s: %s\n", g_host, strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+
+	client_action(sockfd);
+}
+
+void server_action(int client_sockfd)
+{
+	uint8_t l_buff[4096];
+	
+	// read and write to client on client_sockfd
+	int readlen;
+	memset(l_buff, 0, BUFFLEN);
+	readlen = read(client_sockfd, l_buff, BUFFLEN);
+	if (readlen == 0) {
+		// handle EOF
+		fprintf(stderr, "server: EOF detected, hanging up\n");
+		close(client_sockfd);
+		return;
+	} else if (readlen < 0) {
+		// problems reading, nonfatal error that will recycle the server
+		fprintf(stderr, "server: can't read: %s\n", strerror(errno));
+		close(client_sockfd);
+		return;
+	}
+	printf("server: read %d bytes from the client.\nread string: %s\n", readlen, l_buff);
+	// echo the string back
+	int writelen;
+	writelen = write(client_sockfd, g_greeting, strlen(g_greeting));
+	if (writelen == 0) {
+		fprintf(stderr, "server: EOF detected, hanging up\n");
+		close(client_sockfd);
+		return;
+		// handle EOF
+	} else if (writelen < 0) {
+		// problems reading, nonfatal error that will recycle the server
+		fprintf(stderr, "server: can't write: %s\n", strerror(errno));
+		close(client_sockfd);
+		return;
+	}
+	printf("server: write %d bytes back to client.\n", writelen);
+	close(client_sockfd);
+}
+
 void mode_server()
 {
 	printf("establishing a TCP server on port %d\n", g_port);
@@ -99,7 +158,6 @@ void mode_server()
 	unsigned int server_len, client_len;
 	struct sockaddr_in server_address;
 	struct sockaddr_in client_address;
-	uint8_t l_buff[4096];
 
 	// remove any old sockets and create an unnamed socket for the server
 	server_sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -131,39 +189,7 @@ void mode_server()
 		client_sockfd = accept(server_sockfd, (struct sockaddr *)&client_address, &client_len);
 
 		printf("server: client %s:%d connecting...\n", inet_ntoa(client_address.sin_addr), ntohs(client_address.sin_port));
-
-		// read and write to client on client_sockfd
-		int readlen;
-		memset(l_buff, 0, BUFFLEN);
-		readlen = read(client_sockfd, l_buff, BUFFLEN);
-		if (readlen == 0) {
-			// handle EOF
-			fprintf(stderr, "server: EOF detected, hanging up\n");
-			close(client_sockfd);
-			continue;
-		} else if (readlen < 0) {
-			// problems reading, nonfatal error that will recycle the server
-			fprintf(stderr, "server: can't read: %s\n", strerror(errno));
-			close(client_sockfd);
-			continue;
-		}
-		printf("server: read %d bytes from the client.\nread string: %s\n", readlen, l_buff);
-		// echo the string back
-		int writelen;
-		writelen = write(client_sockfd, g_greeting, strlen(g_greeting));
-		if (writelen == 0) {
-			fprintf(stderr, "server: EOF detected, hanging up\n");
-			close(client_sockfd);
-			continue;
-			// handle EOF
-		} else if (writelen < 0) {
-			// problems reading, nonfatal error that will recycle the server
-			fprintf(stderr, "server: can't write: %s\n", strerror(errno));
-			close(client_sockfd);
-			continue;
-		}
-		printf("server: write %d bytes back to client.\n", writelen);
-		close(client_sockfd);
+		server_action(client_sockfd);
 	}
 }
 
