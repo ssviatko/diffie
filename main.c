@@ -15,7 +15,7 @@
 
 #define BUFFLEN 1024
 
-/* protocol stuff */
+/* outer protocol stuff */
 
 const uint16_t outer_current_version = 0x0101;
 const uint16_t outer_packtype_dieplease = 0xd4d2; // request the server terminate
@@ -459,6 +459,11 @@ void mode_local()
 		printf("%02X", l_bob_session->s[i]);
 	}
 	printf("\n");
+	printf("local (Bob):   secret (IV/nonce)  : ");
+	for (i = 32; i < 48; ++i) {
+		printf("%02X", l_bob_session->s[i]);
+	}
+	printf("\n");
 
 	printf("local: ...simulating sending Bob packet back to Alice over insecure link...\n");
 	
@@ -476,6 +481,11 @@ void mode_local()
 	}
 	printf("local (Alice): secret (AES256 key): ");
 	for (i = 0; i < 32; ++i) {
+		printf("%02X", l_alice_session->s[i]);
+	}
+	printf("\n");
+	printf("local (Alice): secret (IV/nonce)  : ");
+	for (i = 32; i < 48; ++i) {
 		printf("%02X", l_alice_session->s[i]);
 	}
 	printf("\n");
@@ -567,6 +577,7 @@ int main(int argc, char **argv)
 					printf("  -c (--connect) <IP> select client mode, specify host in dotted IP format\n");
 					printf("  -x (--reqsd) client mode only: request server shut down gracefully\n");
 					printf("  -s (--server) select server mode\n");
+					printf("  omit -c and -s flags to run in local mode without socket connection\n");
 					exit(EXIT_SUCCESS);
 				}
 				break;
