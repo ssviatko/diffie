@@ -93,6 +93,32 @@ The following flag can be used by the client to request that the server shut dow
 
 ******** SAMPLE OUTPUT:
 
+The following output is from a local mode session. The program is invoked with the following command:
+
+./dhmtest
+
+The output is as follows:
+
+[ssviatko@icosahedron diffie]$ ./dhmtest
+Diffie/Hellman/Merkle C Library Demonstration program
+-? or --help for usage and information.
+selecting local mode
+local (Alice): calling dhm_init_session for Alice session...
+local (Alice): calling dhm_get_alice...
+local: ...simulating sending Alice packet to Bob over insecure link...
+local (Bob): calling dhm_init_session for Bob session...
+local (Bob): calling dhm_get_bob...
+local (Bob):   secret (AES256 key): 8517AD960B77A26052DCC9AE48E637400754273C209CD365116EBCAC1A59E9FB
+local (Bob):   server (IV/nonce)  : 42AE299AFE672B4C0C5D4E65D70B2577
+local (Bob):   client (IV/nonce)  : D783A7D846CC656B850EA4E01E71E27E
+local: ...simulating sending Bob packet back to Alice over insecure link...
+local (Alice): calling dhm_alice_secret
+local (Alice): secret (AES256 key): 8517AD960B77A26052DCC9AE48E637400754273C209CD365116EBCAC1A59E9FB
+local (Alice): server (IV/nonce)  : 42AE299AFE672B4C0C5D4E65D70B2577
+local (Alice): client (IV/nonce)  : D783A7D846CC656B850EA4E01E71E27E
+local (cleanup): calling dhm_end_session for Alice session...
+local (cleanup): calling dhm_end_session for Bob session...
+
 The following output is from a client/server session. The server is invoked with the following command:
 
 ./dhmtest -s
