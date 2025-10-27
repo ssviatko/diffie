@@ -14,12 +14,189 @@ When compiled, it produces a program that can be used to nail up a TCP socket se
 
 Help screen (from command line):
 
-[ssviatko@sphinx diffie]$ ./dhmtest -?
+[ssviatko@icosahedron diffie]$ ./dhmtest -?
 Diffie/Hellman/Merkle C Library Demonstration program
+-? or --help for usage and information.
 usage: dhmtest <options>
   -d (--debug) enable debug mode
   -p (--showpacks) show completed packets
   -? (--help) this screen
-  -c (--connect) <host> select client mode, specify host
+  -o (--port) specify IP port to use (default 9734)
+  -g (--greeting) specify greeting message for socket communications
+  -c (--connect) <IP> select client mode, specify host in dotted IP format
+  -x (--reqsd) client mode only: request server shut down gracefully
+  -e {--encrypt) client mode only: use diffie/hellman/merkle and AES
   -s (--server) select server mode
+  omit -c and -s flags to run in local mode without socket connection
 
+******** LOCAL MODE:
+
+To run dhmtest without using sockets, simply invoke dhmtest from the command line without any switches:
+
+./dhmtest
+
+In local mode, the following optional flags apply:
+
+./dhmtest --debug
+(show debug information)
+
+./dhmtest --showpacks
+(show contents of Alice and Bob packets)
+
+******** SERVER MODE:
+
+To run dhmtest in server mode, invoke dhmtest with the -s or --server switch:
+
+./dhmtest --server
+
+In server mode, the following optional flags apply:
+
+./dhmtest --server --port 9558
+(set listen port to 9558)
+
+./dhmtest --server --debug
+(show debug information)
+
+./dhmtest --server --showpacks
+(show contents of all packets sent and received on the wire)
+
+./dhmtest --server --greeting "This is my new server greeting"
+(change the server's greeting message)
+
+******** CLIENT MODE:
+
+To run dhmtest in client mode, first make sure that a server instance is up and running and listening on a port of your choosing (or the default port of 9734 if no port is specified). Then invoke dhmtest from the command line with the -c or --connect switch with the IP address of the server. For instance, if the dhmtest server is on the local machine, use the following syntax:
+
+./dhmtest --connect 127.0.0.1
+
+In client mode, the following optional flags apply:
+
+./dhmtest --connect 127.0.0.1 --port 9558
+(set port to 9558; will connect to server listening on port 9558)
+
+./dhmtest --connect 127.0.0.1 --debug
+(show debug information)
+
+./dhmtest --connect 127.0.0.1 --showpacks
+(show contents of all packets sent and received on the wire)
+
+./dhmtest --connect 127.0.0.1 --greeting "This is my new client greeting"
+(change the client's greeting message)
+
+To enable Diffie/Hellman/Merkle key exchange and use of AES256/CTR mode encryption, use the -e or --encrypt flag. The following will send our custom greeting, but it will negotiate the key, client nonce, and server nonce with the server before switching over to fully encrypted mode.
+
+./dhmtest --connect 127.0.0.1 -e --greeting "This is my new client greeting"
+
+The following flag can be used by the client to request that the server shut down gracefully, instead of using control-C on the server. This is optional and it serves to demonstrate how to programmatically shut down a server task to prevent memory leaks and other misuse of resources.
+
+./dhmtest --connect 127.0.0.1 -x
+
+******** SAMPLE OUTPUT:
+
+The following output is from a client/server session. The server is invoked with the following command:
+
+./dhmtest -s
+
+The output from the server is as follows:
+
+[ssviatko@icosahedron diffie]$ ./dhmtest -s
+Diffie/Hellman/Merkle C Library Demonstration program
+-? or --help for usage and information.
+selecting server mode
+establishing a TCP server on port 9734
+server: ***** waiting for connection *****
+server: client 127.0.0.1:49860 connecting...
+server: received packet type D4D4, sequence 1 from client.
+server: calling dhm_init_session for Bob session...
+server: calling dhm_get_bob...
+server: secret (AES256 key): 29C9948057A0578E9094386C3283701BBEE72CBC87EF414BE92A4611B1D89083
+server: server (IV/nonce)  : BA7364F4FD1413D57F7D063B20921625
+server: client (IV/nonce)  : 7B6FAF62E3A59C09567CC6F9FD82A20C
+server: wrote 324 byte Bob packet to client.
+server: calling dhm_end_session for Bob session...
+server: received packet type D4D6, sequence 2 from client.
+server: read string: (size=26) This is a custom greeting
+server: write 102 byte encrypted packet back to client.
+server: ***** waiting for connection *****
+
+The client is invoked with the following command:
+
+./dhmtest --connect 127.0.0.1 -e -p -g "This is a custom greeting"
+
+The output from the client is as follows:
+
+[ssviatko@icosahedron diffie]$ ./dhmtest --connect 127.0.0.1 -e -p -g "This is a custom greeting"
+Diffie/Hellman/Merkle C Library Demonstration program
+-? or --help for usage and information.
+enabling diffie/hellman/merkle and AES encryption on sockets.
+showing constructed packets.
+selecting client mode
+attempting to connect to: 127.0.0.1 on port 9734
+client: connected.
+client: calling dhm_init_session for Alice session...
+client: calling dhm_get_alice...
+write_packet: sending packet to fd 3
+  version: 0101
+  packtype: D4D4
+  sequence: 1
+  data: (size: 588)
+C1 A5 F3 7D 3E 50 7F CF 83 CD 44 06 FB 61 45 FA C1 9B 8C 8E 7E DE FA 8F 19 3D FB 87 3E 88 D9 A9
+F3 36 47 FB F7 0E 23 B0 62 D9 00 05 8B C6 E6 4D FD C7 FF 72 94 9B 29 80 CC 60 BF 5C 7D 79 0B 69
+8C FB 72 DD 3B EC 5A EF BD 00 72 74 D3 B0 A2 2D F0 A5 7A 23 57 24 4D 3D 33 9E 1C 58 CC 37 AA D6
+FF B6 B9 DF C0 21 1A 3E 81 CA 92 84 AC 5E C1 F3 62 65 67 23 F9 B4 8E 50 AD 06 28 C2 C5 D8 D5 9E
+03 24 15 0D 7E EA AD 1E 51 60 EA C4 62 F2 DB 25 30 51 5B 1B C5 8E D0 F2 76 38 C7 3B 8D A8 C7 25
+BA C3 44 E5 6A 4B 53 38 A4 E2 F4 56 4E 75 B0 CC 30 0C EA 0F FA 66 BE CE D0 8E C8 3B 1F 56 28 4D
+1B 64 76 B6 A9 0E 89 0C DB 9D E4 0E 19 17 AD 2A A2 27 0F A4 CE C4 94 B8 57 F6 B1 4D 3F C3 EF 5E
+4B 3B 6B 07 9A 7A E0 40 06 8B F3 BE A4 AC E6 6B C0 6E 6C 80 63 E1 8D C6 C3 A8 4F 64 83 8A 8A E3
+37 59 F4 6C 9C 13 A0 7B A1 9B 87 EC B8 C0 A1 7D 6C 37 DC 4F C9 00 F2 E4 FA 42 14 11 13 7E 64 5B
+39 D9 AE 3A 52 99 47 66 A3 0F B6 3E AB CF 54 FC 18 64 51 EA 46 D5 97 56 B9 01 D6 9D 4F 22 6B 0D
+36 84 3E 7F 83 F7 CE 09 E7 1E 18 B2 72 03 BD 8A E3 54 24 BB A8 AF 97 11 5F 10 D5 E8 5F 49 60 74
+F3 7D 66 8D A2 A8 F9 98 42 06 6F 9E 47 7D A4 19 26 DB 87 13 B6 04 B9 F0 66 27 82 5B 4D 3B 34 1D
+1F 70 4F AA E9 FB A0 07 42 2A C9 FB C1 DC 8C A7 AB 19 1C 4A 71 C0 B8 81 B1 55 C9 DB 3D 28 83 C6
+5C 61 02 2F D2 62 70 F3 59 10 AD B7 57 D8 D1 9C AF 19 43 73 68 CA D4 0A 17 18 7B 56 94 AB 58 CF
+2C F2 B6 53 1D 8C A2 4F 23 A9 69 ED FE F0 13 C7 AD 83 1E 24 F4 C1 36 74 C7 2A 52 AD 63 DD 14 48
+B2 E1 DB 47 49 9C 21 E7 DD 52 CC B2 9A 02 FE 41 71 12 32 09 07 C8 50 8F 94 5B B1 AF E4 59 E8 4A
+2C F3 B8 8D 86 52 5C 9B 7D 24 0F CD 51 A0 90 D9 E5 B6 AA BD C6 23 7E 90 68 E3 6E 59 C4 C4 0E 6C
+BF 48 A0 7B B4 66 A2 A2 76 C3 8A 94 05 03 45 D3 20 1B EA CA BB C8 BB 2C 22 FA 94 82 A4 95 F5 05
+E2 D0 87 E5 FB 3E E6 A2 7A 5E B1 FB
+client: write 598 byte Alice packet to server.
+read_packet: read packet from fd 3
+  version: 0101
+  packtype: D4D5
+  sequence: 1
+  data: (size: 314)
+C2 A5 F5 36 D0 07 46 49 EE A1 01 8E 5E 6A 25 FD 8A 7C 28 05 F9 4F FC 79 EF 2A 42 25 AC 72 D9 A9
+F3 36 47 FB F7 0E 23 B0 62 D9 3F C7 B2 1E FB 51 47 F4 A1 E9 FC EC E6 A8 A1 67 7C C0 25 F3 53 C6
+3B 53 E3 77 FD AD 4A E2 C5 36 4D 23 DC 21 21 33 73 B9 03 8E 8C 4E 2A C8 66 25 DE 45 39 C3 0E A9
+70 9C 3F DD 8A 50 81 A5 FC EC 01 27 6E A3 8F 5B 9C 58 48 44 F7 42 13 E9 1E 0F C1 8C D4 94 30 A4
+2C F8 15 01 D9 CE D3 60 17 8C B2 11 86 63 CC 96 F1 E3 52 D1 14 8A 1E 87 7F 11 5F 2C 15 DB 20 20
+05 31 41 1B BC B1 BA 4A 65 D1 D1 F3 B3 AE E3 71 F1 98 5F 3A 8B E1 EB 07 ED 3F 8B 30 A8 27 5D 48
+18 40 A7 4A 4D F7 3B 69 68 D6 99 67 71 AD 8A BA CE BB 2A EE 0C 14 36 3F 20 F3 97 F1 6C CA 01 D9
+60 B0 A9 05 9A 49 55 1C 72 65 8D 3B 9F 8B 58 C3 FF 50 E9 24 0A B5 A7 1A 44 E5 3B 50 7A 35 9C 39
+88 01 92 85 06 89 AB 01 55 24 6E 1F C2 3A 99 02 1F 58 E4 43 CC FA EE 8F ED 41 75 94 BF 8A 1E C6
+9F 4A F0 95 CE 87 1D 49 12 C7 09 85 E5 7B 0B 14 E6 B1 29 D7 97 E4 52 D0 F9 B6
+client: received packet type D4D5, sequence 1 from server.
+client: calling dhm_alice_secret
+client: secret (AES256 key): 29C9948057A0578E9094386C3283701BBEE72CBC87EF414BE92A4611B1D89083
+client: server (IV/nonce)  : BA7364F4FD1413D57F7D063B20921625
+client: client (IV/nonce)  : 7B6FAF62E3A59C09567CC6F9FD82A20C
+client: calling dhm_end_session for Alice session...
+write_packet: sending packet to fd 3
+  version: 0101
+  packtype: D4D6
+  sequence: 2
+  data: (size: 26)
+5D 6B 31 5B 20 C5 82 CC A3 5A B1 5A 39 A4 89 19 30 8D 02 55 69 5F E2 AA 84 A6
+client: write 36 byte AES packet to server.
+read_packet: read packet from fd 3
+  version: 0101
+  packtype: D4D6
+  sequence: 2
+  data: (size: 92)
+A1 D3 5C E2 10 AA DB 9E 76 A8 D0 B1 CC 5E 81 99 E4 9E 37 10 EF B9 F5 5C B1 DC CF 50 73 B6 B9 C8
+B3 A0 76 98 06 B2 FB 5D 9E A7 14 BC D5 E3 EF A1 3A 7A EE C4 DF 70 CB 53 F7 E7 C3 B8 94 CC 1C 43
+48 F1 50 AF 61 DF BF 27 7C E8 FF 1B 26 A5 DD B0 D2 49 81 FC D4 B2 A1 26 76 0F C8 7E
+client: received packet type D4D6, sequence 2 from server.
+client: read string: (size=92) greetings from the server
+my greeting: Default greeting
+you sent: This is a custom greeting
