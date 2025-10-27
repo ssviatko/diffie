@@ -20,11 +20,11 @@ extern "C" {
 #endif
 
 #ifndef ECB
-  #define ECB 1
+  #define ECB 0
 #endif
 
 #ifndef CTR
-  #define CTR 0
+  #define CTR 1
 #endif
 
 

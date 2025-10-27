@@ -42,8 +42,11 @@ struct option g_options[] = {
 	{ "port", required_argument, NULL, 'o' },
 	{ "greeting", required_argument, NULL, 'g' },
 	{ "reqsd", no_argument, NULL, 'x' },
+	{ "encrypt", no_argument, NULL, 'e' },
 	{ NULL, 0, NULL, 0 }
 };
+
+/* globals */
 
 int g_debug = 0;
 int g_showpacks = 0;
@@ -52,6 +55,15 @@ int g_mode = 0; // 0=local, 1=client, 2=server
 uint16_t g_port = 9734;
 char g_greeting[BUFFLEN];
 int g_reqsd = 0;
+int g_encrypt = 0;
+
+/* AES stuff */
+
+struct AES_ctx g_aes_client_ctx;
+struct AES_ctx g_aes_server_ctx; // separate contexes because they will have different internal counters
+uint8_t g_aes_key[32]; // same key for both of them
+uint8_t g_aes_client_iv[16];
+uint8_t g_aes_server_iv[16]; // separate nonces for client and server
 
 int write_packet(int a_sockfd, uint16_t a_packtype, void *a_data, size_t a_size)
 {
@@ -84,10 +96,10 @@ int write_packet(int a_sockfd, uint16_t a_packtype, void *a_data, size_t a_size)
 		printf("  packtype: %04X\n", ntohs(l_header.packtype));
 		printf("  sequence: %d\n", ntohl(l_header.sequence));
 		printf("  data: (size: %d)", ntohs(l_header.size));
-		for (i = 0; i < l_pack_size; ++i) {
+		for (i = 0; i < a_size; ++i) {
 			if (i % 32 == 0)
 				printf("\n");
-			printf("%02X ", l_pack[i]);
+			printf("%02X ", l_pack[i + sizeof(outer_packet_header_t)]);
 		}
 		printf("\n");
 	}
@@ -156,6 +168,152 @@ int read_packet(int a_sockfd, outer_packet_header_t **a_header, uint8_t **a_data
 	return 0;
 }
 
+void client_action_encrypt(int sockfd)
+{
+	int i;
+	// prepare Alice packet and send it to the server
+	dhm_error_t dhm_result;
+
+	dhm_session_t *l_alice_session = NULL;
+	l_alice_session = malloc(sizeof(dhm_session_t));
+	if (l_alice_session == NULL) {
+		fprintf(stderr, "unable to allocate memory for DHM session.\n");
+		exit(EXIT_FAILURE);
+	}
+	printf("client: calling dhm_init_session for Alice session...\n");
+	dhm_result = dhm_init_session(l_alice_session, 1);
+	if (dhm_result != DHM_ERR_NONE) {
+		fprintf(stderr, "unable to dhm_init_session: %s\n", dhm_strerror(dhm_result));
+		exit(EXIT_FAILURE);
+	}
+	
+	dhm_alice_t *l_alice = NULL;
+	l_alice = malloc(sizeof(dhm_alice_t));
+	if (l_alice == NULL) {
+		fprintf(stderr, "unable to allocate memory for Alice packet.\n");
+		exit(EXIT_FAILURE);
+	}
+	dhm_private_t *l_alice_private = NULL;
+	l_alice_private = malloc(sizeof(dhm_private_t));
+	if (l_alice_private == NULL) {
+		fprintf(stderr, "unable to allocate memory for Alice private key.\n");
+		exit(EXIT_FAILURE);
+	}
+	printf("client: calling dhm_get_alice...\n");
+	dhm_result = dhm_get_alice(l_alice_session, l_alice, l_alice_private, g_debug);
+	if (dhm_result != DHM_ERR_NONE) {
+		fprintf(stderr, "unable to dhm_get_alice: %s\n", dhm_strerror(dhm_result));
+		exit(EXIT_FAILURE);
+	}
+	int writelen;
+	writelen = write_packet(sockfd, outer_packtype_alice, l_alice, sizeof(dhm_alice_t));
+	if (writelen == 0) {
+		fprintf(stderr, "client: EOF detected, exiting\n");
+		close(sockfd);
+		return;
+	} else if (writelen < 0) {
+		// problems writing, fatal error
+		fprintf(stderr, "client: can't write_packet: %s\n", strerror(errno));
+		close(sockfd);
+		return;
+	} else if (writelen != (sizeof(dhm_alice_t) + sizeof(outer_packet_header_t))) {
+		fprintf(stderr, "client: problems writing Alice packet, wrote %d bytes, expected to write %lu.\n", writelen, (sizeof(dhm_alice_t) + sizeof(outer_packet_header_t)));
+		exit(EXIT_FAILURE);
+	}
+	printf("client: write %d byte Alice packet to server.\n", writelen);
+	// wait for Bob packet to come back
+	outer_packet_header_t *l_read_header = NULL;
+	uint8_t *l_read_packet = NULL;
+	int read_packet_return = read_packet(sockfd, &l_read_header, &l_read_packet);
+	if (read_packet_return < 0) {
+		fprintf(stderr, "client: error reading reply packet\n");
+		close(sockfd);
+		return;
+	}
+	printf("client: received packet type %04X, sequence %d from server.\n", ntohs(l_read_header->packtype), ntohl(l_read_header->sequence));
+	// make sure it's a Bob packet
+	if (ntohs(l_read_header->packtype) != outer_packtype_bob) {
+		fprintf(stderr, "client: expecting Bob packet, error!\n");
+		exit(EXIT_FAILURE);
+	}
+	// l_read_packet should contain a Bob packet now
+	printf("client: calling dhm_alice_secret\n");
+	dhm_alice_secret(l_alice_session, l_alice, (dhm_bob_t *)l_read_packet, l_alice_private, g_debug);
+	printf("client: secret (AES256 key): ");
+	for (i = 0; i < 32; ++i) {
+		printf("%02X", l_alice_session->s[i]);
+		g_aes_key[i] = l_alice_session->s[i];
+	}
+	printf("\n");
+	printf("client: server (IV/nonce)  : ");
+	for (i = 32; i < 48; ++i) {
+		printf("%02X", l_alice_session->s[i]);
+		g_aes_server_iv[i - 32] = l_alice_session->s[i];
+	}
+	printf("\n");
+	printf("client: client (IV/nonce)  : ");
+	for (i = 48; i < 64; ++i) {
+		printf("%02X", l_alice_session->s[i]);
+		g_aes_client_iv[i - 48] = l_alice_session->s[i];
+	}
+	printf("\n");
+
+	// clean up
+	free(l_read_header);
+	free(l_read_packet);
+	printf("client: calling dhm_end_session for Alice session...\n");
+	dhm_result = dhm_end_session(l_alice_session, 1);
+	if (dhm_result != DHM_ERR_NONE) {
+		fprintf(stderr, "unable to dhm_end_session: %s\n", dhm_strerror(dhm_result));
+		exit(EXIT_FAILURE);
+	}
+	free(l_alice);
+	free(l_alice_private);
+	free(l_alice_session);
+
+	AES_init_ctx_iv(&g_aes_server_ctx, g_aes_key, g_aes_server_iv);
+	AES_init_ctx_iv(&g_aes_client_ctx, g_aes_key, g_aes_client_iv);
+	
+	// encrypt our greeting and send it
+	size_t l_greeting_len = strlen(g_greeting) + 1;
+	AES_CTR_xcrypt_buffer(&g_aes_client_ctx, (uint8_t *)g_greeting, l_greeting_len);
+
+	// send encrypted message and wait for reply
+	writelen = write_packet(sockfd, outer_packtype_aes, g_greeting, l_greeting_len);
+	if (writelen == 0) {
+		fprintf(stderr, "client: EOF detected, exiting\n");
+		close(sockfd);
+		return;
+	} else if (writelen < 0) {
+		// problems writing, fatal error
+		fprintf(stderr, "client: can't write_packet: %s\n", strerror(errno));
+		close(sockfd);
+		return;
+	}
+	printf("client: write %d byte AES packet to server.\n", writelen);
+	
+	l_read_header = NULL;
+	l_read_packet = NULL;
+	read_packet_return = read_packet(sockfd, &l_read_header, &l_read_packet);
+	if (read_packet_return < 0) {
+		fprintf(stderr, "client: error reading reply packet\n");
+		close(sockfd);
+		return;
+	}
+	printf("client: received packet type %04X, sequence %d from server.\n", ntohs(l_read_header->packtype), ntohl(l_read_header->sequence));
+	// make sure we received an aes packet
+	if (ntohs(l_read_header->packtype) != outer_packtype_aes) {
+		fprintf(stderr, "client: expecting AES packet, error!\n");
+		exit(EXIT_FAILURE);
+	}
+	// decrypt the payload
+	AES_CTR_xcrypt_buffer(&g_aes_server_ctx, (uint8_t *)l_read_packet, ntohs(l_read_header->size));
+	printf("client: read string: (size=%d) %s\n", ntohs(l_read_header->size), l_read_packet);
+	free(l_read_header);
+	free(l_read_packet);
+	close(sockfd);
+}
+
 void client_action(int sockfd)
 {
 	// read and write via sockfd
@@ -175,6 +333,12 @@ void client_action(int sockfd)
 		}
 		close(sockfd);
 		printf("client: sent termination packet to server.\n");
+		return;
+	}
+	// are we encrypting?
+	if (g_encrypt > 0) {
+		client_action_encrypt(sockfd);
+		close(sockfd);
 		return;
 	}
 	// write the trailing zero in our string for convenience
@@ -236,6 +400,7 @@ void mode_client()
 
 int server_action(int client_sockfd)
 {
+	int i;
 	// read and write to client on client_sockfd
 	outer_packet_header_t *l_read_header = NULL;
 	uint8_t *l_read_packet = NULL;
@@ -254,30 +419,158 @@ int server_action(int client_sockfd)
 		close(client_sockfd);
 		return -1;
 	}
-	printf("server: received packet type %04X, sequence %d from client.\n", ntohl(l_read_header->packtype), ntohl(l_read_header->sequence));
-	printf("server: read string: (size=%d) %s\n", ntohs(l_read_header->size), l_read_packet);
-	// prepare reply message
-	char l_buff[BUFFLEN];
-	sprintf(l_buff, "greetings from the server\nmy greeting: %s\nyou sent: %s\n", g_greeting, l_read_packet);
-	free(l_read_header); // don't need these anymore
-	free(l_read_packet);
+	printf("server: received packet type %04X, sequence %d from client.\n", ntohs(l_read_header->packtype), ntohl(l_read_header->sequence));
 	
-	// echo the string back
-	int writelen;
-	writelen = write_packet(client_sockfd, outer_packtype_textecho, l_buff, strlen(l_buff) + 1);
-	if (writelen == 0) {
-		fprintf(stderr, "server: EOF detected, hanging up\n");
-		close(client_sockfd);
-		return 0;
-	} else if (writelen < 0) {
-		// problems reading, nonfatal error that will recycle the server
-		fprintf(stderr, "server: can't write_packet: %s\n", strerror(errno));
-		close(client_sockfd);
-		return 0;
-	}
-	printf("server: write %d byte packet back to client.\n", writelen);
+	if (ntohs(l_read_header->packtype) == outer_packtype_textecho) {
+		printf("server: read string: (size=%d) %s\n", ntohs(l_read_header->size), l_read_packet);
+		// prepare reply message
+		char l_buff[BUFFLEN];
+		sprintf(l_buff, "greetings from the server\nmy greeting: %s\nyou sent: %s", g_greeting, l_read_packet);
+		free(l_read_header); // don't need these anymore
+		free(l_read_packet);
 
-	close(client_sockfd);
+		// echo the string back
+		int writelen;
+		writelen = write_packet(client_sockfd, outer_packtype_textecho, l_buff, strlen(l_buff) + 1);
+		if (writelen == 0) {
+			fprintf(stderr, "server: EOF detected, hanging up\n");
+			close(client_sockfd);
+			return 0;
+		} else if (writelen < 0) {
+			// problems reading, nonfatal error that will recycle the server
+			fprintf(stderr, "server: can't write_packet: %s\n", strerror(errno));
+			close(client_sockfd);
+			return 0;
+		}
+		printf("server: write %d byte packet back to client.\n", writelen);
+
+		close(client_sockfd);
+		return 0;
+	} else if (ntohs(l_read_header->packtype) == outer_packtype_alice) {
+		// handle Alice packet
+		dhm_error_t dhm_result;
+		dhm_session_t *l_bob_session = NULL;
+		l_bob_session = malloc(sizeof(dhm_session_t));
+		if (l_bob_session == NULL) {
+			fprintf(stderr, "unable to allocate memory for DHM Bob session.\n");
+			exit(EXIT_FAILURE);
+		}
+		printf("server: calling dhm_init_session for Bob session...\n");
+		dhm_result = dhm_init_session(l_bob_session, 1);
+		if (dhm_result != DHM_ERR_NONE) {
+			fprintf(stderr, "unable to dhm_init_session: %s\n", dhm_strerror(dhm_result));
+			exit(EXIT_FAILURE);
+		}
+		dhm_bob_t *l_bob = NULL;
+		l_bob = malloc(sizeof(dhm_bob_t));
+		if (l_bob == NULL) {
+			fprintf(stderr, "unable to allocate memory for Bob packet.\n");
+			exit(EXIT_FAILURE);
+		}
+		dhm_private_t *l_bob_private = NULL;
+		l_bob_private = malloc(sizeof(dhm_private_t));
+		if (l_bob_private == NULL) {
+			fprintf(stderr, "unable to allocate memory for Bob private key.\n");
+			exit(EXIT_FAILURE);
+		}
+		printf("server: calling dhm_get_bob...\n");
+		dhm_result = dhm_get_bob(l_bob_session, (dhm_alice_t *)l_read_packet, l_bob, l_bob_private, g_debug);
+		if (dhm_result != DHM_ERR_NONE) {
+			fprintf(stderr, "unable to dhm_get_bob: %s\n", dhm_strerror(dhm_result));
+			exit(EXIT_FAILURE);
+		}
+		printf("server: secret (AES256 key): ");
+		for (i = 0; i < 32; ++i) {
+			printf("%02X", l_bob_session->s[i]);
+			g_aes_key[i] = l_bob_session->s[i];
+		}
+		printf("\n");
+		printf("server: server (IV/nonce)  : ");
+		for (i = 32; i < 48; ++i) {
+			printf("%02X", l_bob_session->s[i]);
+			g_aes_server_iv[i - 32] = l_bob_session->s[i];
+		}
+		printf("\n");
+		printf("server: client (IV/nonce)  : ");
+		for (i = 48; i < 64; ++i) {
+			printf("%02X", l_bob_session->s[i]);
+			g_aes_client_iv[i - 48] = l_bob_session->s[i];
+		}
+		printf("\n");
+		// write Bob packet back to client
+		int writelen;
+		writelen = write_packet(client_sockfd, outer_packtype_bob, l_bob, sizeof(dhm_bob_t));
+		if (writelen == 0) {
+			fprintf(stderr, "server: EOF detected, exiting\n");
+			close(client_sockfd);
+			return 0;
+		} else if (writelen < 0) {
+			// problems writing, fatal error
+			fprintf(stderr, "client: can't write_packet: %s\n", strerror(errno));
+			close(client_sockfd);
+			return 0;
+		} else if (writelen != (sizeof(dhm_bob_t) + sizeof(outer_packet_header_t))) {
+			fprintf(stderr, "server: problems writing Bob packet, wrote %d bytes, expected to write %lu.\n", writelen, (sizeof(dhm_bob_t) + sizeof(outer_packet_header_t)));
+			exit(EXIT_FAILURE);
+		}
+		printf("server: wrote %d byte Bob packet to client.\n", writelen);
+		// clean up and seed the AES mechanism
+		free(l_read_header); // don't need these anymore
+		free(l_read_packet);
+		printf("server: calling dhm_end_session for Bob session...\n");
+		dhm_result = dhm_end_session(l_bob_session, 1);
+		if (dhm_result != DHM_ERR_NONE) {
+			fprintf(stderr, "unable to dhm_end_session: %s\n", dhm_strerror(dhm_result));
+			exit(EXIT_FAILURE);
+		}
+		free(l_bob);
+		free(l_bob_private);
+		free(l_bob_session);
+		
+		AES_init_ctx_iv(&g_aes_server_ctx, g_aes_key, g_aes_server_iv);
+		AES_init_ctx_iv(&g_aes_client_ctx, g_aes_key, g_aes_client_iv);
+
+		l_read_header = NULL;
+		l_read_packet = NULL;
+		read_packet_return = read_packet(client_sockfd, &l_read_header, &l_read_packet);
+		if (read_packet_return < 0) {
+			fprintf(stderr, "server: error reading encryption packet\n");
+			close(client_sockfd);
+			return 0;
+		}
+		printf("server: received packet type %04X, sequence %d from client.\n", ntohs(l_read_header->packtype), ntohl(l_read_header->sequence));
+		if (ntohs(l_read_header->packtype) != outer_packtype_aes) {
+			fprintf(stderr, "server: expecting AES packet, error!\n");
+			close(client_sockfd);
+			return 0;
+		}
+		// decrypt the payload
+		AES_CTR_xcrypt_buffer(&g_aes_client_ctx, (uint8_t *)l_read_packet, ntohs(l_read_header->size));
+		printf("server: read string: (size=%d) %s\n", ntohs(l_read_header->size), l_read_packet);
+		// prepare reply message
+		char l_buff[BUFFLEN];
+		sprintf(l_buff, "greetings from the server\nmy greeting: %s\nyou sent: %s", g_greeting, l_read_packet);
+		free(l_read_header); // don't need these anymore
+		free(l_read_packet);
+
+		size_t l_buff_len = strlen(l_buff) + 1;
+		AES_CTR_xcrypt_buffer(&g_aes_server_ctx, (uint8_t *)l_buff, l_buff_len);
+		
+		// echo the string back, encrypted this time
+		writelen = write_packet(client_sockfd, outer_packtype_aes, l_buff, l_buff_len);
+		if (writelen == 0) {
+			fprintf(stderr, "server: EOF detected, hanging up\n");
+			close(client_sockfd);
+			return 0;
+		} else if (writelen < 0) {
+			// problems reading, nonfatal error that will recycle the server
+			fprintf(stderr, "server: can't write_packet: %s\n", strerror(errno));
+			close(client_sockfd);
+			return 0;
+		}
+		printf("server: write %d byte encrypted packet back to client.\n", writelen);
+		close(client_sockfd);
+	}
 	return 0;
 }
 
@@ -315,7 +608,7 @@ void mode_server()
 	// create a connection queue and wait for clients
 	listen(server_sockfd, 5);
 	while (1) {
-		printf("server: waiting for connection...\n");
+		printf("server: ***** waiting for connection *****\n");
 		
 		// accept a connection
 		client_len = sizeof(client_address);
@@ -459,8 +752,13 @@ void mode_local()
 		printf("%02X", l_bob_session->s[i]);
 	}
 	printf("\n");
-	printf("local (Bob):   secret (IV/nonce)  : ");
+	printf("local (Bob):   server (IV/nonce)  : ");
 	for (i = 32; i < 48; ++i) {
+		printf("%02X", l_bob_session->s[i]);
+	}
+	printf("\n");
+	printf("local (Bob):   client (IV/nonce)  : ");
+	for (i = 48; i < 64; ++i) {
 		printf("%02X", l_bob_session->s[i]);
 	}
 	printf("\n");
@@ -484,8 +782,13 @@ void mode_local()
 		printf("%02X", l_alice_session->s[i]);
 	}
 	printf("\n");
-	printf("local (Alice): secret (IV/nonce)  : ");
+	printf("local (Alice): server (IV/nonce)  : ");
 	for (i = 32; i < 48; ++i) {
+		printf("%02X", l_alice_session->s[i]);
+	}
+	printf("\n");
+	printf("local (Alice): client (IV/nonce)  : ");
+	for (i = 48; i < 64; ++i) {
 		printf("%02X", l_alice_session->s[i]);
 	}
 	printf("\n");
@@ -521,12 +824,18 @@ int main(int argc, char **argv)
 	// set up default greeting in case user doesn't enter one
 	strcpy(g_greeting, "Default greeting");
 	
-	while ((opt = getopt_long(argc, argv, "dp?c:so:g:x", g_options, NULL)) != -1) {
+	while ((opt = getopt_long(argc, argv, "dp?c:so:g:xe", g_options, NULL)) != -1) {
 		switch (opt) {
 			case 'x':
 				{
 					g_reqsd = 1;
 					printf("requesting server shutdown.\n");
+				}
+				break;
+			case 'e':
+				{
+					g_encrypt = 1;
+					printf("enabling diffie/hellman/merkle and AES encryption on sockets.\n");
 				}
 				break;
 			case 'd':
@@ -576,6 +885,7 @@ int main(int argc, char **argv)
 					printf("  -g (--greeting) specify greeting message for socket communications\n");
 					printf("  -c (--connect) <IP> select client mode, specify host in dotted IP format\n");
 					printf("  -x (--reqsd) client mode only: request server shut down gracefully\n");
+					printf("  -e {--encrypt) client mode only: use diffie/hellman/merkle and AES\n");
 					printf("  -s (--server) select server mode\n");
 					printf("  omit -c and -s flags to run in local mode without socket connection\n");
 					exit(EXIT_SUCCESS);
