@@ -288,6 +288,7 @@ int main(int argc, char **argv)
             break;
             case '?':
             {
+                printf("AES256 CTR Mode file encryptor\n");
                 printf("usage: aesctr <options>\n");
                 printf("  -i (--in) <name> specify input file\n");
                 printf("  -o (--out) <name> specify output file\n");
@@ -299,6 +300,7 @@ int main(int argc, char **argv)
                 printf("  -p (--process) encrypt/decrypt in->out with specified key\n");
                 printf("  -g (--generate) create random AES256 key\n");
                 printf("       write random key to file specified by -k or --key\n");
+                printf("       WARNING - use key only once or security will be compromised\n");
                 printf("examples\n");
                 printf("  aesctr -gk <keyfile>  Generate new key and save to <keyfile>\n");
                 printf("  aesctr -p -i <infile> -o <outfile> -k <keyfile>  Process in->out\n");
