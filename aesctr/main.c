@@ -8,7 +8,6 @@
 #include <getopt.h>
 #include <sys/stat.h>
 
-#include "sha2.h"
 #include "aes.h"
 
 #define BUFFLEN 1024
