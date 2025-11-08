@@ -62,26 +62,6 @@ void print_hex(uint8_t *a_buffer, size_t a_len)
     printf("\n");
 }
 
-void progress(uint32_t a_sofar, uint32_t a_total)
-{
-    static size_t l_lastsize = 0;
-    int i;
-    char l_txt[BUFFLEN];
-
-    // cover over our previous message
-    for (i = 0; i < l_lastsize; ++i)
-        printf("\b");
-    for (i = 0; i < l_lastsize; ++i)
-        printf(" ");
-    for (i = 0; i < l_lastsize; ++i)
-        printf("\b");
-
-    // print our message
-    sprintf(l_txt, "(%d of %d) ", a_sofar, a_total);
-    l_lastsize = strlen(l_txt);
-    printf("%s", l_txt);
-}
-
 void load_key()
 {
     if (g_keyfile_specified == 0) {
@@ -177,6 +157,33 @@ void get_random(uint8_t *a_buffer, size_t a_len)
 
 void do_process()
 {
+    uint8_t l_buff[4096];
+    int res;
+
+    struct AES_ctx l_ctx;
+    AES_init_ctx_iv(&l_ctx, g_key, g_iv);
+
+    printf("aesctr: processing input file into output file...\n");
+    do {
+        res = read(g_infile_fd, l_buff, 4096);
+        if (res == 0) {
+            // EOF
+            continue;
+        }
+        if (res < 0) {
+            fprintf(stderr, "aesctr: unable to read from input file: %s\n", strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+        AES_CTR_xcrypt_buffer(&l_ctx, l_buff, res);
+        res = write(g_outfile_fd, l_buff, res);
+        if (res < 0) {
+            fprintf(stderr, "aesctr: unable to write to output file: %s\n", strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+    } while (res != 0);
+
+    close(g_infile_fd);
+    close(g_outfile_fd);
 }
 
 void do_generate()
@@ -223,6 +230,7 @@ void do_generate()
         printf("do_generate: generated iv");
         print_hex(g_iv, 16);
     }
+    close(key_fd);
 }
 
 int main(int argc, char **argv)
@@ -355,6 +363,7 @@ int main(int argc, char **argv)
                 exit(EXIT_FAILURE);
             }
             do_generate();
+            printf("aesctr: WARNING - do not use this key more than once or security will be compromised.\n");
         }
         break;
         default:
