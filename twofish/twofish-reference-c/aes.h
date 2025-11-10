@@ -23,6 +23,7 @@ INCLUDE IMPLEMENTATION SPECIFIC INFORMATION.
 */
 
 #include	<stdio.h>
+#include <stdint.h>
 #include	"platform.h"			/* platform-specific defines */
 
 /*	Defines:
@@ -76,9 +77,9 @@ INCLUDE IMPLEMENTATION SPECIFIC INFORMATION.
 	parameters at the bottom of the structs as appropriate.
 */
 
-typedef unsigned char BYTE;
-typedef	unsigned long DWORD;		/* 32-bit unsigned quantity */
-typedef DWORD fullSbox[4][256];
+typedef uint8_t BYTE;
+typedef	uint32_t DWORD;		/* 32-bit unsigned quantity */
+typedef uint32_t fullSbox[4][256];
 
 /* The structure for key information */
 typedef struct 
