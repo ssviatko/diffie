@@ -70,7 +70,7 @@ void print_hex(uint8_t *a_buffer, size_t a_len)
 {
 	int i;
 	for (i = 0; i < a_len; ++i) {
-		if (i % 32 == 0)
+		if (i % 64 == 0)
 			printf("\n");
 		printf("%02X ", a_buffer[i]);
 	}
