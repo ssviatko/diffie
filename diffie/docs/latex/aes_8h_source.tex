@@ -1,0 +1,104 @@
+\doxysection{aes.\+h}
+\hypertarget{aes_8h_source}{}\label{aes_8h_source}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ \_AES\_H\_}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ \_AES\_H\_}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00005\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ <stdint.h>}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ <stddef.h>}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{comment}{//\ \#define\ the\ macros\ below\ to\ 1/0\ to\ enable/disable\ the\ mode\ of\ operation.}}
+\DoxyCodeLine{00012\ \textcolor{comment}{//}}
+\DoxyCodeLine{00013\ \textcolor{comment}{//\ CBC\ enables\ AES\ encryption\ in\ CBC-\/mode\ of\ operation.}}
+\DoxyCodeLine{00014\ \textcolor{comment}{//\ CTR\ enables\ encryption\ in\ counter-\/mode.}}
+\DoxyCodeLine{00015\ \textcolor{comment}{//\ ECB\ enables\ the\ basic\ ECB\ 16-\/byte\ block\ algorithm.\ All\ can\ be\ enabled\ simultaneously.}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{comment}{//\ The\ \#ifndef-\/guard\ allows\ it\ to\ be\ configured\ before\ \#include'ing\ or\ at\ compile\ time.}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#ifndef\ CBC}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\ \ \#define\ CBC\ 0}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#ifndef\ ECB}}
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\ \ \#define\ ECB\ 0}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#ifndef\ CTR}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\ \ \#define\ CTR\ 1}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{comment}{//\#define\ AES128\ 1}}
+\DoxyCodeLine{00032\ \textcolor{comment}{//\#define\ AES192\ 1}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#define\ AES256\ 1}}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\#define\ AES\_BLOCKLEN\ 16\ }\textcolor{comment}{//\ Block\ length\ in\ bytes\ -\/\ AES\ is\ 128b\ block\ only}}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\#if\ defined(AES256)\ \&\&\ (AES256\ ==\ 1)}}
+\DoxyCodeLine{00038\ \textcolor{preprocessor}{\ \ \ \ \#define\ AES\_KEYLEN\ 32}}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\ \ \ \ \#define\ AES\_keyExpSize\ 240}}
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\#elif\ defined(AES192)\ \&\&\ (AES192\ ==\ 1)}}
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\ \ \ \ \#define\ AES\_KEYLEN\ 24}}
+\DoxyCodeLine{00042\ \textcolor{preprocessor}{\ \ \ \ \#define\ AES\_keyExpSize\ 208}}
+\DoxyCodeLine{00043\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00044\ \textcolor{preprocessor}{\ \ \ \ \#define\ AES\_KEYLEN\ 16\ \ \ }\textcolor{comment}{//\ Key\ length\ in\ bytes}}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\ \ \ \ \#define\ AES\_keyExpSize\ 176}}
+\DoxyCodeLine{00046\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00047\ }
+\DoxyCodeLine{00048\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structAES__ctx}{AES\_ctx}}}
+\DoxyCodeLine{00049\ \{}
+\DoxyCodeLine{00050\ \ \ uint8\_t\ RoundKey[AES\_keyExpSize];}
+\DoxyCodeLine{00051\ \textcolor{preprocessor}{\#if\ (defined(CBC)\ \&\&\ (CBC\ ==\ 1))\ ||\ (defined(CTR)\ \&\&\ (CTR\ ==\ 1))}}
+\DoxyCodeLine{00052\ \ \ uint8\_t\ Iv[AES\_BLOCKLEN];}
+\DoxyCodeLine{00053\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00054\ \};}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \textcolor{keywordtype}{void}\ AES\_init\_ctx(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structAES__ctx}{AES\_ctx}}*\ ctx,\ \textcolor{keyword}{const}\ uint8\_t*\ key);}
+\DoxyCodeLine{00057\ \textcolor{preprocessor}{\#if\ (defined(CBC)\ \&\&\ (CBC\ ==\ 1))\ ||\ (defined(CTR)\ \&\&\ (CTR\ ==\ 1))}}
+\DoxyCodeLine{00058\ \textcolor{keywordtype}{void}\ AES\_init\_ctx\_iv(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structAES__ctx}{AES\_ctx}}*\ ctx,\ \textcolor{keyword}{const}\ uint8\_t*\ key,\ \textcolor{keyword}{const}\ uint8\_t*\ iv);}
+\DoxyCodeLine{00059\ \textcolor{keywordtype}{void}\ AES\_ctx\_set\_iv(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structAES__ctx}{AES\_ctx}}*\ ctx,\ \textcolor{keyword}{const}\ uint8\_t*\ iv);}
+\DoxyCodeLine{00060\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \textcolor{preprocessor}{\#if\ defined(ECB)\ \&\&\ (ECB\ ==\ 1)}}
+\DoxyCodeLine{00063\ \textcolor{comment}{//\ buffer\ size\ is\ exactly\ AES\_BLOCKLEN\ bytes;\ }}
+\DoxyCodeLine{00064\ \textcolor{comment}{//\ you\ need\ only\ AES\_init\_ctx\ as\ IV\ is\ not\ used\ in\ ECB\ }}
+\DoxyCodeLine{00065\ \textcolor{comment}{//\ NB:\ ECB\ is\ considered\ insecure\ for\ most\ uses}}
+\DoxyCodeLine{00066\ \textcolor{keywordtype}{void}\ AES\_ECB\_encrypt(\textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structAES__ctx}{AES\_ctx}}*\ ctx,\ uint8\_t*\ buf);}
+\DoxyCodeLine{00067\ \textcolor{keywordtype}{void}\ AES\_ECB\_decrypt(\textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structAES__ctx}{AES\_ctx}}*\ ctx,\ uint8\_t*\ buf);}
+\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00069\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ \#if\ defined(ECB)\ \&\&\ (ECB\ ==\ !)}}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00072\ \textcolor{preprocessor}{\#if\ defined(CBC)\ \&\&\ (CBC\ ==\ 1)}}
+\DoxyCodeLine{00073\ \textcolor{comment}{//\ buffer\ size\ MUST\ be\ mutile\ of\ AES\_BLOCKLEN;}}
+\DoxyCodeLine{00074\ \textcolor{comment}{//\ Suggest\ https://en.wikipedia.org/wiki/Padding\_(cryptography)\#PKCS7\ for\ padding\ scheme}}
+\DoxyCodeLine{00075\ \textcolor{comment}{//\ NOTES:\ you\ need\ to\ set\ IV\ in\ ctx\ via\ AES\_init\_ctx\_iv()\ or\ AES\_ctx\_set\_iv()}}
+\DoxyCodeLine{00076\ \textcolor{comment}{//\ \ \ \ \ \ \ \ no\ IV\ should\ ever\ be\ reused\ with\ the\ same\ key\ }}
+\DoxyCodeLine{00077\ \textcolor{keywordtype}{void}\ AES\_CBC\_encrypt\_buffer(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structAES__ctx}{AES\_ctx}}*\ ctx,\ uint8\_t*\ buf,\ \textcolor{keywordtype}{size\_t}\ length);}
+\DoxyCodeLine{00078\ \textcolor{keywordtype}{void}\ AES\_CBC\_decrypt\_buffer(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structAES__ctx}{AES\_ctx}}*\ ctx,\ uint8\_t*\ buf,\ \textcolor{keywordtype}{size\_t}\ length);}
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ \#if\ defined(CBC)\ \&\&\ (CBC\ ==\ 1)}}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00083\ \textcolor{preprocessor}{\#if\ defined(CTR)\ \&\&\ (CTR\ ==\ 1)}}
+\DoxyCodeLine{00084\ }
+\DoxyCodeLine{00085\ \textcolor{comment}{//\ Same\ function\ for\ encrypting\ as\ for\ decrypting.\ }}
+\DoxyCodeLine{00086\ \textcolor{comment}{//\ IV\ is\ incremented\ for\ every\ block,\ and\ used\ after\ encryption\ as\ XOR-\/compliment\ for\ output}}
+\DoxyCodeLine{00087\ \textcolor{comment}{//\ Suggesting\ https://en.wikipedia.org/wiki/Padding\_(cryptography)\#PKCS7\ for\ padding\ scheme}}
+\DoxyCodeLine{00088\ \textcolor{comment}{//\ NOTES:\ you\ need\ to\ set\ IV\ in\ ctx\ with\ AES\_init\_ctx\_iv()\ or\ AES\_ctx\_set\_iv()}}
+\DoxyCodeLine{00089\ \textcolor{comment}{//\ \ \ \ \ \ \ \ no\ IV\ should\ ever\ be\ reused\ with\ the\ same\ key\ }}
+\DoxyCodeLine{00090\ \textcolor{keywordtype}{void}\ AES\_CTR\_xcrypt\_buffer(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structAES__ctx}{AES\_ctx}}*\ ctx,\ uint8\_t*\ buf,\ \textcolor{keywordtype}{size\_t}\ length);}
+\DoxyCodeLine{00091\ }
+\DoxyCodeLine{00092\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ \#if\ defined(CTR)\ \&\&\ (CTR\ ==\ 1)}}
+\DoxyCodeLine{00093\ }
+\DoxyCodeLine{00094\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00095\ \}}
+\DoxyCodeLine{00096\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00097\ }
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00099\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ \_AES\_H\_}}
+
+\end{DoxyCode}

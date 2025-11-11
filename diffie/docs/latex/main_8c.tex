@@ -1,0 +1,176 @@
+\doxysection{main.\+c File Reference}
+\hypertarget{main_8c}{}\label{main_8c}\index{main.c@{main.c}}
+
+
+\+: Diffie/\+Hellman/\+Merkle API  
+
+
+{\ttfamily \#include $<$stdio.\+h$>$}\newline
+{\ttfamily \#include $<$string.\+h$>$}\newline
+{\ttfamily \#include $<$errno.\+h$>$}\newline
+{\ttfamily \#include $<$stdint.\+h$>$}\newline
+{\ttfamily \#include $<$getopt.\+h$>$}\newline
+{\ttfamily \#include $<$netinet/in.\+h$>$}\newline
+{\ttfamily \#include $<$arpa/inet.\+h$>$}\newline
+{\ttfamily \#include $<$sys/types.\+h$>$}\newline
+{\ttfamily \#include $<$sys/socket.\+h$>$}\newline
+{\ttfamily \#include "{}dhm.\+h"{}}\newline
+{\ttfamily \#include "{}aes.\+h"{}}\newline
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{structouter__packet__header__t}{outer\+\_\+packet\+\_\+header\+\_\+t}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{main_8c_a65314ede9be8799048771161a9589f2b}\label{main_8c_a65314ede9be8799048771161a9589f2b} 
+\#define {\bfseries BUFFLEN}~1024
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{main_8c_a5e1d23502186066b0d1ed6883aab8c1c}\label{main_8c_a5e1d23502186066b0d1ed6883aab8c1c} 
+int {\bfseries write\+\_\+packet} (int a\+\_\+sockfd, uint16\+\_\+t a\+\_\+packtype, void \texorpdfstring{$\ast$}{*}a\+\_\+data, size\+\_\+t a\+\_\+size)
+\item 
+\Hypertarget{main_8c_a06c67cc315f6cfa5050befc63a64146f}\label{main_8c_a06c67cc315f6cfa5050befc63a64146f} 
+int {\bfseries read\+\_\+packet} (int a\+\_\+sockfd, \mbox{\hyperlink{structouter__packet__header__t}{outer\+\_\+packet\+\_\+header\+\_\+t}} \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}a\+\_\+header, uint8\+\_\+t \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}a\+\_\+data)
+\item 
+\Hypertarget{main_8c_af923bf491219dd2af5c9c692c1356090}\label{main_8c_af923bf491219dd2af5c9c692c1356090} 
+void {\bfseries client\+\_\+action\+\_\+encrypt} (int sockfd)
+\item 
+\Hypertarget{main_8c_a9cb74ee00b50d208f71a73b9a424775a}\label{main_8c_a9cb74ee00b50d208f71a73b9a424775a} 
+void {\bfseries client\+\_\+action} (int sockfd)
+\item 
+\Hypertarget{main_8c_ad307f305c8514d8ad8662de3b84f980d}\label{main_8c_ad307f305c8514d8ad8662de3b84f980d} 
+void {\bfseries mode\+\_\+client} ()
+\item 
+\Hypertarget{main_8c_ab9010ec9e9c39045aeebe27555ee6d76}\label{main_8c_ab9010ec9e9c39045aeebe27555ee6d76} 
+int {\bfseries server\+\_\+action} (int client\+\_\+sockfd)
+\item 
+\Hypertarget{main_8c_a75f02757fa44e2cab8a5af41721bc89e}\label{main_8c_a75f02757fa44e2cab8a5af41721bc89e} 
+void {\bfseries mode\+\_\+server} ()
+\item 
+\Hypertarget{main_8c_ad9e6a004659d5f81a2fde0154a5228a5}\label{main_8c_ad9e6a004659d5f81a2fde0154a5228a5} 
+void {\bfseries mode\+\_\+local} ()
+\item 
+\Hypertarget{main_8c_a3c04138a5bfe5d72780bb7e82a18e627}\label{main_8c_a3c04138a5bfe5d72780bb7e82a18e627} 
+int {\bfseries main} (int argc, char \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}argv)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{main_8c_a9af21c13d68183b6e056762225b63db8}\label{main_8c_a9af21c13d68183b6e056762225b63db8} 
+const uint16\+\_\+t {\bfseries outer\+\_\+current\+\_\+version} = 0x0101
+\item 
+\Hypertarget{main_8c_a2aa01c2e605bd69bf378c34472f58f33}\label{main_8c_a2aa01c2e605bd69bf378c34472f58f33} 
+const uint16\+\_\+t {\bfseries outer\+\_\+packtype\+\_\+dieplease} = 0xd4d2
+\item 
+\Hypertarget{main_8c_ad4493c3446f61b91c12df5f2331afb9e}\label{main_8c_ad4493c3446f61b91c12df5f2331afb9e} 
+const uint16\+\_\+t {\bfseries outer\+\_\+packtype\+\_\+textecho} = 0xd4d3
+\item 
+\Hypertarget{main_8c_a6d3848c90255caaa5a76e5a752330eee}\label{main_8c_a6d3848c90255caaa5a76e5a752330eee} 
+const uint16\+\_\+t {\bfseries outer\+\_\+packtype\+\_\+alice} = 0xd4d4
+\item 
+\Hypertarget{main_8c_a13a99750aefcb11032433fa577d42156}\label{main_8c_a13a99750aefcb11032433fa577d42156} 
+const uint16\+\_\+t {\bfseries outer\+\_\+packtype\+\_\+bob} = 0xd4d5
+\item 
+\Hypertarget{main_8c_abacea06d77614456eab8ccb5f2562472}\label{main_8c_abacea06d77614456eab8ccb5f2562472} 
+const uint16\+\_\+t {\bfseries outer\+\_\+packtype\+\_\+aes} = 0xd4d6
+\item 
+struct option \mbox{\hyperlink{main_8c_a6315a79306cebe07d41f7ebdf94d2854}{g\+\_\+options}} \mbox{[}$\,$\mbox{]}
+\item 
+\Hypertarget{main_8c_aec3da79caffa5aed7768d1a3de13d77f}\label{main_8c_aec3da79caffa5aed7768d1a3de13d77f} 
+int {\bfseries g\+\_\+debug} = 0
+\item 
+\Hypertarget{main_8c_a50ed4d9ccde78bbcdda648c4269fe9ad}\label{main_8c_a50ed4d9ccde78bbcdda648c4269fe9ad} 
+int {\bfseries g\+\_\+showpacks} = 0
+\item 
+\Hypertarget{main_8c_a105d63f016ea031951adfbc4d94cb50c}\label{main_8c_a105d63f016ea031951adfbc4d94cb50c} 
+char {\bfseries g\+\_\+host} \mbox{[}BUFFLEN\mbox{]}
+\item 
+\Hypertarget{main_8c_a85a86eafb0d37f425b4c85fc4de32ec4}\label{main_8c_a85a86eafb0d37f425b4c85fc4de32ec4} 
+int {\bfseries g\+\_\+mode} = 0
+\item 
+\Hypertarget{main_8c_a8897e2305155514cdb700c0d73f67ad6}\label{main_8c_a8897e2305155514cdb700c0d73f67ad6} 
+uint16\+\_\+t {\bfseries g\+\_\+port} = 9734
+\item 
+\Hypertarget{main_8c_ac0aa8a54c54abc51ad6ba8fba81e8742}\label{main_8c_ac0aa8a54c54abc51ad6ba8fba81e8742} 
+char {\bfseries g\+\_\+greeting} \mbox{[}BUFFLEN\mbox{]}
+\item 
+\Hypertarget{main_8c_a2a13ce13a4cb343cfdfb57d355046308}\label{main_8c_a2a13ce13a4cb343cfdfb57d355046308} 
+int {\bfseries g\+\_\+reqsd} = 0
+\item 
+\Hypertarget{main_8c_a06f42d9bffb9e2e8a23bfabecc2964e8}\label{main_8c_a06f42d9bffb9e2e8a23bfabecc2964e8} 
+int {\bfseries g\+\_\+encrypt} = 0
+\item 
+\Hypertarget{main_8c_a4604720feb43e561808395c3cfd45c4d}\label{main_8c_a4604720feb43e561808395c3cfd45c4d} 
+struct AES\+\_\+ctx {\bfseries g\+\_\+aes\+\_\+client\+\_\+ctx}
+\item 
+\Hypertarget{main_8c_a223ff64680c084c629b6dc093b6c7f8c}\label{main_8c_a223ff64680c084c629b6dc093b6c7f8c} 
+struct AES\+\_\+ctx {\bfseries g\+\_\+aes\+\_\+server\+\_\+ctx}
+\item 
+\Hypertarget{main_8c_abb7a716e142ec04837ab7497a441786d}\label{main_8c_abb7a716e142ec04837ab7497a441786d} 
+uint8\+\_\+t {\bfseries g\+\_\+aes\+\_\+key} \mbox{[}32\mbox{]}
+\item 
+\Hypertarget{main_8c_a3d5006fe5f72cba15daf2f0a4184ccda}\label{main_8c_a3d5006fe5f72cba15daf2f0a4184ccda} 
+uint8\+\_\+t {\bfseries g\+\_\+aes\+\_\+client\+\_\+iv} \mbox{[}16\mbox{]}
+\item 
+\Hypertarget{main_8c_a9d6294c8d91e16ca255a5924856c29aa}\label{main_8c_a9d6294c8d91e16ca255a5924856c29aa} 
+uint8\+\_\+t {\bfseries g\+\_\+aes\+\_\+server\+\_\+iv} \mbox{[}16\mbox{]}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\+: Diffie/\+Hellman/\+Merkle API 
+
+Diffie/\+Hellman/\+Merkle Implementation 2025/\+Nov/11 -\/ Revision 1
+
+Created by\+: Stephen Sviatko
+
+(C) 2025 Good Neighbors LLC -\/ All Rights Reserved, except where noted
+
+This file and any intellectual property (designs, algorithms, formulas, procedures, trademarks, and related documentation) contained herein are property of Good Neighbors, an Arizona Limited Liability Company.
+
+LICENSING INFORMATION
+
+This file may not be distributed in any modified form without expressed written permission of Good Neighbors LLC or its regents. Permission is granted to use this file in any non-\/commercial, non-\/governmental capacity (such as student projects, hobby projects, etc) without an official licensing agreement as long as the original author(s) are credited in any derivative work.
+
+Commercial licensing of this content is available, any agreement must include consulting services as part of a deployment strategy. For more information, please contact Stephen Sviatko at the following email address\+:
+
+\href{mailto:ssviatko@gmail.com}{\texttt{ssviatko@gmail.\+com}}
+
+This is a command-\/line program which implements Diffie/\+Hellman/\+Merkle in three possible ways\+:
+
+
+\begin{DoxyEnumerate}
+\item A local program which simulates a conversation between a client and a server, generating the needed packets and simulating the traversal of a network to generate the shared secrets.
+\item A server\+: this program can stand up an impromptu server which receives requests from a client to connect using a rudimentary network protocol used here for demonstration purposes.
+\item A client\+: this program can be configured to connect to a server instance and will initiate the conversation with the server in order to establish the shared secret. 
+\end{DoxyEnumerate}
+
+\label{doc-var-members}
+\Hypertarget{main_8c_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{main_8c_a6315a79306cebe07d41f7ebdf94d2854}\index{main.c@{main.c}!g\_options@{g\_options}}
+\index{g\_options@{g\_options}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{g\_options}{g\_options}}
+{\footnotesize\ttfamily \label{main_8c_a6315a79306cebe07d41f7ebdf94d2854} 
+struct option g\+\_\+options\mbox{[}$\,$\mbox{]}}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \{}
+\DoxyCodeLine{\ \ \ \ \{\ \textcolor{stringliteral}{"{}debug"{}},\ no\_argument,\ NULL,\ \textcolor{charliteral}{'d'}\ \},}
+\DoxyCodeLine{\ \ \ \ \{\ \textcolor{stringliteral}{"{}showpacks"{}},\ no\_argument,\ NULL,\ \textcolor{charliteral}{'p'}\ \},}
+\DoxyCodeLine{\ \ \ \ \{\ \textcolor{stringliteral}{"{}connect"{}},\ required\_argument,\ NULL,\ \textcolor{charliteral}{'c'}\ \},}
+\DoxyCodeLine{\ \ \ \ \{\ \textcolor{stringliteral}{"{}server"{}},\ no\_argument,\ NULL,\ \textcolor{charliteral}{'s'}\ \},}
+\DoxyCodeLine{\ \ \ \ \{\ \textcolor{stringliteral}{"{}help"{}},\ no\_argument,\ NULL,\ \textcolor{charliteral}{'?'}\ \},}
+\DoxyCodeLine{\ \ \ \ \{\ \textcolor{stringliteral}{"{}port"{}},\ required\_argument,\ NULL,\ \textcolor{charliteral}{'o'}\ \},}
+\DoxyCodeLine{\ \ \ \ \{\ \textcolor{stringliteral}{"{}greeting"{}},\ required\_argument,\ NULL,\ \textcolor{charliteral}{'g'}\ \},}
+\DoxyCodeLine{\ \ \ \ \{\ \textcolor{stringliteral}{"{}reqsd"{}},\ no\_argument,\ NULL,\ \textcolor{charliteral}{'x'}\ \},}
+\DoxyCodeLine{\ \ \ \ \{\ \textcolor{stringliteral}{"{}encrypt"{}},\ no\_argument,\ NULL,\ \textcolor{charliteral}{'e'}\ \},}
+\DoxyCodeLine{\ \ \ \ \{\ NULL,\ 0,\ NULL,\ 0\ \}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}

@@ -1,0 +1,113 @@
+\doxysection{sha2.\+h}
+\hypertarget{sha2_8h_source}{}\label{sha2_8h_source}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ FIPS\ 180-\/2\ SHA-\/224/256/384/512\ implementation}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ Last\ update:\ 02/02/2007}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ Issue\ date:\ \ 04/30/2005}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ Copyright\ (C)\ 2005,\ 2007\ Olivier\ Gay\ <olivier.gay@a3.epfl.ch>}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ All\ rights\ reserved.}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ Redistribution\ and\ use\ in\ source\ and\ binary\ forms,\ with\ or\ without}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ modification,\ are\ permitted\ provided\ that\ the\ following\ conditions}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ are\ met:}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ 1.\ Redistributions\ of\ source\ code\ must\ retain\ the\ above\ copyright}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ \ \ \ notice,\ this\ list\ of\ conditions\ and\ the\ following\ disclaimer.}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ 2.\ Redistributions\ in\ binary\ form\ must\ reproduce\ the\ above\ copyright}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ \ \ \ notice,\ this\ list\ of\ conditions\ and\ the\ following\ disclaimer\ in\ the}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ \ \ \ documentation\ and/or\ other\ materials\ provided\ with\ the\ distribution.}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ 3.\ Neither\ the\ name\ of\ the\ project\ nor\ the\ names\ of\ its\ contributors}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ \ \ \ may\ be\ used\ to\ endorse\ or\ promote\ products\ derived\ from\ this\ software}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ \ \ \ without\ specific\ prior\ written\ permission.}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ THIS\ SOFTWARE\ IS\ PROVIDED\ BY\ THE\ PROJECT\ AND\ CONTRIBUTORS\ \`{}\`{}AS\ IS''\ AND}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ ANY\ EXPRESS\ OR\ IMPLIED\ WARRANTIES,\ INCLUDING,\ BUT\ NOT\ LIMITED\ TO,\ THE}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *\ IMPLIED\ WARRANTIES\ OF\ MERCHANTABILITY\ AND\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *\ ARE\ DISCLAIMED.\ \ IN\ NO\ EVENT\ SHALL\ THE\ PROJECT\ OR\ CONTRIBUTORS\ BE\ LIABLE}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ *\ FOR\ ANY\ DIRECT,\ INDIRECT,\ INCIDENTAL,\ SPECIAL,\ EXEMPLARY,\ OR\ CONSEQUENTIAL}}
+\DoxyCodeLine{00026\ \textcolor{comment}{\ *\ DAMAGES\ (INCLUDING,\ BUT\ NOT\ LIMITED\ TO,\ PROCUREMENT\ OF\ SUBSTITUTE\ GOODS}}
+\DoxyCodeLine{00027\ \textcolor{comment}{\ *\ OR\ SERVICES;\ LOSS\ OF\ USE,\ DATA,\ OR\ PROFITS;\ OR\ BUSINESS\ INTERRUPTION)}}
+\DoxyCodeLine{00028\ \textcolor{comment}{\ *\ HOWEVER\ CAUSED\ AND\ ON\ ANY\ THEORY\ OF\ LIABILITY,\ WHETHER\ IN\ CONTRACT,\ STRICT}}
+\DoxyCodeLine{00029\ \textcolor{comment}{\ *\ LIABILITY,\ OR\ TORT\ (INCLUDING\ NEGLIGENCE\ OR\ OTHERWISE)\ ARISING\ IN\ ANY\ WAY}}
+\DoxyCodeLine{00030\ \textcolor{comment}{\ *\ OUT\ OF\ THE\ USE\ OF\ THIS\ SOFTWARE,\ EVEN\ IF\ ADVISED\ OF\ THE\ POSSIBILITY\ OF}}
+\DoxyCodeLine{00031\ \textcolor{comment}{\ *\ SUCH\ DAMAGE.}}
+\DoxyCodeLine{00032\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#ifndef\ SHA2\_H}}
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\#define\ SHA2\_H}}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\#define\ SHA224\_DIGEST\_SIZE\ (\ 224\ /\ 8)}}
+\DoxyCodeLine{00038\ \textcolor{preprocessor}{\#define\ SHA256\_DIGEST\_SIZE\ (\ 256\ /\ 8)}}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\#define\ SHA384\_DIGEST\_SIZE\ (\ 384\ /\ 8)}}
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\#define\ SHA512\_DIGEST\_SIZE\ (\ 512\ /\ 8)}}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \textcolor{preprocessor}{\#define\ SHA256\_BLOCK\_SIZE\ \ (\ 512\ /\ 8)}}
+\DoxyCodeLine{00043\ \textcolor{preprocessor}{\#define\ SHA512\_BLOCK\_SIZE\ \ (1024\ /\ 8)}}
+\DoxyCodeLine{00044\ \textcolor{preprocessor}{\#define\ SHA384\_BLOCK\_SIZE\ \ SHA512\_BLOCK\_SIZE}}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\#define\ SHA224\_BLOCK\_SIZE\ \ SHA256\_BLOCK\_SIZE}}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \textcolor{preprocessor}{\#ifndef\ SHA2\_TYPES}}
+\DoxyCodeLine{00048\ \textcolor{preprocessor}{\#define\ SHA2\_TYPES}}
+\DoxyCodeLine{00049\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ uint8;}
+\DoxyCodeLine{00050\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \ uint32;}
+\DoxyCodeLine{00051\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ uint64;}
+\DoxyCodeLine{00052\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00053\ }
+\DoxyCodeLine{00054\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00055\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00056\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ tot\_len;}
+\DoxyCodeLine{00060\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ len;}
+\DoxyCodeLine{00061\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ block[2\ *\ SHA256\_BLOCK\_SIZE];}
+\DoxyCodeLine{00062\ \ \ \ \ uint32\ h[8];}
+\DoxyCodeLine{00063\ \}\ \mbox{\hyperlink{structsha256__ctx}{sha256\_ctx}};}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00066\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ tot\_len;}
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ len;}
+\DoxyCodeLine{00068\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ block[2\ *\ SHA512\_BLOCK\_SIZE];}
+\DoxyCodeLine{00069\ \ \ \ \ uint64\ h[8];}
+\DoxyCodeLine{00070\ \}\ \mbox{\hyperlink{structsha512__ctx}{sha512\_ctx}};}
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00072\ \textcolor{keyword}{typedef}\ \mbox{\hyperlink{structsha512__ctx}{sha512\_ctx}}\ sha384\_ctx;}
+\DoxyCodeLine{00073\ \textcolor{keyword}{typedef}\ \mbox{\hyperlink{structsha256__ctx}{sha256\_ctx}}\ sha224\_ctx;}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \textcolor{keywordtype}{void}\ sha224\_init(sha224\_ctx\ *ctx);}
+\DoxyCodeLine{00076\ \textcolor{keywordtype}{void}\ sha224\_update(sha224\_ctx\ *ctx,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ *message,}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ len);}
+\DoxyCodeLine{00078\ \textcolor{keywordtype}{void}\ sha224\_final(sha224\_ctx\ *ctx,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ *digest);}
+\DoxyCodeLine{00079\ \textcolor{keywordtype}{void}\ sha224(\textcolor{keyword}{const}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ *message,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ len,}
+\DoxyCodeLine{00080\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ *digest);}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \textcolor{keywordtype}{void}\ sha256\_init(\mbox{\hyperlink{structsha256__ctx}{sha256\_ctx}}\ *\ ctx);}
+\DoxyCodeLine{00083\ \textcolor{keywordtype}{void}\ sha256\_update(\mbox{\hyperlink{structsha256__ctx}{sha256\_ctx}}\ *ctx,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ *message,}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ len);}
+\DoxyCodeLine{00085\ \textcolor{keywordtype}{void}\ sha256\_final(\mbox{\hyperlink{structsha256__ctx}{sha256\_ctx}}\ *ctx,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ *digest);}
+\DoxyCodeLine{00086\ \textcolor{keywordtype}{void}\ sha256(\textcolor{keyword}{const}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ *message,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ len,}
+\DoxyCodeLine{00087\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ *digest);}
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ \textcolor{keywordtype}{void}\ sha384\_init(sha384\_ctx\ *ctx);}
+\DoxyCodeLine{00090\ \textcolor{keywordtype}{void}\ sha384\_update(sha384\_ctx\ *ctx,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ *message,}
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ len);}
+\DoxyCodeLine{00092\ \textcolor{keywordtype}{void}\ sha384\_final(sha384\_ctx\ *ctx,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ *digest);}
+\DoxyCodeLine{00093\ \textcolor{keywordtype}{void}\ sha384(\textcolor{keyword}{const}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ *message,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ len,}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ *digest);}
+\DoxyCodeLine{00095\ }
+\DoxyCodeLine{00096\ \textcolor{keywordtype}{void}\ sha512\_init(\mbox{\hyperlink{structsha512__ctx}{sha512\_ctx}}\ *ctx);}
+\DoxyCodeLine{00097\ \textcolor{keywordtype}{void}\ sha512\_update(\mbox{\hyperlink{structsha512__ctx}{sha512\_ctx}}\ *ctx,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ *message,}
+\DoxyCodeLine{00098\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ len);}
+\DoxyCodeLine{00099\ \textcolor{keywordtype}{void}\ sha512\_final(\mbox{\hyperlink{structsha512__ctx}{sha512\_ctx}}\ *ctx,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ *digest);}
+\DoxyCodeLine{00100\ \textcolor{keywordtype}{void}\ sha512(\textcolor{keyword}{const}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ *message,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ len,}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ *digest);}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00104\ \}}
+\DoxyCodeLine{00105\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00107\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ !SHA2\_H\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00108\ }
+
+\end{DoxyCode}

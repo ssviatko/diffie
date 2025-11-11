@@ -1,0 +1,86 @@
+\doxysection{dhm.\+c File Reference}
+\hypertarget{dhm_8c}{}\label{dhm_8c}\index{dhm.c@{dhm.c}}
+
+
+\+: Diffie/\+Hellman/\+Merkle API  
+
+
+{\ttfamily \#include "{}dhm.\+h"{}}\newline
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{dhm_8c_aa44c1cf8b7bca7f04a60b1ca52203282}\label{dhm_8c_aa44c1cf8b7bca7f04a60b1ca52203282} 
+const char \texorpdfstring{$\ast$}{*} {\bfseries dhm\+\_\+strerror} (dhm\+\_\+error\+\_\+t a\+\_\+errno)
+\item 
+\Hypertarget{dhm_8c_a21438ebaaf28c3e60b8ee4c4a70737f2}\label{dhm_8c_a21438ebaaf28c3e60b8ee4c4a70737f2} 
+dhm\+\_\+error\+\_\+t {\bfseries dhm\+\_\+init\+\_\+session} (\mbox{\hyperlink{structdhm__session__t}{dhm\+\_\+session\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+session, int a\+\_\+debug)
+\item 
+\Hypertarget{dhm_8c_a5c7f07b0fcd25d44cc6bf950bf1901ff}\label{dhm_8c_a5c7f07b0fcd25d44cc6bf950bf1901ff} 
+dhm\+\_\+error\+\_\+t {\bfseries dhm\+\_\+end\+\_\+session} (\mbox{\hyperlink{structdhm__session__t}{dhm\+\_\+session\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+session, int a\+\_\+debug)
+\item 
+\Hypertarget{dhm_8c_a20e498509ab2d72f873ae5cf8fbcb2f2}\label{dhm_8c_a20e498509ab2d72f873ae5cf8fbcb2f2} 
+dhm\+\_\+error\+\_\+t {\bfseries dhm\+\_\+get\+\_\+alice} (\mbox{\hyperlink{structdhm__session__t}{dhm\+\_\+session\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+session, \mbox{\hyperlink{structdhm__alice__t}{dhm\+\_\+alice\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+alice, \mbox{\hyperlink{structdhm__private__t}{dhm\+\_\+private\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+alice\+\_\+private, int a\+\_\+debug)
+\item 
+\Hypertarget{dhm_8c_aa38caf5aee4b1b879cce239d7e586e30}\label{dhm_8c_aa38caf5aee4b1b879cce239d7e586e30} 
+dhm\+\_\+error\+\_\+t {\bfseries dhm\+\_\+get\+\_\+bob} (\mbox{\hyperlink{structdhm__session__t}{dhm\+\_\+session\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+session, \mbox{\hyperlink{structdhm__alice__t}{dhm\+\_\+alice\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+alice, \mbox{\hyperlink{structdhm__bob__t}{dhm\+\_\+bob\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+bob, \mbox{\hyperlink{structdhm__private__t}{dhm\+\_\+private\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+bob\+\_\+private, int a\+\_\+debug)
+\item 
+\Hypertarget{dhm_8c_a2764b9e4a8ebde2e60b862d5d46d0ea9}\label{dhm_8c_a2764b9e4a8ebde2e60b862d5d46d0ea9} 
+dhm\+\_\+error\+\_\+t {\bfseries dhm\+\_\+alice\+\_\+secret} (\mbox{\hyperlink{structdhm__session__t}{dhm\+\_\+session\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+session, \mbox{\hyperlink{structdhm__alice__t}{dhm\+\_\+alice\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+alice, \mbox{\hyperlink{structdhm__bob__t}{dhm\+\_\+bob\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+bob, \mbox{\hyperlink{structdhm__private__t}{dhm\+\_\+private\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+alice\+\_\+private, int a\+\_\+debug)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+const char \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{dhm_8c_ad0fb803c9bdb253535933f855ae1c9ce}{dhm\+\_\+error\+\_\+string}} \mbox{[}$\,$\mbox{]}
+\item 
+\Hypertarget{dhm_8c_ab635bd77ea7ce7a2426f0bed5ca2743c}\label{dhm_8c_ab635bd77ea7ce7a2426f0bed5ca2743c} 
+const uint16\+\_\+t {\bfseries dhm\+\_\+alice\+\_\+packtype} = 0xc1a5
+\item 
+\Hypertarget{dhm_8c_a6d92d9d6f5a3cf44fdc895b4e6e93f67}\label{dhm_8c_a6d92d9d6f5a3cf44fdc895b4e6e93f67} 
+const uint16\+\_\+t {\bfseries dhm\+\_\+bob\+\_\+packtype} = 0xc2a5
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\+: Diffie/\+Hellman/\+Merkle API 
+
+Diffie/\+Hellman/\+Merkle Implementation 2025/\+Nov/11 -\/ Revision 1
+
+Created by\+: Stephen Sviatko
+
+(C) 2025 Good Neighbors LLC -\/ All Rights Reserved, except where noted
+
+This file and any intellectual property (designs, algorithms, formulas, procedures, trademarks, and related documentation) contained herein are property of Good Neighbors, an Arizona Limited Liability Company.
+
+LICENSING INFORMATION
+
+This file may not be distributed in any modified form without expressed written permission of Good Neighbors LLC or its regents. Permission is granted to use this file in any non-\/commercial, non-\/governmental capacity (such as student projects, hobby projects, etc) without an official licensing agreement as long as the original author(s) are credited in any derivative work.
+
+Commercial licensing of this content is available, any agreement must include consulting services as part of a deployment strategy. For more information, please contact Stephen Sviatko at the following email address\+:
+
+\href{mailto:ssviatko@gmail.com}{\texttt{ssviatko@gmail.\+com}}
+
+This file implements the Diffie/\+Hellman/\+Merkle API, which provides sessions, formatted packets, and mathematical functions for computing the secrets of the Diffie/\+Hellman/\+Merkle algorithm. It also provides the basis for implementation of custom protocols for sending requests over a network. 
+
+\label{doc-var-members}
+\Hypertarget{dhm_8c_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{dhm_8c_ad0fb803c9bdb253535933f855ae1c9ce}\index{dhm.c@{dhm.c}!dhm\_error\_string@{dhm\_error\_string}}
+\index{dhm\_error\_string@{dhm\_error\_string}!dhm.c@{dhm.c}}
+\doxysubsubsection{\texorpdfstring{dhm\_error\_string}{dhm\_error\_string}}
+{\footnotesize\ttfamily \label{dhm_8c_ad0fb803c9bdb253535933f855ae1c9ce} 
+const char\texorpdfstring{$\ast$}{*} dhm\+\_\+error\+\_\+string\mbox{[}$\,$\mbox{]}}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \{}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}none"{}},}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}unable\ to\ open\ /dev/urandom"{}},}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}unable\ to\ read\ /dev/urandom"{}},}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}unable\ to\ close\ /dev/urandom"{}},}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}value\ error"{}},}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}general\ unspecified\ error"{}},}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}unrecognized\ packet\ type"{}},}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}packet\ hash\ check\ failure"{}}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}

@@ -1,0 +1,107 @@
+\doxysection{dhm.\+h File Reference}
+\hypertarget{dhm_8h}{}\label{dhm_8h}\index{dhm.h@{dhm.h}}
+
+
+\+: Diffie/\+Hellman/\+Merkle API  
+
+
+{\ttfamily \#include $<$stdio.\+h$>$}\newline
+{\ttfamily \#include $<$string.\+h$>$}\newline
+{\ttfamily \#include $<$stdint.\+h$>$}\newline
+{\ttfamily \#include $<$stdlib.\+h$>$}\newline
+{\ttfamily \#include $<$unistd.\+h$>$}\newline
+{\ttfamily \#include $<$fcntl.\+h$>$}\newline
+{\ttfamily \#include $<$gmp.\+h$>$}\newline
+{\ttfamily \#include $<$arpa/inet.\+h$>$}\newline
+{\ttfamily \#include "{}sha2.\+h"{}}\newline
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{structdhm__session__t}{dhm\+\_\+session\+\_\+t}}
+\item 
+struct \mbox{\hyperlink{structdhm__alice__t}{dhm\+\_\+alice\+\_\+t}}
+\item 
+struct \mbox{\hyperlink{structdhm__bob__t}{dhm\+\_\+bob\+\_\+t}}
+\item 
+struct \mbox{\hyperlink{structdhm__private__t}{dhm\+\_\+private\+\_\+t}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{dhm_8h_af0cfa0fa2ade08c61d068edb40efef19}\label{dhm_8h_af0cfa0fa2ade08c61d068edb40efef19} 
+\#define {\bfseries PUBBITS}~2176
+\item 
+\Hypertarget{dhm_8h_a1a6af30ebffd0b3f98181cd1a566fe33}\label{dhm_8h_a1a6af30ebffd0b3f98181cd1a566fe33} 
+\#define {\bfseries PUBSIZE}~272
+\item 
+\Hypertarget{dhm_8h_a01da229784c8ffae92d66d62d8c96755}\label{dhm_8h_a01da229784c8ffae92d66d62d8c96755} 
+\#define {\bfseries PRIVBITS}~368
+\item 
+\Hypertarget{dhm_8h_a9588f3fd335efb0f753799dc378b3127}\label{dhm_8h_a9588f3fd335efb0f753799dc378b3127} 
+\#define {\bfseries PRIVSIZE}~46
+\item 
+\Hypertarget{dhm_8h_a8c9d5dcc8e5c8be67640e74b215a184d}\label{dhm_8h_a8c9d5dcc8e5c8be67640e74b215a184d} 
+\#define {\bfseries GUIDSIZE}~12
+\item 
+\Hypertarget{dhm_8h_a100560f4ee65a6fa8aa0cdd39561f470}\label{dhm_8h_a100560f4ee65a6fa8aa0cdd39561f470} 
+\#define {\bfseries SHASIZE}~28
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Enumerations}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}\label{dhm_8h_ad0e874d4b6aa4405e92045d1803df124} 
+enum {\bfseries dhm\+\_\+error\+\_\+t} \{ \newline
+{\bfseries DHM\+\_\+\+ERR\+\_\+\+NONE} = 0
+, {\bfseries DHM\+\_\+\+ERR\+\_\+\+OPENURANDOM}
+, {\bfseries DHM\+\_\+\+ERR\+\_\+\+READURANDOM}
+, {\bfseries DHM\+\_\+\+ERR\+\_\+\+CLOSEURANDOM}
+, \newline
+{\bfseries DHM\+\_\+\+ERR\+\_\+\+VALUE}
+, {\bfseries DHM\+\_\+\+ERR\+\_\+\+GENERAL}
+, {\bfseries DHM\+\_\+\+ERR\+\_\+\+WRONG\+\_\+\+PACKTYPE}
+, {\bfseries DHM\+\_\+\+ERR\+\_\+\+HASH\+\_\+\+FAILURE}
+ \}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{dhm_8h_aa44c1cf8b7bca7f04a60b1ca52203282}\label{dhm_8h_aa44c1cf8b7bca7f04a60b1ca52203282} 
+const char \texorpdfstring{$\ast$}{*} {\bfseries dhm\+\_\+strerror} (dhm\+\_\+error\+\_\+t a\+\_\+errno)
+\item 
+\Hypertarget{dhm_8h_a21438ebaaf28c3e60b8ee4c4a70737f2}\label{dhm_8h_a21438ebaaf28c3e60b8ee4c4a70737f2} 
+dhm\+\_\+error\+\_\+t {\bfseries dhm\+\_\+init\+\_\+session} (\mbox{\hyperlink{structdhm__session__t}{dhm\+\_\+session\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+session, int a\+\_\+debug)
+\item 
+\Hypertarget{dhm_8h_a5c7f07b0fcd25d44cc6bf950bf1901ff}\label{dhm_8h_a5c7f07b0fcd25d44cc6bf950bf1901ff} 
+dhm\+\_\+error\+\_\+t {\bfseries dhm\+\_\+end\+\_\+session} (\mbox{\hyperlink{structdhm__session__t}{dhm\+\_\+session\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+session, int a\+\_\+debug)
+\item 
+\Hypertarget{dhm_8h_a20e498509ab2d72f873ae5cf8fbcb2f2}\label{dhm_8h_a20e498509ab2d72f873ae5cf8fbcb2f2} 
+dhm\+\_\+error\+\_\+t {\bfseries dhm\+\_\+get\+\_\+alice} (\mbox{\hyperlink{structdhm__session__t}{dhm\+\_\+session\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+session, \mbox{\hyperlink{structdhm__alice__t}{dhm\+\_\+alice\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+alice, \mbox{\hyperlink{structdhm__private__t}{dhm\+\_\+private\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+alice\+\_\+private, int a\+\_\+debug)
+\item 
+\Hypertarget{dhm_8h_aa38caf5aee4b1b879cce239d7e586e30}\label{dhm_8h_aa38caf5aee4b1b879cce239d7e586e30} 
+dhm\+\_\+error\+\_\+t {\bfseries dhm\+\_\+get\+\_\+bob} (\mbox{\hyperlink{structdhm__session__t}{dhm\+\_\+session\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+session, \mbox{\hyperlink{structdhm__alice__t}{dhm\+\_\+alice\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+alice, \mbox{\hyperlink{structdhm__bob__t}{dhm\+\_\+bob\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+bob, \mbox{\hyperlink{structdhm__private__t}{dhm\+\_\+private\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+bob\+\_\+private, int a\+\_\+debug)
+\item 
+\Hypertarget{dhm_8h_a2764b9e4a8ebde2e60b862d5d46d0ea9}\label{dhm_8h_a2764b9e4a8ebde2e60b862d5d46d0ea9} 
+dhm\+\_\+error\+\_\+t {\bfseries dhm\+\_\+alice\+\_\+secret} (\mbox{\hyperlink{structdhm__session__t}{dhm\+\_\+session\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+session, \mbox{\hyperlink{structdhm__alice__t}{dhm\+\_\+alice\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+alice, \mbox{\hyperlink{structdhm__bob__t}{dhm\+\_\+bob\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+bob, \mbox{\hyperlink{structdhm__private__t}{dhm\+\_\+private\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+alice\+\_\+private, int a\+\_\+debug)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\+: Diffie/\+Hellman/\+Merkle API 
+
+Diffie/\+Hellman/\+Merkle Implementation 2025/\+Nov/11 -\/ Revision 1
+
+Created by\+: Stephen Sviatko
+
+(C) 2025 Good Neighbors LLC -\/ All Rights Reserved, except where noted
+
+This file and any intellectual property (designs, algorithms, formulas, procedures, trademarks, and related documentation) contained herein are property of Good Neighbors, an Arizona Limited Liability Company.
+
+LICENSING INFORMATION
+
+This file may not be distributed in any modified form without expressed written permission of Good Neighbors LLC or its regents. Permission is granted to use this file in any non-\/commercial, non-\/governmental capacity (such as student projects, hobby projects, etc) without an official licensing agreement as long as the original author(s) are credited in any derivative work.
+
+Commercial licensing of this content is available, any agreement must include consulting services as part of a deployment strategy. For more information, please contact Stephen Sviatko at the following email address\+:
+
+\href{mailto:ssviatko@gmail.com}{\texttt{ssviatko@gmail.\+com}}
+
+This file implements the Diffie/\+Hellman/\+Merkle API, which provides sessions, formatted packets, and mathematical functions for computing the secrets of the Diffie/\+Hellman/\+Merkle algorithm. It also provides the basis for implementation of custom protocols for sending requests over a network. 

@@ -1,0 +1,77 @@
+\doxysection{dhm.\+h}
+\hypertarget{dhm_8h_source}{}\label{dhm_8h_source}\mbox{\hyperlink{dhm_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\#ifndef\ DHM\_H}}
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\#define\ DHM\_H}}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \textcolor{preprocessor}{\#pragma\ pack(1)}}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \textcolor{preprocessor}{\#include\ <stdio.h>}}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\#include\ <string.h>}}
+\DoxyCodeLine{00046\ \textcolor{preprocessor}{\#include\ <stdint.h>}}
+\DoxyCodeLine{00047\ \textcolor{preprocessor}{\#include\ <stdlib.h>}}
+\DoxyCodeLine{00048\ \textcolor{preprocessor}{\#include\ <unistd.h>}}
+\DoxyCodeLine{00049\ \textcolor{preprocessor}{\#include\ <fcntl.h>}}
+\DoxyCodeLine{00050\ \textcolor{preprocessor}{\#include\ <gmp.h>}}
+\DoxyCodeLine{00051\ \textcolor{preprocessor}{\#include\ <arpa/inet.h>}}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \textcolor{preprocessor}{\#include\ "{}sha2.h"{}}}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \textcolor{preprocessor}{\#define\ PUBBITS\ 2176}}
+\DoxyCodeLine{00056\ \textcolor{preprocessor}{\#define\ PUBSIZE\ 272}}
+\DoxyCodeLine{00057\ \textcolor{preprocessor}{\#define\ PRIVBITS\ 368}}
+\DoxyCodeLine{00058\ \textcolor{preprocessor}{\#define\ PRIVSIZE\ 46}}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ \textcolor{preprocessor}{\#define\ GUIDSIZE\ 12\ }\textcolor{comment}{//\ size\ of\ unique\ session\ ID\ token}}
+\DoxyCodeLine{00061\ \textcolor{preprocessor}{\#define\ SHASIZE\ 28\ }\textcolor{comment}{//\ size\ of\ a\ SHA2-\/224\ hash}}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00064\ \ \ \ \ \textcolor{keywordtype}{int}\ urandom\_fd;}
+\DoxyCodeLine{00065\ \ \ \ \ uint8\_t\ guid[GUIDSIZE];}
+\DoxyCodeLine{00066\ \ \ \ \ uint8\_t\ s[PUBSIZE];}
+\DoxyCodeLine{00067\ \}\ \mbox{\hyperlink{structdhm__session__t}{dhm\_session\_t}};}
+\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00069\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00070\ \ \ \ \ uint16\_t\ packtype;}
+\DoxyCodeLine{00071\ \ \ \ \ uint8\_t\ hash[SHASIZE];\ \textcolor{comment}{//\ hash\ of\ everything\ subsequent\ to\ this\ field}}
+\DoxyCodeLine{00072\ \ \ \ \ uint8\_t\ guid[GUIDSIZE];}
+\DoxyCodeLine{00073\ \ \ \ \ uint16\_t\ g;}
+\DoxyCodeLine{00074\ \ \ \ \ uint8\_t\ p[PUBSIZE];}
+\DoxyCodeLine{00075\ \ \ \ \ uint8\_t\ A[PUBSIZE];}
+\DoxyCodeLine{00076\ \}\ \mbox{\hyperlink{structdhm__alice__t}{dhm\_alice\_t}};}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00079\ \ \ \ \ uint16\_t\ packtype;}
+\DoxyCodeLine{00080\ \ \ \ \ uint8\_t\ hash[SHASIZE];}
+\DoxyCodeLine{00081\ \ \ \ \ uint8\_t\ guid[GUIDSIZE];}
+\DoxyCodeLine{00082\ \ \ \ \ uint8\_t\ B[PUBSIZE];}
+\DoxyCodeLine{00083\ \}\ \mbox{\hyperlink{structdhm__bob__t}{dhm\_bob\_t}};}
+\DoxyCodeLine{00084\ }
+\DoxyCodeLine{00085\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00086\ \ \ \ \ uint8\_t\ key[PRIVSIZE];}
+\DoxyCodeLine{00087\ \}\ \mbox{\hyperlink{structdhm__private__t}{dhm\_private\_t}};}
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \{}
+\DoxyCodeLine{00090\ \ \ \ \ DHM\_ERR\_NONE\ =\ 0,}
+\DoxyCodeLine{00091\ \ \ \ \ DHM\_ERR\_OPENURANDOM,}
+\DoxyCodeLine{00092\ \ \ \ \ DHM\_ERR\_READURANDOM,}
+\DoxyCodeLine{00093\ \ \ \ \ DHM\_ERR\_CLOSEURANDOM,}
+\DoxyCodeLine{00094\ \ \ \ \ DHM\_ERR\_VALUE,}
+\DoxyCodeLine{00095\ \ \ \ \ DHM\_ERR\_GENERAL,}
+\DoxyCodeLine{00096\ \ \ \ \ DHM\_ERR\_WRONG\_PACKTYPE,}
+\DoxyCodeLine{00097\ \ \ \ \ DHM\_ERR\_HASH\_FAILURE}
+\DoxyCodeLine{00098\ \}\ dhm\_error\_t;}
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *dhm\_strerror\ \ \ \ \ (dhm\_error\_t\ a\_errno);}
+\DoxyCodeLine{00101\ dhm\_error\_t\ dhm\_init\_session\ (\mbox{\hyperlink{structdhm__session__t}{dhm\_session\_t}}\ *a\_session,\ \textcolor{keywordtype}{int}\ a\_debug);}
+\DoxyCodeLine{00102\ dhm\_error\_t\ dhm\_end\_session\ \ (\mbox{\hyperlink{structdhm__session__t}{dhm\_session\_t}}\ *a\_session,\ \textcolor{keywordtype}{int}\ a\_debug);}
+\DoxyCodeLine{00103\ dhm\_error\_t\ dhm\_get\_alice\ \ \ \ (\mbox{\hyperlink{structdhm__session__t}{dhm\_session\_t}}\ *a\_session,\ \mbox{\hyperlink{structdhm__alice__t}{dhm\_alice\_t}}\ *a\_alice,\ \mbox{\hyperlink{structdhm__private__t}{dhm\_private\_t}}\ *a\_alice\_private,\ \textcolor{keywordtype}{int}\ a\_debug);}
+\DoxyCodeLine{00104\ dhm\_error\_t\ dhm\_get\_bob\ \ \ \ \ \ (\mbox{\hyperlink{structdhm__session__t}{dhm\_session\_t}}\ *a\_session,\ \mbox{\hyperlink{structdhm__alice__t}{dhm\_alice\_t}}\ *a\_alice,\ \mbox{\hyperlink{structdhm__bob__t}{dhm\_bob\_t}}\ *a\_bob,\ \mbox{\hyperlink{structdhm__private__t}{dhm\_private\_t}}\ *a\_bob\_private,\ \textcolor{keywordtype}{int}\ a\_debug);}
+\DoxyCodeLine{00105\ dhm\_error\_t\ dhm\_alice\_secret\ (\mbox{\hyperlink{structdhm__session__t}{dhm\_session\_t}}\ *a\_session,\ \mbox{\hyperlink{structdhm__alice__t}{dhm\_alice\_t}}\ *a\_alice,\ \mbox{\hyperlink{structdhm__bob__t}{dhm\_bob\_t}}\ *a\_bob,\ \mbox{\hyperlink{structdhm__private__t}{dhm\_private\_t}}\ *a\_alice\_private,\ \textcolor{keywordtype}{int}\ a\_debug);}
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00107\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ DHM\_H}}
+\DoxyCodeLine{00108\ }
+
+\end{DoxyCode}
