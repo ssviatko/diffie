@@ -44,6 +44,15 @@
  * dhm_get_alice. This retrieves an Alice packet which is then sent over the
  * insecure link to the server.
  *
+ * This implemenation utilizes a 2176 bit public modulus and 368 bit private
+ * exponents. This key size provides a good balance of speed and security.
+ * Tests on slow machines (2nd gen Sandy Bridge machines) as of this writing
+ * in 2025 indicate that packet generation happens on average in .1-.3 seconds
+ * with rare outliers taking .5 seconds to generate. On a modern machine the
+ * time to generate is negligible and unnoticeable. Most of the processing
+ * happens on the client side so it is unlikely to bog down a server if many
+ * clients are connecting.
+ *
  * On the server end, the server receives and catalogues the Alice packet from
  * the client, and establishes its own session structure with its own call to
  * dhm_init_session. Then it calls dhm_get_bob, providing the session
@@ -66,6 +75,27 @@
  * freed by the caller or valgrind will report a memory leak. It is important
  * to note that the DHM library does no memory management whatsoever!
  *
+ * Build Info:
+ *
+ * To integrate this code into your project, copy the following files into
+ * your project and configure your Make file to compile them:
+ *
+ * dhm.c
+ * dhm.h
+ * sha2.c
+ * sha2.h
+ *
+ * The dhm.* files are the Diffie/Hellman/Merkle implementation and the sha2.*
+ * files are the official FIPS implemenation of SHA2 by Oliver Gay. DHM
+ * depends on SHA2 in order to compute hashes of packets to ensure data
+ * integrity.
+ *
+ * Linking: DHM uses the GMP (Gnu Multi-Precision) library to compute various
+ * coefficients needed for the DHM key exchange to work, and as a result of
+ * this you will need to include the following flag in your linker string:
+ *
+ * -lgmp
+ *
  */
 
 #include "dhm.h"
@@ -79,7 +109,7 @@ const char *dhm_error_string[] = {
 	"general unspecified error",
 	"unrecognized packet type",
 	"packet hash check failure"
-};
+}; ///< List of standard DHM error strings correlated to integer DHM error codes.
 
 const uint16_t dhm_alice_packtype = 0xc1a5; ///< Packet type stamp for Alice packet. Stored in the packet in network byte order
 const uint16_t dhm_bob_packtype = 0xc2a5; ///< Packet type stamp for Bob packet. Stored in the packet in network byte order
@@ -92,7 +122,6 @@ const uint16_t dhm_bob_packtype = 0xc2a5; ///< Packet type stamp for Bob packet.
  * @param[in] a_size The size of the byte buffer in bytes
  * @param[in] a_offset Number of bytes to shift the data over, i.e. the size of the buffer - the length of the data
  * @param[in] a_buff Pointer to the buffer to operate on
- * @return void
  */
 
 static void right_justify(size_t a_size, size_t a_offset, char *a_buff)

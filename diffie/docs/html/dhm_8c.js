@@ -8,5 +8,6 @@ var dhm_8c =
     [ "dhm_strerror", "dhm_8c.html#aa44c1cf8b7bca7f04a60b1ca52203282", null ],
     [ "right_justify", "dhm_8c.html#a81abb0630362e4736cf7f036277e8d16", null ],
     [ "dhm_alice_packtype", "dhm_8c.html#ab635bd77ea7ce7a2426f0bed5ca2743c", null ],
-    [ "dhm_bob_packtype", "dhm_8c.html#a6d92d9d6f5a3cf44fdc895b4e6e93f67", null ]
+    [ "dhm_bob_packtype", "dhm_8c.html#a6d92d9d6f5a3cf44fdc895b4e6e93f67", null ],
+    [ "dhm_error_string", "dhm_8c.html#ad0fb803c9bdb253535933f855ae1c9ce", null ]
 ];

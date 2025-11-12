@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['outer_5fpacket_5fheader_5ft_0',['outer_packet_header_t',['../structouter__packet__header__t.html',1,'']]]
+  ['right_5fjustify_0',['right_justify',['../dhm_8c.html#a81abb0630362e4736cf7f036277e8d16',1,'dhm.c']]]
 ];

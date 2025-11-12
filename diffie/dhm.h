@@ -44,6 +44,15 @@
  * dhm_get_alice. This retrieves an Alice packet which is then sent over the
  * insecure link to the server.
  *
+ * This implemenation utilizes a 2176 bit public modulus and 368 bit private
+ * exponents. This key size provides a good balance of speed and security.
+ * Tests on slow machines (2nd gen Sandy Bridge machines) as of this writing
+ * in 2025 indicate that packet generation happens on average in .1-.3 seconds
+ * with rare outliers taking .5 seconds to generate. On a modern machine the
+ * time to generate is negligible and unnoticeable. Most of the processing
+ * happens on the client side so it is unlikely to bog down a server if many
+ * clients are connecting.
+ *
  * On the server end, the server receives and catalogues the Alice packet from
  * the client, and establishes its own session structure with its own call to
  * dhm_init_session. Then it calls dhm_get_bob, providing the session
@@ -66,6 +75,27 @@
  * freed by the caller or valgrind will report a memory leak. It is important
  * to note that the DHM library does no memory management whatsoever!
  *
+ * Build Info:
+ *
+ * To integrate this code into your project, copy the following files into
+ * your project and configure your Make file to compile them:
+ *
+ * dhm.c
+ * dhm.h
+ * sha2.c
+ * sha2.h
+ *
+ * The dhm.* files are the Diffie/Hellman/Merkle implementation and the sha2.*
+ * files are the official FIPS implemenation of SHA2 by Oliver Gay. DHM
+ * depends on SHA2 in order to compute hashes of packets to ensure data
+ * integrity.
+ *
+ * Linking: DHM uses the GMP (Gnu Multi-Precision) library to compute various
+ * coefficients needed for the DHM key exchange to work, and as a result of
+ * this you will need to include the following flag in your linker string:
+ *
+ * -lgmp
+ *
  */
 
 #ifndef DHM_H
@@ -84,13 +114,13 @@
 
 #include "sha2.h"
 
-#define PUBBITS 2176
-#define PUBSIZE 272
-#define PRIVBITS 368
-#define PRIVSIZE 46
+#define PUBBITS 2176 ///< bit width of public modulus
+#define PUBSIZE 272 ///< size of public modulus in bytes
+#define PRIVBITS 368 ///< bit width of private exponent(s)
+#define PRIVSIZE 46 ///< size of private exponent(s) in bytes
 
-#define GUIDSIZE 12 // size of unique session ID token
-#define SHASIZE 28 // size of a SHA2-224 hash
+#define GUIDSIZE 12 ///< size of unique session ID token
+#define SHASIZE 28 ///< size of a SHA2-224 hash
 
 /**
  * @struct dhm_session_t

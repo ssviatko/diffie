@@ -30,22 +30,22 @@ struct \mbox{\hyperlink{structdhm__private__t}{dhm\+\_\+private\+\_\+t}}
 \item 
 \Hypertarget{dhm_8h_af0cfa0fa2ade08c61d068edb40efef19}\label{dhm_8h_af0cfa0fa2ade08c61d068edb40efef19} 
 \#define {\bfseries PUBBITS}~2176
-\item 
+\begin{DoxyCompactList}\small\item\em bit width of public modulus \end{DoxyCompactList}\item 
 \Hypertarget{dhm_8h_a1a6af30ebffd0b3f98181cd1a566fe33}\label{dhm_8h_a1a6af30ebffd0b3f98181cd1a566fe33} 
 \#define {\bfseries PUBSIZE}~272
-\item 
+\begin{DoxyCompactList}\small\item\em size of public modulus in bytes \end{DoxyCompactList}\item 
 \Hypertarget{dhm_8h_a01da229784c8ffae92d66d62d8c96755}\label{dhm_8h_a01da229784c8ffae92d66d62d8c96755} 
 \#define {\bfseries PRIVBITS}~368
-\item 
+\begin{DoxyCompactList}\small\item\em bit width of private exponent(s) \end{DoxyCompactList}\item 
 \Hypertarget{dhm_8h_a9588f3fd335efb0f753799dc378b3127}\label{dhm_8h_a9588f3fd335efb0f753799dc378b3127} 
 \#define {\bfseries PRIVSIZE}~46
-\item 
+\begin{DoxyCompactList}\small\item\em size of private exponent(s) in bytes \end{DoxyCompactList}\item 
 \Hypertarget{dhm_8h_a8c9d5dcc8e5c8be67640e74b215a184d}\label{dhm_8h_a8c9d5dcc8e5c8be67640e74b215a184d} 
 \#define {\bfseries GUIDSIZE}~12
-\item 
+\begin{DoxyCompactList}\small\item\em size of unique session ID token \end{DoxyCompactList}\item 
 \Hypertarget{dhm_8h_a100560f4ee65a6fa8aa0cdd39561f470}\label{dhm_8h_a100560f4ee65a6fa8aa0cdd39561f470} 
 \#define {\bfseries SHASIZE}~28
-\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em size of a SHA2-\/224 hash \end{DoxyCompactList}\end{DoxyCompactItemize}
 \doxysubsubsection*{Enumerations}
 \begin{DoxyCompactItemize}
 \item 
@@ -105,13 +105,27 @@ In a typical network scenario, a client establishes a connection to a server ove
 
 With this session structure, a call is the made by the client to dhm\+\_\+get\+\_\+alice. This retrieves an Alice packet which is then sent over the insecure link to the server.
 
+This implemenation utilizes a 2176 bit public modulus and 368 bit private exponents. This key size provides a good balance of speed and security. Tests on slow machines (2nd gen Sandy Bridge machines) as of this writing in 2025 indicate that packet generation happens on average in .1-\/.\+3 seconds with rare outliers taking .5 seconds to generate. On a modern machine the time to generate is negligible and unnoticeable. Most of the processing happens on the client side so it is unlikely to bog down a server if many clients are connecting.
+
 On the server end, the server receives and catalogues the Alice packet from the client, and establishes its own session structure with its own call to dhm\+\_\+init\+\_\+session. Then it calls dhm\+\_\+get\+\_\+bob, providing the session structure, received Alice packet, and a buffer to populate with a generated Bob packet. Then the server sends the Bob packet back to the client.
 
 At this point Bob is in possession of the shared secret, which has been populated into the server side session structure by the call to dhm\+\_\+get\+\_\+bob.
 
 Upon receipt of the Bob packet, the client calls dhm\+\_\+alice\+\_\+secret, providing the received Bob packet, the Alice private key, and the client\textquotesingle{}s session structure. This call populates the client side session with the shared secret, which can be read and used in any way the client wishes to create private keys, symmetric keys, initialization vectors, etc.
 
-At the end of the encrypted communication session, both the client and the server call dhm\+\_\+end\+\_\+session on their respective sides to close the DHM session. After closing the session, all memory that has been allocated for any data structures (sessions, packets, private keys, etc) needs to be freed by the caller or valgrind will report a memory leak. It is important to note that the DHM library does no memory management whatsoever! 
+At the end of the encrypted communication session, both the client and the server call dhm\+\_\+end\+\_\+session on their respective sides to close the DHM session. After closing the session, all memory that has been allocated for any data structures (sessions, packets, private keys, etc) needs to be freed by the caller or valgrind will report a memory leak. It is important to note that the DHM library does no memory management whatsoever!
+
+Build Info\+:
+
+To integrate this code into your project, copy the following files into your project and configure your Make file to compile them\+:
+
+\doxylink{dhm_8c}{dhm.\+c} \doxylink{dhm_8h}{dhm.\+h} sha2.\+c sha2.\+h
+
+The dhm.\texorpdfstring{$\ast$}{*} files are the Diffie/\+Hellman/\+Merkle implementation and the sha2.\texorpdfstring{$\ast$}{*} files are the official FIPS implemenation of SHA2 by Oliver Gay. DHM depends on SHA2 in order to compute hashes of packets to ensure data integrity.
+
+Linking\+: DHM uses the GMP (Gnu Multi-\/\+Precision) library to compute various coefficients needed for the DHM key exchange to work, and as a result of this you will need to include the following flag in your linker string\+:
+
+-\/lgmp 
 
 \label{doc-enum-members}
 \Hypertarget{dhm_8h_doc-enum-members}

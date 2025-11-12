@@ -4,6 +4,12 @@ var dhm_8h =
     [ "dhm_alice_t", "structdhm__alice__t.html", "structdhm__alice__t" ],
     [ "dhm_bob_t", "structdhm__bob__t.html", "structdhm__bob__t" ],
     [ "dhm_private_t", "structdhm__private__t.html", "structdhm__private__t" ],
+    [ "GUIDSIZE", "dhm_8h.html#a8c9d5dcc8e5c8be67640e74b215a184d", null ],
+    [ "PRIVBITS", "dhm_8h.html#a01da229784c8ffae92d66d62d8c96755", null ],
+    [ "PRIVSIZE", "dhm_8h.html#a9588f3fd335efb0f753799dc378b3127", null ],
+    [ "PUBBITS", "dhm_8h.html#af0cfa0fa2ade08c61d068edb40efef19", null ],
+    [ "PUBSIZE", "dhm_8h.html#a1a6af30ebffd0b3f98181cd1a566fe33", null ],
+    [ "SHASIZE", "dhm_8h.html#a100560f4ee65a6fa8aa0cdd39561f470", null ],
     [ "dhm_error_t", "dhm_8h.html#ad0e874d4b6aa4405e92045d1803df124", [
       [ "DHM_ERR_NONE", "dhm_8h.html#ad0e874d4b6aa4405e92045d1803df124a40751e49087ae4c47856ee1d47f26a20", null ],
       [ "DHM_ERR_OPENURANDOM", "dhm_8h.html#ad0e874d4b6aa4405e92045d1803df124a62726d5af869acf4d534c039f8ed2a9d", null ],

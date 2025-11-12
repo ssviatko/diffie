@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.15.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Diffie/Hellman/Merkle: dhm.h File Reference</title>
+<title>Good Neighbors LLC Diffie/Hellman/Merkle Library: dhm.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -26,9 +26,9 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">Diffie/Hellman/Merkle<span id="projectnumber">&#160;0.8</span>
+   <div id="projectname">Good Neighbors LLC Diffie/Hellman/Merkle Library<span id="projectnumber">&#160;0.80 alpha</span>
    </div>
-   <div id="projectbrief">An implementaion of Diffie/Hellman/Merkle</div>
+   <div id="projectbrief">An implementaion of Diffie/Hellman/Merkle in C</div>
   </td>
  </tr>
  </tbody>
@@ -122,16 +122,22 @@ Classes</h2></td></tr>
 Macros</h2></td></tr>
 <tr class="memitem:af0cfa0fa2ade08c61d068edb40efef19" id="r_af0cfa0fa2ade08c61d068edb40efef19"><td class="memItemLeft" align="right" valign="top"><a id="af0cfa0fa2ade08c61d068edb40efef19" name="af0cfa0fa2ade08c61d068edb40efef19"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>PUBBITS</b>&#160;&#160;&#160;2176</td></tr>
+<tr class="memdesc:af0cfa0fa2ade08c61d068edb40efef19"><td class="mdescLeft">&#160;</td><td class="mdescRight">bit width of public modulus <br /></td></tr>
 <tr class="memitem:a1a6af30ebffd0b3f98181cd1a566fe33" id="r_a1a6af30ebffd0b3f98181cd1a566fe33"><td class="memItemLeft" align="right" valign="top"><a id="a1a6af30ebffd0b3f98181cd1a566fe33" name="a1a6af30ebffd0b3f98181cd1a566fe33"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>PUBSIZE</b>&#160;&#160;&#160;272</td></tr>
+<tr class="memdesc:a1a6af30ebffd0b3f98181cd1a566fe33"><td class="mdescLeft">&#160;</td><td class="mdescRight">size of public modulus in bytes <br /></td></tr>
 <tr class="memitem:a01da229784c8ffae92d66d62d8c96755" id="r_a01da229784c8ffae92d66d62d8c96755"><td class="memItemLeft" align="right" valign="top"><a id="a01da229784c8ffae92d66d62d8c96755" name="a01da229784c8ffae92d66d62d8c96755"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>PRIVBITS</b>&#160;&#160;&#160;368</td></tr>
+<tr class="memdesc:a01da229784c8ffae92d66d62d8c96755"><td class="mdescLeft">&#160;</td><td class="mdescRight">bit width of private exponent(s) <br /></td></tr>
 <tr class="memitem:a9588f3fd335efb0f753799dc378b3127" id="r_a9588f3fd335efb0f753799dc378b3127"><td class="memItemLeft" align="right" valign="top"><a id="a9588f3fd335efb0f753799dc378b3127" name="a9588f3fd335efb0f753799dc378b3127"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>PRIVSIZE</b>&#160;&#160;&#160;46</td></tr>
+<tr class="memdesc:a9588f3fd335efb0f753799dc378b3127"><td class="mdescLeft">&#160;</td><td class="mdescRight">size of private exponent(s) in bytes <br /></td></tr>
 <tr class="memitem:a8c9d5dcc8e5c8be67640e74b215a184d" id="r_a8c9d5dcc8e5c8be67640e74b215a184d"><td class="memItemLeft" align="right" valign="top"><a id="a8c9d5dcc8e5c8be67640e74b215a184d" name="a8c9d5dcc8e5c8be67640e74b215a184d"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>GUIDSIZE</b>&#160;&#160;&#160;12</td></tr>
+<tr class="memdesc:a8c9d5dcc8e5c8be67640e74b215a184d"><td class="mdescLeft">&#160;</td><td class="mdescRight">size of unique session ID token <br /></td></tr>
 <tr class="memitem:a100560f4ee65a6fa8aa0cdd39561f470" id="r_a100560f4ee65a6fa8aa0cdd39561f470"><td class="memItemLeft" align="right" valign="top"><a id="a100560f4ee65a6fa8aa0cdd39561f470" name="a100560f4ee65a6fa8aa0cdd39561f470"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>SHASIZE</b>&#160;&#160;&#160;28</td></tr>
+<tr class="memdesc:a100560f4ee65a6fa8aa0cdd39561f470"><td class="mdescLeft">&#160;</td><td class="mdescRight">size of a SHA2-224 hash <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-enum-members" class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -178,10 +184,17 @@ Functions</h2></td></tr>
 <p>Usage:</p>
 <p>In a typical network scenario, a client establishes a connection to a server over TCP or serial or some other physical means. The client then makes a call to dhm_init_session to establish a DHM session.</p>
 <p>With this session structure, a call is the made by the client to dhm_get_alice. This retrieves an Alice packet which is then sent over the insecure link to the server.</p>
+<p>This implemenation utilizes a 2176 bit public modulus and 368 bit private exponents. This key size provides a good balance of speed and security. Tests on slow machines (2nd gen Sandy Bridge machines) as of this writing in 2025 indicate that packet generation happens on average in .1-.3 seconds with rare outliers taking .5 seconds to generate. On a modern machine the time to generate is negligible and unnoticeable. Most of the processing happens on the client side so it is unlikely to bog down a server if many clients are connecting.</p>
 <p>On the server end, the server receives and catalogues the Alice packet from the client, and establishes its own session structure with its own call to dhm_init_session. Then it calls dhm_get_bob, providing the session structure, received Alice packet, and a buffer to populate with a generated Bob packet. Then the server sends the Bob packet back to the client.</p>
 <p>At this point Bob is in possession of the shared secret, which has been populated into the server side session structure by the call to dhm_get_bob.</p>
 <p>Upon receipt of the Bob packet, the client calls dhm_alice_secret, providing the received Bob packet, the Alice private key, and the client's session structure. This call populates the client side session with the shared secret, which can be read and used in any way the client wishes to create private keys, symmetric keys, initialization vectors, etc.</p>
-<p>At the end of the encrypted communication session, both the client and the server call dhm_end_session on their respective sides to close the DHM session. After closing the session, all memory that has been allocated for any data structures (sessions, packets, private keys, etc) needs to be freed by the caller or valgrind will report a memory leak. It is important to note that the DHM library does no memory management whatsoever! </p>
+<p>At the end of the encrypted communication session, both the client and the server call dhm_end_session on their respective sides to close the DHM session. After closing the session, all memory that has been allocated for any data structures (sessions, packets, private keys, etc) needs to be freed by the caller or valgrind will report a memory leak. It is important to note that the DHM library does no memory management whatsoever!</p>
+<p>Build Info:</p>
+<p>To integrate this code into your project, copy the following files into your project and configure your Make file to compile them:</p>
+<p><a class="el" href="dhm_8c.html" title=": Diffie/Hellman/Merkle API">dhm.c</a> <a class="el" href="dhm_8h.html" title=": Diffie/Hellman/Merkle API">dhm.h</a> sha2.c sha2.h</p>
+<p>The dhm.* files are the Diffie/Hellman/Merkle implementation and the sha2.* files are the official FIPS implemenation of SHA2 by Oliver Gay. DHM depends on SHA2 in order to compute hashes of packets to ensure data integrity.</p>
+<p>Linking: DHM uses the GMP (Gnu Multi-Precision) library to compute various coefficients needed for the DHM key exchange to work, and as a result of this you will need to include the following flag in your linker string:</p>
+<p>-lgmp </p>
 </div><a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Enumeration Type Documentation</h2>
 <a id="ad0e874d4b6aa4405e92045d1803df124" name="ad0e874d4b6aa4405e92045d1803df124"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad0e874d4b6aa4405e92045d1803df124">&#9670;&#160;</a></span>dhm_error_t</h2>
@@ -461,7 +474,7 @@ Functions</h2></td></tr>
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a href="dhm_8h.html">dhm.h</a></li>
-    <li class="footer">Generated on <span class="timestamp"></span> for Diffie/Hellman/Merkle by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.15.0 </li>
+    <li class="footer">Generated on <span class="timestamp"></span> for Good Neighbors LLC Diffie/Hellman/Merkle Library by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.15.0 </li>
   </ul>
 </div>
 </body>

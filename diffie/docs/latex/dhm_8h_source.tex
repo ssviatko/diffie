@@ -2,81 +2,81 @@
 \hypertarget{dhm_8h_source}{}\label{dhm_8h_source}\mbox{\hyperlink{dhm_8h}{Go to the documentation of this file.}}
 \begin{DoxyCode}{0}
 \DoxyCodeLine{00001\ }
-\DoxyCodeLine{00070\ }
-\DoxyCodeLine{00071\ \textcolor{preprocessor}{\#ifndef\ DHM\_H}}
-\DoxyCodeLine{00072\ \textcolor{preprocessor}{\#define\ DHM\_H}}
-\DoxyCodeLine{00073\ }
-\DoxyCodeLine{00074\ \textcolor{preprocessor}{\#pragma\ pack(1)}}
-\DoxyCodeLine{00075\ }
-\DoxyCodeLine{00076\ \textcolor{preprocessor}{\#include\ <stdio.h>}}
-\DoxyCodeLine{00077\ \textcolor{preprocessor}{\#include\ <string.h>}}
-\DoxyCodeLine{00078\ \textcolor{preprocessor}{\#include\ <stdint.h>}}
-\DoxyCodeLine{00079\ \textcolor{preprocessor}{\#include\ <stdlib.h>}}
-\DoxyCodeLine{00080\ \textcolor{preprocessor}{\#include\ <unistd.h>}}
-\DoxyCodeLine{00081\ \textcolor{preprocessor}{\#include\ <fcntl.h>}}
-\DoxyCodeLine{00082\ \textcolor{preprocessor}{\#include\ <gmp.h>}}
-\DoxyCodeLine{00083\ \textcolor{preprocessor}{\#include\ <arpa/inet.h>}}
-\DoxyCodeLine{00084\ }
-\DoxyCodeLine{00085\ \textcolor{preprocessor}{\#include\ "{}sha2.h"{}}}
-\DoxyCodeLine{00086\ }
-\DoxyCodeLine{00087\ \textcolor{preprocessor}{\#define\ PUBBITS\ 2176}}
-\DoxyCodeLine{00088\ \textcolor{preprocessor}{\#define\ PUBSIZE\ 272}}
-\DoxyCodeLine{00089\ \textcolor{preprocessor}{\#define\ PRIVBITS\ 368}}
-\DoxyCodeLine{00090\ \textcolor{preprocessor}{\#define\ PRIVSIZE\ 46}}
-\DoxyCodeLine{00091\ }
-\DoxyCodeLine{00092\ \textcolor{preprocessor}{\#define\ GUIDSIZE\ 12\ }\textcolor{comment}{//\ size\ of\ unique\ session\ ID\ token}}
-\DoxyCodeLine{00093\ \textcolor{preprocessor}{\#define\ SHASIZE\ 28\ }\textcolor{comment}{//\ size\ of\ a\ SHA2-\/224\ hash}}
-\DoxyCodeLine{00094\ }
-\DoxyCodeLine{00101\ }
-\DoxyCodeLine{00102\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
-\DoxyCodeLine{00103\ \ \ \ \ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structdhm__session__t_a7a1202aa3ec47deebb3ee673547cb168}{urandom\_fd}};\ }
-\DoxyCodeLine{00104\ \ \ \ \ uint8\_t\ \mbox{\hyperlink{structdhm__session__t_a53649ce7a6d6ce96b5128761f18f408a}{guid}}[GUIDSIZE];\ }
-\DoxyCodeLine{00105\ \ \ \ \ uint8\_t\ \mbox{\hyperlink{structdhm__session__t_abe1dc485bfb396628d34ee4a0a64e979}{s}}[PUBSIZE];\ }
-\DoxyCodeLine{00106\ \}\ \mbox{\hyperlink{structdhm__session__t}{dhm\_session\_t}};}
-\DoxyCodeLine{00107\ }
-\DoxyCodeLine{00112\ }
-\DoxyCodeLine{00113\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
-\DoxyCodeLine{00114\ \ \ \ \ uint16\_t\ \mbox{\hyperlink{structdhm__alice__t_aa4a408f70dea04aa947a24b9902b4527}{packtype}};\ }
-\DoxyCodeLine{00115\ \ \ \ \ uint8\_t\ \mbox{\hyperlink{structdhm__alice__t_ae26790c8d3c19b04554f5f078178f400}{hash}}[SHASIZE];\ }
-\DoxyCodeLine{00116\ \ \ \ \ uint8\_t\ \mbox{\hyperlink{structdhm__alice__t_aa7afb3d5a40e56353a63b1528182fc6c}{guid}}[GUIDSIZE];\ }
-\DoxyCodeLine{00117\ \ \ \ \ uint16\_t\ \mbox{\hyperlink{structdhm__alice__t_a0e83866b8c79c93a104a23e36e191a60}{g}};\ }
-\DoxyCodeLine{00118\ \ \ \ \ uint8\_t\ \mbox{\hyperlink{structdhm__alice__t_a984a375b518b7d2770c1fdc2bbbbaaa4}{p}}[PUBSIZE];\ }
-\DoxyCodeLine{00119\ \ \ \ \ uint8\_t\ \mbox{\hyperlink{structdhm__alice__t_a66ab29cc10a9c77189b5b27e195eb860}{A}}[PUBSIZE];\ }
-\DoxyCodeLine{00120\ \}\ \mbox{\hyperlink{structdhm__alice__t}{dhm\_alice\_t}};}
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00101\ \textcolor{preprocessor}{\#ifndef\ DHM\_H}}
+\DoxyCodeLine{00102\ \textcolor{preprocessor}{\#define\ DHM\_H}}
+\DoxyCodeLine{00103\ }
+\DoxyCodeLine{00104\ \textcolor{preprocessor}{\#pragma\ pack(1)}}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ \textcolor{preprocessor}{\#include\ <stdio.h>}}
+\DoxyCodeLine{00107\ \textcolor{preprocessor}{\#include\ <string.h>}}
+\DoxyCodeLine{00108\ \textcolor{preprocessor}{\#include\ <stdint.h>}}
+\DoxyCodeLine{00109\ \textcolor{preprocessor}{\#include\ <stdlib.h>}}
+\DoxyCodeLine{00110\ \textcolor{preprocessor}{\#include\ <unistd.h>}}
+\DoxyCodeLine{00111\ \textcolor{preprocessor}{\#include\ <fcntl.h>}}
+\DoxyCodeLine{00112\ \textcolor{preprocessor}{\#include\ <gmp.h>}}
+\DoxyCodeLine{00113\ \textcolor{preprocessor}{\#include\ <arpa/inet.h>}}
+\DoxyCodeLine{00114\ }
+\DoxyCodeLine{00115\ \textcolor{preprocessor}{\#include\ "{}sha2.h"{}}}
+\DoxyCodeLine{00116\ }
+\DoxyCodeLine{00117\ \textcolor{preprocessor}{\#define\ PUBBITS\ 2176\ }}
+\DoxyCodeLine{00118\ \textcolor{preprocessor}{\#define\ PUBSIZE\ 272\ }}
+\DoxyCodeLine{00119\ \textcolor{preprocessor}{\#define\ PRIVBITS\ 368\ }}
+\DoxyCodeLine{00120\ \textcolor{preprocessor}{\#define\ PRIVSIZE\ 46\ }}
 \DoxyCodeLine{00121\ }
-\DoxyCodeLine{00126\ }
-\DoxyCodeLine{00127\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
-\DoxyCodeLine{00128\ \ \ \ \ uint16\_t\ \mbox{\hyperlink{structdhm__bob__t_a7c26c4655f48703e50232848af3f9d43}{packtype}};\ }
-\DoxyCodeLine{00129\ \ \ \ \ uint8\_t\ \mbox{\hyperlink{structdhm__bob__t_a16b5c18adf932b7b1db44d16a5661b9f}{hash}}[SHASIZE];\ }
-\DoxyCodeLine{00130\ \ \ \ \ uint8\_t\ \mbox{\hyperlink{structdhm__bob__t_a09eb12e06636ef0d867b07f191e9bb9a}{guid}}[GUIDSIZE];\ }
-\DoxyCodeLine{00131\ \ \ \ \ uint8\_t\ \mbox{\hyperlink{structdhm__bob__t_a014c9e66f577a25db9ab1fb86be7eed8}{B}}[PUBSIZE];\ }
-\DoxyCodeLine{00132\ \}\ \mbox{\hyperlink{structdhm__bob__t}{dhm\_bob\_t}};}
-\DoxyCodeLine{00133\ }
-\DoxyCodeLine{00139\ }
-\DoxyCodeLine{00140\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
-\DoxyCodeLine{00141\ \ \ \ \ uint8\_t\ \mbox{\hyperlink{structdhm__private__t_a45e83e7ddb4b81b2b1699f9b96a33731}{key}}[PRIVSIZE];\ }
-\DoxyCodeLine{00142\ \}\ \mbox{\hyperlink{structdhm__private__t}{dhm\_private\_t}};}
-\DoxyCodeLine{00143\ }
-\DoxyCodeLine{00148\ }
-\DoxyCodeLine{00149\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \{}
-\DoxyCodeLine{00150\ \ \ \ \ \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124a40751e49087ae4c47856ee1d47f26a20}{DHM\_ERR\_NONE}}\ =\ 0,\ }
-\DoxyCodeLine{00151\ \ \ \ \ \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124a62726d5af869acf4d534c039f8ed2a9d}{DHM\_ERR\_OPENURANDOM}},\ }
-\DoxyCodeLine{00152\ \ \ \ \ \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124a830e00c6060ded40a5336c077549198a}{DHM\_ERR\_READURANDOM}},\ }
-\DoxyCodeLine{00153\ \ \ \ \ \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124a3c67655fc6090a549afcb2cfd35e53b8}{DHM\_ERR\_CLOSEURANDOM}},\ }
-\DoxyCodeLine{00154\ \ \ \ \ \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124aeb812962b3a47ba3eaf9ef3f24197933}{DHM\_ERR\_VALUE}},\ }
-\DoxyCodeLine{00155\ \ \ \ \ \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124ab920a19a6beaeaa70da53a9f912172b8}{DHM\_ERR\_GENERAL}},\ }
-\DoxyCodeLine{00156\ \ \ \ \ \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124a277e980fb4fe384de69290c114950b1c}{DHM\_ERR\_WRONG\_PACKTYPE}},\ }
-\DoxyCodeLine{00157\ \ \ \ \ \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124a34b192eec889faa988a054368134e94a}{DHM\_ERR\_HASH\_FAILURE}}\ }
-\DoxyCodeLine{00158\ \}\ \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\_error\_t}};}
-\DoxyCodeLine{00159\ }
-\DoxyCodeLine{00160\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\mbox{\hyperlink{dhm_8h_aa44c1cf8b7bca7f04a60b1ca52203282}{dhm\_strerror}}\ \ \ \ \ (\mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\_error\_t}}\ a\_errno);}
-\DoxyCodeLine{00161\ \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\_error\_t}}\ \mbox{\hyperlink{dhm_8h_a21438ebaaf28c3e60b8ee4c4a70737f2}{dhm\_init\_session}}\ (\mbox{\hyperlink{structdhm__session__t}{dhm\_session\_t}}\ *a\_session,\ \textcolor{keywordtype}{int}\ a\_debug);}
-\DoxyCodeLine{00162\ \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\_error\_t}}\ \mbox{\hyperlink{dhm_8h_a5c7f07b0fcd25d44cc6bf950bf1901ff}{dhm\_end\_session}}\ \ (\mbox{\hyperlink{structdhm__session__t}{dhm\_session\_t}}\ *a\_session,\ \textcolor{keywordtype}{int}\ a\_debug);}
-\DoxyCodeLine{00163\ \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\_error\_t}}\ \mbox{\hyperlink{dhm_8h_a20e498509ab2d72f873ae5cf8fbcb2f2}{dhm\_get\_alice}}\ \ \ \ (\mbox{\hyperlink{structdhm__session__t}{dhm\_session\_t}}\ *a\_session,\ \mbox{\hyperlink{structdhm__alice__t}{dhm\_alice\_t}}\ *a\_alice,\ \mbox{\hyperlink{structdhm__private__t}{dhm\_private\_t}}\ *a\_alice\_private,\ \textcolor{keywordtype}{int}\ a\_debug);}
-\DoxyCodeLine{00164\ \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\_error\_t}}\ \mbox{\hyperlink{dhm_8h_aa38caf5aee4b1b879cce239d7e586e30}{dhm\_get\_bob}}\ \ \ \ \ \ (\mbox{\hyperlink{structdhm__session__t}{dhm\_session\_t}}\ *a\_session,\ \mbox{\hyperlink{structdhm__alice__t}{dhm\_alice\_t}}\ *a\_alice,\ \mbox{\hyperlink{structdhm__bob__t}{dhm\_bob\_t}}\ *a\_bob,\ \mbox{\hyperlink{structdhm__private__t}{dhm\_private\_t}}\ *a\_bob\_private,\ \textcolor{keywordtype}{int}\ a\_debug);}
-\DoxyCodeLine{00165\ \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\_error\_t}}\ \mbox{\hyperlink{dhm_8h_a2764b9e4a8ebde2e60b862d5d46d0ea9}{dhm\_alice\_secret}}\ (\mbox{\hyperlink{structdhm__session__t}{dhm\_session\_t}}\ *a\_session,\ \mbox{\hyperlink{structdhm__alice__t}{dhm\_alice\_t}}\ *a\_alice,\ \mbox{\hyperlink{structdhm__bob__t}{dhm\_bob\_t}}\ *a\_bob,\ \mbox{\hyperlink{structdhm__private__t}{dhm\_private\_t}}\ *a\_alice\_private,\ \textcolor{keywordtype}{int}\ a\_debug);}
-\DoxyCodeLine{00166\ }
-\DoxyCodeLine{00167\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ DHM\_H}}
-\DoxyCodeLine{00168\ }
+\DoxyCodeLine{00122\ \textcolor{preprocessor}{\#define\ GUIDSIZE\ 12\ }}
+\DoxyCodeLine{00123\ \textcolor{preprocessor}{\#define\ SHASIZE\ 28\ }}
+\DoxyCodeLine{00124\ }
+\DoxyCodeLine{00131\ }
+\DoxyCodeLine{00132\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00133\ \ \ \ \ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structdhm__session__t_a7a1202aa3ec47deebb3ee673547cb168}{urandom\_fd}};\ }
+\DoxyCodeLine{00134\ \ \ \ \ uint8\_t\ \mbox{\hyperlink{structdhm__session__t_a53649ce7a6d6ce96b5128761f18f408a}{guid}}[\mbox{\hyperlink{dhm_8h_a8c9d5dcc8e5c8be67640e74b215a184d}{GUIDSIZE}}];\ }
+\DoxyCodeLine{00135\ \ \ \ \ uint8\_t\ \mbox{\hyperlink{structdhm__session__t_abe1dc485bfb396628d34ee4a0a64e979}{s}}[\mbox{\hyperlink{dhm_8h_a1a6af30ebffd0b3f98181cd1a566fe33}{PUBSIZE}}];\ }
+\DoxyCodeLine{00136\ \}\ \mbox{\hyperlink{structdhm__session__t}{dhm\_session\_t}};}
+\DoxyCodeLine{00137\ }
+\DoxyCodeLine{00142\ }
+\DoxyCodeLine{00143\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00144\ \ \ \ \ uint16\_t\ \mbox{\hyperlink{structdhm__alice__t_aa4a408f70dea04aa947a24b9902b4527}{packtype}};\ }
+\DoxyCodeLine{00145\ \ \ \ \ uint8\_t\ \mbox{\hyperlink{structdhm__alice__t_ae26790c8d3c19b04554f5f078178f400}{hash}}[\mbox{\hyperlink{dhm_8h_a100560f4ee65a6fa8aa0cdd39561f470}{SHASIZE}}];\ }
+\DoxyCodeLine{00146\ \ \ \ \ uint8\_t\ \mbox{\hyperlink{structdhm__alice__t_aa7afb3d5a40e56353a63b1528182fc6c}{guid}}[\mbox{\hyperlink{dhm_8h_a8c9d5dcc8e5c8be67640e74b215a184d}{GUIDSIZE}}];\ }
+\DoxyCodeLine{00147\ \ \ \ \ uint16\_t\ \mbox{\hyperlink{structdhm__alice__t_a0e83866b8c79c93a104a23e36e191a60}{g}};\ }
+\DoxyCodeLine{00148\ \ \ \ \ uint8\_t\ \mbox{\hyperlink{structdhm__alice__t_a984a375b518b7d2770c1fdc2bbbbaaa4}{p}}[\mbox{\hyperlink{dhm_8h_a1a6af30ebffd0b3f98181cd1a566fe33}{PUBSIZE}}];\ }
+\DoxyCodeLine{00149\ \ \ \ \ uint8\_t\ \mbox{\hyperlink{structdhm__alice__t_a66ab29cc10a9c77189b5b27e195eb860}{A}}[\mbox{\hyperlink{dhm_8h_a1a6af30ebffd0b3f98181cd1a566fe33}{PUBSIZE}}];\ }
+\DoxyCodeLine{00150\ \}\ \mbox{\hyperlink{structdhm__alice__t}{dhm\_alice\_t}};}
+\DoxyCodeLine{00151\ }
+\DoxyCodeLine{00156\ }
+\DoxyCodeLine{00157\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00158\ \ \ \ \ uint16\_t\ \mbox{\hyperlink{structdhm__bob__t_a7c26c4655f48703e50232848af3f9d43}{packtype}};\ }
+\DoxyCodeLine{00159\ \ \ \ \ uint8\_t\ \mbox{\hyperlink{structdhm__bob__t_a16b5c18adf932b7b1db44d16a5661b9f}{hash}}[\mbox{\hyperlink{dhm_8h_a100560f4ee65a6fa8aa0cdd39561f470}{SHASIZE}}];\ }
+\DoxyCodeLine{00160\ \ \ \ \ uint8\_t\ \mbox{\hyperlink{structdhm__bob__t_a09eb12e06636ef0d867b07f191e9bb9a}{guid}}[\mbox{\hyperlink{dhm_8h_a8c9d5dcc8e5c8be67640e74b215a184d}{GUIDSIZE}}];\ }
+\DoxyCodeLine{00161\ \ \ \ \ uint8\_t\ \mbox{\hyperlink{structdhm__bob__t_a014c9e66f577a25db9ab1fb86be7eed8}{B}}[\mbox{\hyperlink{dhm_8h_a1a6af30ebffd0b3f98181cd1a566fe33}{PUBSIZE}}];\ }
+\DoxyCodeLine{00162\ \}\ \mbox{\hyperlink{structdhm__bob__t}{dhm\_bob\_t}};}
+\DoxyCodeLine{00163\ }
+\DoxyCodeLine{00169\ }
+\DoxyCodeLine{00170\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00171\ \ \ \ \ uint8\_t\ \mbox{\hyperlink{structdhm__private__t_a45e83e7ddb4b81b2b1699f9b96a33731}{key}}[\mbox{\hyperlink{dhm_8h_a9588f3fd335efb0f753799dc378b3127}{PRIVSIZE}}];\ }
+\DoxyCodeLine{00172\ \}\ \mbox{\hyperlink{structdhm__private__t}{dhm\_private\_t}};}
+\DoxyCodeLine{00173\ }
+\DoxyCodeLine{00178\ }
+\DoxyCodeLine{00179\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \{}
+\DoxyCodeLine{00180\ \ \ \ \ \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124a40751e49087ae4c47856ee1d47f26a20}{DHM\_ERR\_NONE}}\ =\ 0,\ }
+\DoxyCodeLine{00181\ \ \ \ \ \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124a62726d5af869acf4d534c039f8ed2a9d}{DHM\_ERR\_OPENURANDOM}},\ }
+\DoxyCodeLine{00182\ \ \ \ \ \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124a830e00c6060ded40a5336c077549198a}{DHM\_ERR\_READURANDOM}},\ }
+\DoxyCodeLine{00183\ \ \ \ \ \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124a3c67655fc6090a549afcb2cfd35e53b8}{DHM\_ERR\_CLOSEURANDOM}},\ }
+\DoxyCodeLine{00184\ \ \ \ \ \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124aeb812962b3a47ba3eaf9ef3f24197933}{DHM\_ERR\_VALUE}},\ }
+\DoxyCodeLine{00185\ \ \ \ \ \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124ab920a19a6beaeaa70da53a9f912172b8}{DHM\_ERR\_GENERAL}},\ }
+\DoxyCodeLine{00186\ \ \ \ \ \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124a277e980fb4fe384de69290c114950b1c}{DHM\_ERR\_WRONG\_PACKTYPE}},\ }
+\DoxyCodeLine{00187\ \ \ \ \ \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124a34b192eec889faa988a054368134e94a}{DHM\_ERR\_HASH\_FAILURE}}\ }
+\DoxyCodeLine{00188\ \}\ \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\_error\_t}};}
+\DoxyCodeLine{00189\ }
+\DoxyCodeLine{00190\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\mbox{\hyperlink{dhm_8h_aa44c1cf8b7bca7f04a60b1ca52203282}{dhm\_strerror}}\ \ \ \ \ (\mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\_error\_t}}\ a\_errno);}
+\DoxyCodeLine{00191\ \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\_error\_t}}\ \mbox{\hyperlink{dhm_8h_a21438ebaaf28c3e60b8ee4c4a70737f2}{dhm\_init\_session}}\ (\mbox{\hyperlink{structdhm__session__t}{dhm\_session\_t}}\ *a\_session,\ \textcolor{keywordtype}{int}\ a\_debug);}
+\DoxyCodeLine{00192\ \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\_error\_t}}\ \mbox{\hyperlink{dhm_8h_a5c7f07b0fcd25d44cc6bf950bf1901ff}{dhm\_end\_session}}\ \ (\mbox{\hyperlink{structdhm__session__t}{dhm\_session\_t}}\ *a\_session,\ \textcolor{keywordtype}{int}\ a\_debug);}
+\DoxyCodeLine{00193\ \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\_error\_t}}\ \mbox{\hyperlink{dhm_8h_a20e498509ab2d72f873ae5cf8fbcb2f2}{dhm\_get\_alice}}\ \ \ \ (\mbox{\hyperlink{structdhm__session__t}{dhm\_session\_t}}\ *a\_session,\ \mbox{\hyperlink{structdhm__alice__t}{dhm\_alice\_t}}\ *a\_alice,\ \mbox{\hyperlink{structdhm__private__t}{dhm\_private\_t}}\ *a\_alice\_private,\ \textcolor{keywordtype}{int}\ a\_debug);}
+\DoxyCodeLine{00194\ \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\_error\_t}}\ \mbox{\hyperlink{dhm_8h_aa38caf5aee4b1b879cce239d7e586e30}{dhm\_get\_bob}}\ \ \ \ \ \ (\mbox{\hyperlink{structdhm__session__t}{dhm\_session\_t}}\ *a\_session,\ \mbox{\hyperlink{structdhm__alice__t}{dhm\_alice\_t}}\ *a\_alice,\ \mbox{\hyperlink{structdhm__bob__t}{dhm\_bob\_t}}\ *a\_bob,\ \mbox{\hyperlink{structdhm__private__t}{dhm\_private\_t}}\ *a\_bob\_private,\ \textcolor{keywordtype}{int}\ a\_debug);}
+\DoxyCodeLine{00195\ \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\_error\_t}}\ \mbox{\hyperlink{dhm_8h_a2764b9e4a8ebde2e60b862d5d46d0ea9}{dhm\_alice\_secret}}\ (\mbox{\hyperlink{structdhm__session__t}{dhm\_session\_t}}\ *a\_session,\ \mbox{\hyperlink{structdhm__alice__t}{dhm\_alice\_t}}\ *a\_alice,\ \mbox{\hyperlink{structdhm__bob__t}{dhm\_bob\_t}}\ *a\_bob,\ \mbox{\hyperlink{structdhm__private__t}{dhm\_private\_t}}\ *a\_alice\_private,\ \textcolor{keywordtype}{int}\ a\_debug);}
+\DoxyCodeLine{00196\ }
+\DoxyCodeLine{00197\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ DHM\_H}}
+\DoxyCodeLine{00198\ }
 
 \end{DoxyCode}
