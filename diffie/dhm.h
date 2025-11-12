@@ -93,6 +93,7 @@
 #define SHASIZE 28 // size of a SHA2-224 hash
 
 /**
+ * @struct dhm_session_t
  * @brief Store data relevant to a DHM session.
  * It can be envisioned to be like a "context" used
  * by an encryption library to establish a context or session.
@@ -105,6 +106,7 @@ typedef struct {
 } dhm_session_t;
 
 /**
+ * @struct dhm_alice_t
  * @brief The "Alice" packet, created by the client to establish a Diffie/Hellman/Merkle conversation with a server.
  */
 
@@ -118,6 +120,7 @@ typedef struct {
 } dhm_alice_t;
 
 /**
+ * @struct dhm_bob_t
  * @brief The "Bob" packet, created by the server in response to an "Alice" packet.
  */
 
@@ -129,6 +132,7 @@ typedef struct {
 } dhm_bob_t;
 
 /**
+ * @struct dhm_private_t
  * @brief Private key structure
  * This holds space for Alice and Bob's private keys, which are kept secret and never shared
  */
