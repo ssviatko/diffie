@@ -1,4 +1,26 @@
 var searchData=
 [
-  ['outer_5fpacket_5fheader_5ft_0',['outer_packet_header_t',['../structouter__packet__header__t.html',1,'']]]
+  ['dhm_2ec_0',['dhm.c',['../dhm_8c.html',1,'']]],
+  ['dhm_2eh_1',['dhm.h',['../dhm_8h.html',1,'']]],
+  ['dhm_5falice_5fpacktype_2',['dhm_alice_packtype',['../dhm_8c.html#ab635bd77ea7ce7a2426f0bed5ca2743c',1,'dhm.c']]],
+  ['dhm_5falice_5fsecret_3',['dhm_alice_secret',['../dhm_8c.html#a2764b9e4a8ebde2e60b862d5d46d0ea9',1,'dhm_alice_secret(dhm_session_t *a_session, dhm_alice_t *a_alice, dhm_bob_t *a_bob, dhm_private_t *a_alice_private, int a_debug):&#160;dhm.c'],['../dhm_8h.html#a2764b9e4a8ebde2e60b862d5d46d0ea9',1,'dhm_alice_secret(dhm_session_t *a_session, dhm_alice_t *a_alice, dhm_bob_t *a_bob, dhm_private_t *a_alice_private, int a_debug):&#160;dhm.c']]],
+  ['dhm_5falice_5ft_4',['dhm_alice_t',['../structdhm__alice__t.html',1,'']]],
+  ['dhm_5fbob_5fpacktype_5',['dhm_bob_packtype',['../dhm_8c.html#a6d92d9d6f5a3cf44fdc895b4e6e93f67',1,'dhm.c']]],
+  ['dhm_5fbob_5ft_6',['dhm_bob_t',['../structdhm__bob__t.html',1,'']]],
+  ['dhm_5fend_5fsession_7',['dhm_end_session',['../dhm_8c.html#a5c7f07b0fcd25d44cc6bf950bf1901ff',1,'dhm_end_session(dhm_session_t *a_session, int a_debug):&#160;dhm.c'],['../dhm_8h.html#a5c7f07b0fcd25d44cc6bf950bf1901ff',1,'dhm_end_session(dhm_session_t *a_session, int a_debug):&#160;dhm.c']]],
+  ['dhm_5ferr_5fcloseurandom_8',['DHM_ERR_CLOSEURANDOM',['../dhm_8h.html#ad0e874d4b6aa4405e92045d1803df124a3c67655fc6090a549afcb2cfd35e53b8',1,'dhm.h']]],
+  ['dhm_5ferr_5fgeneral_9',['DHM_ERR_GENERAL',['../dhm_8h.html#ad0e874d4b6aa4405e92045d1803df124ab920a19a6beaeaa70da53a9f912172b8',1,'dhm.h']]],
+  ['dhm_5ferr_5fhash_5ffailure_10',['DHM_ERR_HASH_FAILURE',['../dhm_8h.html#ad0e874d4b6aa4405e92045d1803df124a34b192eec889faa988a054368134e94a',1,'dhm.h']]],
+  ['dhm_5ferr_5fnone_11',['DHM_ERR_NONE',['../dhm_8h.html#ad0e874d4b6aa4405e92045d1803df124a40751e49087ae4c47856ee1d47f26a20',1,'dhm.h']]],
+  ['dhm_5ferr_5fopenurandom_12',['DHM_ERR_OPENURANDOM',['../dhm_8h.html#ad0e874d4b6aa4405e92045d1803df124a62726d5af869acf4d534c039f8ed2a9d',1,'dhm.h']]],
+  ['dhm_5ferr_5freadurandom_13',['DHM_ERR_READURANDOM',['../dhm_8h.html#ad0e874d4b6aa4405e92045d1803df124a830e00c6060ded40a5336c077549198a',1,'dhm.h']]],
+  ['dhm_5ferr_5fvalue_14',['DHM_ERR_VALUE',['../dhm_8h.html#ad0e874d4b6aa4405e92045d1803df124aeb812962b3a47ba3eaf9ef3f24197933',1,'dhm.h']]],
+  ['dhm_5ferr_5fwrong_5fpacktype_15',['DHM_ERR_WRONG_PACKTYPE',['../dhm_8h.html#ad0e874d4b6aa4405e92045d1803df124a277e980fb4fe384de69290c114950b1c',1,'dhm.h']]],
+  ['dhm_5ferror_5ft_16',['dhm_error_t',['../dhm_8h.html#ad0e874d4b6aa4405e92045d1803df124',1,'dhm.h']]],
+  ['dhm_5fget_5falice_17',['dhm_get_alice',['../dhm_8c.html#a20e498509ab2d72f873ae5cf8fbcb2f2',1,'dhm_get_alice(dhm_session_t *a_session, dhm_alice_t *a_alice, dhm_private_t *a_alice_private, int a_debug):&#160;dhm.c'],['../dhm_8h.html#a20e498509ab2d72f873ae5cf8fbcb2f2',1,'dhm_get_alice(dhm_session_t *a_session, dhm_alice_t *a_alice, dhm_private_t *a_alice_private, int a_debug):&#160;dhm.c']]],
+  ['dhm_5fget_5fbob_18',['dhm_get_bob',['../dhm_8c.html#aa38caf5aee4b1b879cce239d7e586e30',1,'dhm_get_bob(dhm_session_t *a_session, dhm_alice_t *a_alice, dhm_bob_t *a_bob, dhm_private_t *a_bob_private, int a_debug):&#160;dhm.c'],['../dhm_8h.html#aa38caf5aee4b1b879cce239d7e586e30',1,'dhm_get_bob(dhm_session_t *a_session, dhm_alice_t *a_alice, dhm_bob_t *a_bob, dhm_private_t *a_bob_private, int a_debug):&#160;dhm.c']]],
+  ['dhm_5finit_5fsession_19',['dhm_init_session',['../dhm_8c.html#a21438ebaaf28c3e60b8ee4c4a70737f2',1,'dhm_init_session(dhm_session_t *a_session, int a_debug):&#160;dhm.c'],['../dhm_8h.html#a21438ebaaf28c3e60b8ee4c4a70737f2',1,'dhm_init_session(dhm_session_t *a_session, int a_debug):&#160;dhm.c']]],
+  ['dhm_5fprivate_5ft_20',['dhm_private_t',['../structdhm__private__t.html',1,'']]],
+  ['dhm_5fsession_5ft_21',['dhm_session_t',['../structdhm__session__t.html',1,'']]],
+  ['dhm_5fstrerror_22',['dhm_strerror',['../dhm_8c.html#aa44c1cf8b7bca7f04a60b1ca52203282',1,'dhm_strerror(dhm_error_t a_errno):&#160;dhm.c'],['../dhm_8h.html#aa44c1cf8b7bca7f04a60b1ca52203282',1,'dhm_strerror(dhm_error_t a_errno):&#160;dhm.c']]]
 ];

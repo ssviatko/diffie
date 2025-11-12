@@ -1,27 +1,39 @@
 \doxysection{dhm\+\_\+alice\+\_\+t Struct Reference}
 \hypertarget{structdhm__alice__t}{}\label{structdhm__alice__t}\index{dhm\_alice\_t@{dhm\_alice\_t}}
+
+
+The "{}\+Alice"{} packet, created by the client to establish a Diffie/\+Hellman/\+Merkle conversation with a server.  
+
+
+
+
+{\ttfamily \#include $<$dhm.\+h$>$}
+
 \doxysubsubsection*{Public Attributes}
 \begin{DoxyCompactItemize}
 \item 
 \Hypertarget{structdhm__alice__t_aa4a408f70dea04aa947a24b9902b4527}\label{structdhm__alice__t_aa4a408f70dea04aa947a24b9902b4527} 
 uint16\+\_\+t {\bfseries packtype}
-\item 
+\begin{DoxyCompactList}\small\item\em Packet type stamp, so receiver can identify this as an Alice packet. \end{DoxyCompactList}\item 
 \Hypertarget{structdhm__alice__t_ae26790c8d3c19b04554f5f078178f400}\label{structdhm__alice__t_ae26790c8d3c19b04554f5f078178f400} 
 uint8\+\_\+t {\bfseries hash} \mbox{[}SHASIZE\mbox{]}
-\item 
+\begin{DoxyCompactList}\small\item\em SHA2 hash of everything subsequent to this field. \end{DoxyCompactList}\item 
 \Hypertarget{structdhm__alice__t_aa7afb3d5a40e56353a63b1528182fc6c}\label{structdhm__alice__t_aa7afb3d5a40e56353a63b1528182fc6c} 
 uint8\+\_\+t {\bfseries guid} \mbox{[}GUIDSIZE\mbox{]}
-\item 
+\begin{DoxyCompactList}\small\item\em GUID, copied from the GUID established in \doxylink{structdhm__session__t}{dhm\+\_\+session\+\_\+t}. \end{DoxyCompactList}\item 
 \Hypertarget{structdhm__alice__t_a0e83866b8c79c93a104a23e36e191a60}\label{structdhm__alice__t_a0e83866b8c79c93a104a23e36e191a60} 
 uint16\+\_\+t {\bfseries g}
-\item 
+\begin{DoxyCompactList}\small\item\em Generator primitive, randomly chosen to be either 3 or 5. \end{DoxyCompactList}\item 
 \Hypertarget{structdhm__alice__t_a984a375b518b7d2770c1fdc2bbbbaaa4}\label{structdhm__alice__t_a984a375b518b7d2770c1fdc2bbbbaaa4} 
 uint8\+\_\+t {\bfseries p} \mbox{[}PUBSIZE\mbox{]}
-\item 
+\begin{DoxyCompactList}\small\item\em Public key, which is a gigantic prime number. \end{DoxyCompactList}\item 
 \Hypertarget{structdhm__alice__t_a66ab29cc10a9c77189b5b27e195eb860}\label{structdhm__alice__t_a66ab29cc10a9c77189b5b27e195eb860} 
 uint8\+\_\+t {\bfseries A} \mbox{[}PUBSIZE\mbox{]}
-\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Result of modular exponentiation of generator with private exponent and public modulus. \end{DoxyCompactList}\end{DoxyCompactItemize}
 
+
+\doxysubsection{Detailed Description}
+The "{}\+Alice"{} packet, created by the client to establish a Diffie/\+Hellman/\+Merkle conversation with a server. 
 
 The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
 \item 

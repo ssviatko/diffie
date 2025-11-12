@@ -1,18 +1,30 @@
 \doxysection{dhm\+\_\+session\+\_\+t Struct Reference}
 \hypertarget{structdhm__session__t}{}\label{structdhm__session__t}\index{dhm\_session\_t@{dhm\_session\_t}}
+
+
+Store data relevant to a DHM session. It can be envisioned to be like a "{}context"{} used by an encryption library to establish a context or session.  
+
+
+
+
+{\ttfamily \#include $<$dhm.\+h$>$}
+
 \doxysubsubsection*{Public Attributes}
 \begin{DoxyCompactItemize}
 \item 
 \Hypertarget{structdhm__session__t_a7a1202aa3ec47deebb3ee673547cb168}\label{structdhm__session__t_a7a1202aa3ec47deebb3ee673547cb168} 
 int {\bfseries urandom\+\_\+fd}
-\item 
+\begin{DoxyCompactList}\small\item\em File descriptor of open /dev/urandom device, used for reading cryptographically random bytes. \end{DoxyCompactList}\item 
 \Hypertarget{structdhm__session__t_a53649ce7a6d6ce96b5128761f18f408a}\label{structdhm__session__t_a53649ce7a6d6ce96b5128761f18f408a} 
 uint8\+\_\+t {\bfseries guid} \mbox{[}GUIDSIZE\mbox{]}
-\item 
+\begin{DoxyCompactList}\small\item\em Unique global user identification used to identify the session, this gets stamped into packets. \end{DoxyCompactList}\item 
 \Hypertarget{structdhm__session__t_abe1dc485bfb396628d34ee4a0a64e979}\label{structdhm__session__t_abe1dc485bfb396628d34ee4a0a64e979} 
 uint8\+\_\+t {\bfseries s} \mbox{[}PUBSIZE\mbox{]}
-\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Space for the computed secret, after "{}\+Alice"{} and "{}\+Bob"{} have exchanged packets. \end{DoxyCompactList}\end{DoxyCompactItemize}
 
+
+\doxysubsection{Detailed Description}
+Store data relevant to a DHM session. It can be envisioned to be like a "{}context"{} used by an encryption library to establish a context or session. 
 
 The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
 \item 

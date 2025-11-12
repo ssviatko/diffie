@@ -34,6 +34,38 @@
  * of the Diffie/Hellman/Merkle algorithm. It also provides the basis for
  * implementation of custom protocols for sending requests over a network.
  *
+ * Usage:
+ *
+ * In a typical network scenario, a client establishes a connection to a server
+ * over TCP or serial or some other physical means. The client then makes a
+ * call to dhm_init_session to establish a DHM session.
+ *
+ * With this session structure, a call is the made by the client to
+ * dhm_get_alice. This retrieves an Alice packet which is then sent over the
+ * insecure link to the server.
+ *
+ * On the server end, the server receives and catalogues the Alice packet from
+ * the client, and establishes its own session structure with its own call to
+ * dhm_init_session. Then it calls dhm_get_bob, providing the session
+ * structure, received Alice packet, and a buffer to populate with a generated
+ * Bob packet. Then the server sends the Bob packet back to the client.
+ *
+ * At this point Bob is in possession of the shared secret, which has been
+ * populated into the server side session structure by the call to dhm_get_bob.
+ *
+ * Upon receipt of the Bob packet, the client calls dhm_alice_secret, providing
+ * the received Bob packet, the Alice private key, and the client's session
+ * structure. This call populates the client side session with the shared
+ * secret, which can be read and used in any way the client wishes to create
+ * private keys, symmetric keys, initialization vectors, etc.
+ *
+ * At the end of the encrypted communication session, both the client and the
+ * server call dhm_end_session on their respective sides to close the DHM
+ * session. After closing the session, all memory that has been allocated for
+ * any data structures (sessions, packets, private keys, etc) needs to be
+ * freed by the caller or valgrind will report a memory leak. It is important
+ * to note that the DHM library does no memory management whatsoever!
+ *
  */
 
 #include "dhm.h"
@@ -49,11 +81,19 @@ const char *dhm_error_string[] = {
 	"packet hash check failure"
 };
 
-// note: packtype field (packet type) for Alice packet is 0xC1A5
-// packet type for Bob packet is 0xC2A5. These are stored in network byte order
+const uint16_t dhm_alice_packtype = 0xc1a5; ///< Packet type stamp for Alice packet. Stored in the packet in network byte order
+const uint16_t dhm_bob_packtype = 0xc2a5; ///< Packet type stamp for Bob packet. Stored in the packet in network byte order
 
-const uint16_t dhm_alice_packtype = 0xc1a5;
-const uint16_t dhm_bob_packtype = 0xc2a5;
+/**
+ * @brief "Right justifies" a string of bytes within a set size byte buffer
+ * Shifts over the data to the right and pads the data with zeros, in the
+ * space on the left that was vacated by the move.
+ *
+ * @param[in] a_size The size of the byte buffer in bytes
+ * @param[in] a_offset Number of bytes to shift the data over, i.e. the size of the buffer - the length of the data
+ * @param[in] a_buff Pointer to the buffer to operate on
+ * @return void
+ */
 
 static void right_justify(size_t a_size, size_t a_offset, char *a_buff)
 {
@@ -68,10 +108,27 @@ static void right_justify(size_t a_size, size_t a_offset, char *a_buff)
 	}
 }
 
+/**
+ * @brief Returns a char pointer to an existing error string
+ * Works in exactly the same way as the strerror(errno) function works in the standard library
+ *
+ * @param[in] a_errno The numerical error returned by the function
+ * @return character pointer to error message
+ */
+
 const char *dhm_strerror(dhm_error_t a_errno)
 {
 	return dhm_error_string[a_errno];
 }
+
+/**
+ * @brief Initialize the DHM session
+ * This function needs to be called before any other packet generation is attempted.
+ *
+ * @param[in] a_session Pointer to session data structure. It is the responsibility of the caller to allocate memory for this structure.
+ * @param[in] a_debug Set this flag to 1 if you want to print debugging information.
+ * @return standard DHM error enumeration dhm_error_t
+ */
 
 dhm_error_t dhm_init_session(dhm_session_t *a_session, int a_debug)
 {
@@ -101,6 +158,15 @@ dhm_error_t dhm_init_session(dhm_session_t *a_session, int a_debug)
 	return DHM_ERR_NONE;
 }
 
+/**
+ * @brief Close the DHM session
+ * This function needs to be called after using the DHM library functions.
+ *
+ * @param[in] a_session Pointer to session data structure. It is the responsibility of the caller to free memory for this structure after calling dhm_end_session.
+ * @param[in] a_debug Set this flag to 1 if you want to print debugging information.
+ * @return standard DHM error enumeration dhm_error_t
+ */
+
 dhm_error_t dhm_end_session(dhm_session_t *a_session, int a_debug)
 {
 	int res;
@@ -110,6 +176,17 @@ dhm_error_t dhm_end_session(dhm_session_t *a_session, int a_debug)
 	}
 	return DHM_ERR_NONE;
 }
+
+/**
+ * @brief Get an Alice packet
+ * This function is called by the client in order to initiate a DHM coversation. It is the first step to establishing an encrypted communications channel.
+ *
+ * @param[in] a_session Pointer to already-initialized session data structure.
+ * @param[in] a_alice Pointer to buffer to hold Alice packet. It is the responsibility of the caller to allocate memory for this structure.
+ * @param[in] a_alice_private Pointer to buffer to hold Alice's prvate key. It is the responsibility of the caller to allocate memory for this structure.
+ * @param[in] a_debug Set this flag to 1 if you want to print debugging information.
+ * @return standard DHM error enumeration dhm_error_t
+ */
 
 dhm_error_t dhm_get_alice(dhm_session_t *a_session, dhm_alice_t *a_alice, dhm_private_t *a_alice_private, int a_debug)
 {
@@ -240,6 +317,19 @@ dhm_error_t dhm_get_alice(dhm_session_t *a_session, dhm_alice_t *a_alice, dhm_pr
 	return DHM_ERR_NONE;
 }
 
+/**
+ * @brief Get a Bob packet
+ * This function is called by the server in reply to an Alice packet. It is the second step to establishing an encrypted communications channel.
+ * In the process of generating the Bob packet, the shared secret is stored in the server's session structure.
+ *
+ * @param[in] a_session Pointer to already-initialized session data structure.
+ * @param[in] a_alice Pointer to buffer containing a received Alice packet.
+ * @param[in] a_bob Pointer to buffer large enough to contain a Bob packet. It is the responsibility of the caller to allocate memory for this structure.
+ * @param[in] a_bob_private Pointer to buffer to hold Bob's prvate key. It is the responsibility of the caller to allocate memory for this structure.
+ * @param[in] a_debug Set this flag to 1 if you want to print debugging information.
+ * @return standard DHM error enumeration dhm_error_t
+ */
+
 dhm_error_t dhm_get_bob(dhm_session_t *a_session, dhm_alice_t *a_alice, dhm_bob_t *a_bob, dhm_private_t *a_bob_private, int a_debug)
 {
 	int i;
@@ -369,6 +459,18 @@ dhm_error_t dhm_get_bob(dhm_session_t *a_session, dhm_alice_t *a_alice, dhm_bob_
 	}
 	return DHM_ERR_NONE;
 }
+
+/**
+ * @brief Compute shared secret on the client side
+ * This function is called by the client in reply to a Bob packet. It computes the shared secret which then gets stored in Alice's session structure.
+ *
+ * @param[in] a_session Pointer to already-initialized session data structure.
+ * @param[in] a_alice Pointer to buffer containing the original Alice packet created by the client.
+ * @param[in] a_bob Pointer to buffer containing the received Bob packet.
+ * @param[in] a_alice_private Pointer to buffer containing the original Alice private key created by the call to dhm_get_alice.
+ * @param[in] a_debug Set this flag to 1 if you want to print debugging information.
+ * @return standard DHM error enumeration dhm_error_t
+ */
 
 dhm_error_t dhm_alice_secret (dhm_session_t *a_session, dhm_alice_t *a_alice, dhm_bob_t *a_bob, dhm_private_t *a_alice_private, int a_debug)
 {

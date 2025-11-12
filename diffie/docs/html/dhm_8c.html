@@ -99,26 +99,30 @@ $(function(){initNavTree('dhm_8c.html','',''); });
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:aa44c1cf8b7bca7f04a60b1ca52203282" id="r_aa44c1cf8b7bca7f04a60b1ca52203282"><td class="memItemLeft" align="right" valign="top"><a id="aa44c1cf8b7bca7f04a60b1ca52203282" name="aa44c1cf8b7bca7f04a60b1ca52203282"></a>
-const char *&#160;</td><td class="memItemRight" valign="bottom"><b>dhm_strerror</b> (dhm_error_t a_errno)</td></tr>
-<tr class="memitem:a21438ebaaf28c3e60b8ee4c4a70737f2" id="r_a21438ebaaf28c3e60b8ee4c4a70737f2"><td class="memItemLeft" align="right" valign="top"><a id="a21438ebaaf28c3e60b8ee4c4a70737f2" name="a21438ebaaf28c3e60b8ee4c4a70737f2"></a>
-dhm_error_t&#160;</td><td class="memItemRight" valign="bottom"><b>dhm_init_session</b> (<a class="el" href="structdhm__session__t.html">dhm_session_t</a> *a_session, int a_debug)</td></tr>
-<tr class="memitem:a5c7f07b0fcd25d44cc6bf950bf1901ff" id="r_a5c7f07b0fcd25d44cc6bf950bf1901ff"><td class="memItemLeft" align="right" valign="top"><a id="a5c7f07b0fcd25d44cc6bf950bf1901ff" name="a5c7f07b0fcd25d44cc6bf950bf1901ff"></a>
-dhm_error_t&#160;</td><td class="memItemRight" valign="bottom"><b>dhm_end_session</b> (<a class="el" href="structdhm__session__t.html">dhm_session_t</a> *a_session, int a_debug)</td></tr>
-<tr class="memitem:a20e498509ab2d72f873ae5cf8fbcb2f2" id="r_a20e498509ab2d72f873ae5cf8fbcb2f2"><td class="memItemLeft" align="right" valign="top"><a id="a20e498509ab2d72f873ae5cf8fbcb2f2" name="a20e498509ab2d72f873ae5cf8fbcb2f2"></a>
-dhm_error_t&#160;</td><td class="memItemRight" valign="bottom"><b>dhm_get_alice</b> (<a class="el" href="structdhm__session__t.html">dhm_session_t</a> *a_session, <a class="el" href="structdhm__alice__t.html">dhm_alice_t</a> *a_alice, <a class="el" href="structdhm__private__t.html">dhm_private_t</a> *a_alice_private, int a_debug)</td></tr>
-<tr class="memitem:aa38caf5aee4b1b879cce239d7e586e30" id="r_aa38caf5aee4b1b879cce239d7e586e30"><td class="memItemLeft" align="right" valign="top"><a id="aa38caf5aee4b1b879cce239d7e586e30" name="aa38caf5aee4b1b879cce239d7e586e30"></a>
-dhm_error_t&#160;</td><td class="memItemRight" valign="bottom"><b>dhm_get_bob</b> (<a class="el" href="structdhm__session__t.html">dhm_session_t</a> *a_session, <a class="el" href="structdhm__alice__t.html">dhm_alice_t</a> *a_alice, <a class="el" href="structdhm__bob__t.html">dhm_bob_t</a> *a_bob, <a class="el" href="structdhm__private__t.html">dhm_private_t</a> *a_bob_private, int a_debug)</td></tr>
-<tr class="memitem:a2764b9e4a8ebde2e60b862d5d46d0ea9" id="r_a2764b9e4a8ebde2e60b862d5d46d0ea9"><td class="memItemLeft" align="right" valign="top"><a id="a2764b9e4a8ebde2e60b862d5d46d0ea9" name="a2764b9e4a8ebde2e60b862d5d46d0ea9"></a>
-dhm_error_t&#160;</td><td class="memItemRight" valign="bottom"><b>dhm_alice_secret</b> (<a class="el" href="structdhm__session__t.html">dhm_session_t</a> *a_session, <a class="el" href="structdhm__alice__t.html">dhm_alice_t</a> *a_alice, <a class="el" href="structdhm__bob__t.html">dhm_bob_t</a> *a_bob, <a class="el" href="structdhm__private__t.html">dhm_private_t</a> *a_alice_private, int a_debug)</td></tr>
+<tr class="memitem:a81abb0630362e4736cf7f036277e8d16" id="r_a81abb0630362e4736cf7f036277e8d16"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a81abb0630362e4736cf7f036277e8d16">right_justify</a> (size_t a_size, size_t a_offset, char *a_buff)</td></tr>
+<tr class="memdesc:a81abb0630362e4736cf7f036277e8d16"><td class="mdescLeft">&#160;</td><td class="mdescRight">"Right justifies" a string of bytes within a set size byte buffer Shifts over the data to the right and pads the data with zeros, in the space on the left that was vacated by the move.  <br /></td></tr>
+<tr class="memitem:aa44c1cf8b7bca7f04a60b1ca52203282" id="r_aa44c1cf8b7bca7f04a60b1ca52203282"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa44c1cf8b7bca7f04a60b1ca52203282">dhm_strerror</a> (<a class="el" href="dhm_8h.html#ad0e874d4b6aa4405e92045d1803df124">dhm_error_t</a> a_errno)</td></tr>
+<tr class="memdesc:aa44c1cf8b7bca7f04a60b1ca52203282"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a char pointer to an existing error string Works in exactly the same way as the strerror(errno) function works in the standard library.  <br /></td></tr>
+<tr class="memitem:a21438ebaaf28c3e60b8ee4c4a70737f2" id="r_a21438ebaaf28c3e60b8ee4c4a70737f2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="dhm_8h.html#ad0e874d4b6aa4405e92045d1803df124">dhm_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a21438ebaaf28c3e60b8ee4c4a70737f2">dhm_init_session</a> (<a class="el" href="structdhm__session__t.html">dhm_session_t</a> *a_session, int a_debug)</td></tr>
+<tr class="memdesc:a21438ebaaf28c3e60b8ee4c4a70737f2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize the DHM session This function needs to be called before any other packet generation is attempted.  <br /></td></tr>
+<tr class="memitem:a5c7f07b0fcd25d44cc6bf950bf1901ff" id="r_a5c7f07b0fcd25d44cc6bf950bf1901ff"><td class="memItemLeft" align="right" valign="top"><a class="el" href="dhm_8h.html#ad0e874d4b6aa4405e92045d1803df124">dhm_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5c7f07b0fcd25d44cc6bf950bf1901ff">dhm_end_session</a> (<a class="el" href="structdhm__session__t.html">dhm_session_t</a> *a_session, int a_debug)</td></tr>
+<tr class="memdesc:a5c7f07b0fcd25d44cc6bf950bf1901ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Close the DHM session This function needs to be called after using the DHM library functions.  <br /></td></tr>
+<tr class="memitem:a20e498509ab2d72f873ae5cf8fbcb2f2" id="r_a20e498509ab2d72f873ae5cf8fbcb2f2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="dhm_8h.html#ad0e874d4b6aa4405e92045d1803df124">dhm_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a20e498509ab2d72f873ae5cf8fbcb2f2">dhm_get_alice</a> (<a class="el" href="structdhm__session__t.html">dhm_session_t</a> *a_session, <a class="el" href="structdhm__alice__t.html">dhm_alice_t</a> *a_alice, <a class="el" href="structdhm__private__t.html">dhm_private_t</a> *a_alice_private, int a_debug)</td></tr>
+<tr class="memdesc:a20e498509ab2d72f873ae5cf8fbcb2f2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get an Alice packet This function is called by the client in order to initiate a DHM coversation. It is the first step to establishing an encrypted communications channel.  <br /></td></tr>
+<tr class="memitem:aa38caf5aee4b1b879cce239d7e586e30" id="r_aa38caf5aee4b1b879cce239d7e586e30"><td class="memItemLeft" align="right" valign="top"><a class="el" href="dhm_8h.html#ad0e874d4b6aa4405e92045d1803df124">dhm_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa38caf5aee4b1b879cce239d7e586e30">dhm_get_bob</a> (<a class="el" href="structdhm__session__t.html">dhm_session_t</a> *a_session, <a class="el" href="structdhm__alice__t.html">dhm_alice_t</a> *a_alice, <a class="el" href="structdhm__bob__t.html">dhm_bob_t</a> *a_bob, <a class="el" href="structdhm__private__t.html">dhm_private_t</a> *a_bob_private, int a_debug)</td></tr>
+<tr class="memdesc:aa38caf5aee4b1b879cce239d7e586e30"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a Bob packet This function is called by the server in reply to an Alice packet. It is the second step to establishing an encrypted communications channel. In the process of generating the Bob packet, the shared secret is stored in the server's session structure.  <br /></td></tr>
+<tr class="memitem:a2764b9e4a8ebde2e60b862d5d46d0ea9" id="r_a2764b9e4a8ebde2e60b862d5d46d0ea9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="dhm_8h.html#ad0e874d4b6aa4405e92045d1803df124">dhm_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2764b9e4a8ebde2e60b862d5d46d0ea9">dhm_alice_secret</a> (<a class="el" href="structdhm__session__t.html">dhm_session_t</a> *a_session, <a class="el" href="structdhm__alice__t.html">dhm_alice_t</a> *a_alice, <a class="el" href="structdhm__bob__t.html">dhm_bob_t</a> *a_bob, <a class="el" href="structdhm__private__t.html">dhm_private_t</a> *a_alice_private, int a_debug)</td></tr>
+<tr class="memdesc:a2764b9e4a8ebde2e60b862d5d46d0ea9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute shared secret on the client side This function is called by the client in reply to a Bob packet. It computes the shared secret which then gets stored in Alice's session structure.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-var-members" class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
 <tr class="memitem:ad0fb803c9bdb253535933f855ae1c9ce" id="r_ad0fb803c9bdb253535933f855ae1c9ce"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad0fb803c9bdb253535933f855ae1c9ce">dhm_error_string</a> []</td></tr>
 <tr class="memitem:ab635bd77ea7ce7a2426f0bed5ca2743c" id="r_ab635bd77ea7ce7a2426f0bed5ca2743c"><td class="memItemLeft" align="right" valign="top"><a id="ab635bd77ea7ce7a2426f0bed5ca2743c" name="ab635bd77ea7ce7a2426f0bed5ca2743c"></a>
 const uint16_t&#160;</td><td class="memItemRight" valign="bottom"><b>dhm_alice_packtype</b> = 0xc1a5</td></tr>
+<tr class="memdesc:ab635bd77ea7ce7a2426f0bed5ca2743c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Packet type stamp for Alice packet. Stored in the packet in network byte order. <br /></td></tr>
 <tr class="memitem:a6d92d9d6f5a3cf44fdc895b4e6e93f67" id="r_a6d92d9d6f5a3cf44fdc895b4e6e93f67"><td class="memItemLeft" align="right" valign="top"><a id="a6d92d9d6f5a3cf44fdc895b4e6e93f67" name="a6d92d9d6f5a3cf44fdc895b4e6e93f67"></a>
 const uint16_t&#160;</td><td class="memItemRight" valign="bottom"><b>dhm_bob_packtype</b> = 0xc2a5</td></tr>
+<tr class="memdesc:a6d92d9d6f5a3cf44fdc895b4e6e93f67"><td class="mdescLeft">&#160;</td><td class="mdescRight">Packet type stamp for Bob packet. Stored in the packet in network byte order. <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>: Diffie/Hellman/Merkle API </p>
@@ -130,8 +134,290 @@ const uint16_t&#160;</td><td class="memItemRight" valign="bottom"><b>dhm_bob_pac
 <p>This file may not be distributed in any modified form without expressed written permission of Good Neighbors LLC or its regents. Permission is granted to use this file in any non-commercial, non-governmental capacity (such as student projects, hobby projects, etc) without an official licensing agreement as long as the original author(s) are credited in any derivative work.</p>
 <p>Commercial licensing of this content is available, any agreement must include consulting services as part of a deployment strategy. For more information, please contact Stephen Sviatko at the following email address:</p>
 <p><a href="#" onclick="location.href='mai'+'lto:'+'ssv'+'ia'+'tko'+'@g'+'mai'+'l.'+'com'; return false;">ssvia<span class="obfuscator">.nosp@m.</span>tko@<span class="obfuscator">.nosp@m.</span>gmail<span class="obfuscator">.nosp@m.</span>.com</a></p>
-<p>This file implements the Diffie/Hellman/Merkle API, which provides sessions, formatted packets, and mathematical functions for computing the secrets of the Diffie/Hellman/Merkle algorithm. It also provides the basis for implementation of custom protocols for sending requests over a network. </p>
-</div><a name="doc-var-members" id="doc-var-members"></a><h2 id="header-doc-var-members" class="groupheader">Variable Documentation</h2>
+<p>This file implements the Diffie/Hellman/Merkle API, which provides sessions, formatted packets, and mathematical functions for computing the secrets of the Diffie/Hellman/Merkle algorithm. It also provides the basis for implementation of custom protocols for sending requests over a network.</p>
+<p>Usage:</p>
+<p>In a typical network scenario, a client establishes a connection to a server over TCP or serial or some other physical means. The client then makes a call to dhm_init_session to establish a DHM session.</p>
+<p>With this session structure, a call is the made by the client to dhm_get_alice. This retrieves an Alice packet which is then sent over the insecure link to the server.</p>
+<p>On the server end, the server receives and catalogues the Alice packet from the client, and establishes its own session structure with its own call to dhm_init_session. Then it calls dhm_get_bob, providing the session structure, received Alice packet, and a buffer to populate with a generated Bob packet. Then the server sends the Bob packet back to the client.</p>
+<p>At this point Bob is in possession of the shared secret, which has been populated into the server side session structure by the call to dhm_get_bob.</p>
+<p>Upon receipt of the Bob packet, the client calls dhm_alice_secret, providing the received Bob packet, the Alice private key, and the client's session structure. This call populates the client side session with the shared secret, which can be read and used in any way the client wishes to create private keys, symmetric keys, initialization vectors, etc.</p>
+<p>At the end of the encrypted communication session, both the client and the server call dhm_end_session on their respective sides to close the DHM session. After closing the session, all memory that has been allocated for any data structures (sessions, packets, private keys, etc) needs to be freed by the caller or valgrind will report a memory leak. It is important to note that the DHM library does no memory management whatsoever! </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
+<a id="a2764b9e4a8ebde2e60b862d5d46d0ea9" name="a2764b9e4a8ebde2e60b862d5d46d0ea9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2764b9e4a8ebde2e60b862d5d46d0ea9">&#9670;&#160;</a></span>dhm_alice_secret()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="dhm_8h.html#ad0e874d4b6aa4405e92045d1803df124">dhm_error_t</a> dhm_alice_secret </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structdhm__session__t.html">dhm_session_t</a> *</td>          <td class="paramname"><span class="paramname"><em>a_session</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structdhm__alice__t.html">dhm_alice_t</a> *</td>          <td class="paramname"><span class="paramname"><em>a_alice</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structdhm__bob__t.html">dhm_bob_t</a> *</td>          <td class="paramname"><span class="paramname"><em>a_bob</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structdhm__private__t.html">dhm_private_t</a> *</td>          <td class="paramname"><span class="paramname"><em>a_alice_private</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>a_debug</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute shared secret on the client side This function is called by the client in reply to a Bob packet. It computes the shared secret which then gets stored in Alice's session structure. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">a_session</td><td>Pointer to already-initialized session data structure. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">a_alice</td><td>Pointer to buffer containing the original Alice packet created by the client. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">a_bob</td><td>Pointer to buffer containing the received Bob packet. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">a_alice_private</td><td>Pointer to buffer containing the original Alice private key created by the call to dhm_get_alice. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">a_debug</td><td>Set this flag to 1 if you want to print debugging information. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>standard DHM error enumeration <a class="el" href="dhm_8h.html#ad0e874d4b6aa4405e92045d1803df124" title="An enumerated list of return error codes.">dhm_error_t</a> </dd></dl>
+
+</div>
+</div>
+<a id="a5c7f07b0fcd25d44cc6bf950bf1901ff" name="a5c7f07b0fcd25d44cc6bf950bf1901ff"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5c7f07b0fcd25d44cc6bf950bf1901ff">&#9670;&#160;</a></span>dhm_end_session()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="dhm_8h.html#ad0e874d4b6aa4405e92045d1803df124">dhm_error_t</a> dhm_end_session </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structdhm__session__t.html">dhm_session_t</a> *</td>          <td class="paramname"><span class="paramname"><em>a_session</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>a_debug</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Close the DHM session This function needs to be called after using the DHM library functions. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">a_session</td><td>Pointer to session data structure. It is the responsibility of the caller to free memory for this structure after calling dhm_end_session. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">a_debug</td><td>Set this flag to 1 if you want to print debugging information. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>standard DHM error enumeration <a class="el" href="dhm_8h.html#ad0e874d4b6aa4405e92045d1803df124" title="An enumerated list of return error codes.">dhm_error_t</a> </dd></dl>
+
+</div>
+</div>
+<a id="a20e498509ab2d72f873ae5cf8fbcb2f2" name="a20e498509ab2d72f873ae5cf8fbcb2f2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a20e498509ab2d72f873ae5cf8fbcb2f2">&#9670;&#160;</a></span>dhm_get_alice()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="dhm_8h.html#ad0e874d4b6aa4405e92045d1803df124">dhm_error_t</a> dhm_get_alice </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structdhm__session__t.html">dhm_session_t</a> *</td>          <td class="paramname"><span class="paramname"><em>a_session</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structdhm__alice__t.html">dhm_alice_t</a> *</td>          <td class="paramname"><span class="paramname"><em>a_alice</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structdhm__private__t.html">dhm_private_t</a> *</td>          <td class="paramname"><span class="paramname"><em>a_alice_private</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>a_debug</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get an Alice packet This function is called by the client in order to initiate a DHM coversation. It is the first step to establishing an encrypted communications channel. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">a_session</td><td>Pointer to already-initialized session data structure. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">a_alice</td><td>Pointer to buffer to hold Alice packet. It is the responsibility of the caller to allocate memory for this structure. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">a_alice_private</td><td>Pointer to buffer to hold Alice's prvate key. It is the responsibility of the caller to allocate memory for this structure. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">a_debug</td><td>Set this flag to 1 if you want to print debugging information. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>standard DHM error enumeration <a class="el" href="dhm_8h.html#ad0e874d4b6aa4405e92045d1803df124" title="An enumerated list of return error codes.">dhm_error_t</a> </dd></dl>
+
+</div>
+</div>
+<a id="aa38caf5aee4b1b879cce239d7e586e30" name="aa38caf5aee4b1b879cce239d7e586e30"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa38caf5aee4b1b879cce239d7e586e30">&#9670;&#160;</a></span>dhm_get_bob()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="dhm_8h.html#ad0e874d4b6aa4405e92045d1803df124">dhm_error_t</a> dhm_get_bob </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structdhm__session__t.html">dhm_session_t</a> *</td>          <td class="paramname"><span class="paramname"><em>a_session</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structdhm__alice__t.html">dhm_alice_t</a> *</td>          <td class="paramname"><span class="paramname"><em>a_alice</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structdhm__bob__t.html">dhm_bob_t</a> *</td>          <td class="paramname"><span class="paramname"><em>a_bob</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structdhm__private__t.html">dhm_private_t</a> *</td>          <td class="paramname"><span class="paramname"><em>a_bob_private</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>a_debug</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get a Bob packet This function is called by the server in reply to an Alice packet. It is the second step to establishing an encrypted communications channel. In the process of generating the Bob packet, the shared secret is stored in the server's session structure. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">a_session</td><td>Pointer to already-initialized session data structure. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">a_alice</td><td>Pointer to buffer containing a received Alice packet. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">a_bob</td><td>Pointer to buffer large enough to contain a Bob packet. It is the responsibility of the caller to allocate memory for this structure. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">a_bob_private</td><td>Pointer to buffer to hold Bob's prvate key. It is the responsibility of the caller to allocate memory for this structure. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">a_debug</td><td>Set this flag to 1 if you want to print debugging information. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>standard DHM error enumeration <a class="el" href="dhm_8h.html#ad0e874d4b6aa4405e92045d1803df124" title="An enumerated list of return error codes.">dhm_error_t</a> </dd></dl>
+
+</div>
+</div>
+<a id="a21438ebaaf28c3e60b8ee4c4a70737f2" name="a21438ebaaf28c3e60b8ee4c4a70737f2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a21438ebaaf28c3e60b8ee4c4a70737f2">&#9670;&#160;</a></span>dhm_init_session()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="dhm_8h.html#ad0e874d4b6aa4405e92045d1803df124">dhm_error_t</a> dhm_init_session </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structdhm__session__t.html">dhm_session_t</a> *</td>          <td class="paramname"><span class="paramname"><em>a_session</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>a_debug</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Initialize the DHM session This function needs to be called before any other packet generation is attempted. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">a_session</td><td>Pointer to session data structure. It is the responsibility of the caller to allocate memory for this structure. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">a_debug</td><td>Set this flag to 1 if you want to print debugging information. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>standard DHM error enumeration <a class="el" href="dhm_8h.html#ad0e874d4b6aa4405e92045d1803df124" title="An enumerated list of return error codes.">dhm_error_t</a> </dd></dl>
+
+</div>
+</div>
+<a id="aa44c1cf8b7bca7f04a60b1ca52203282" name="aa44c1cf8b7bca7f04a60b1ca52203282"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa44c1cf8b7bca7f04a60b1ca52203282">&#9670;&#160;</a></span>dhm_strerror()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const char * dhm_strerror </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="dhm_8h.html#ad0e874d4b6aa4405e92045d1803df124">dhm_error_t</a></td>          <td class="paramname"><span class="paramname"><em>a_errno</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Returns a char pointer to an existing error string Works in exactly the same way as the strerror(errno) function works in the standard library. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">a_errno</td><td>The numerical error returned by the function </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>character pointer to error message </dd></dl>
+
+</div>
+</div>
+<a id="a81abb0630362e4736cf7f036277e8d16" name="a81abb0630362e4736cf7f036277e8d16"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a81abb0630362e4736cf7f036277e8d16">&#9670;&#160;</a></span>right_justify()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void right_justify </td>
+          <td>(</td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>a_size</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>a_offset</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *</td>          <td class="paramname"><span class="paramname"><em>a_buff</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>"Right justifies" a string of bytes within a set size byte buffer Shifts over the data to the right and pads the data with zeros, in the space on the left that was vacated by the move. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">a_size</td><td>The size of the byte buffer in bytes </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">a_offset</td><td>Number of bytes to shift the data over, i.e. the size of the buffer - the length of the data </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">a_buff</td><td>Pointer to the buffer to operate on </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>void </dd></dl>
+
+</div>
+</div>
+<a name="doc-var-members" id="doc-var-members"></a><h2 id="header-doc-var-members" class="groupheader">Variable Documentation</h2>
 <a id="ad0fb803c9bdb253535933f855ae1c9ce" name="ad0fb803c9bdb253535933f855ae1c9ce"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad0fb803c9bdb253535933f855ae1c9ce">&#9670;&#160;</a></span>dhm_error_string</h2>
 

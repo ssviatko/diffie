@@ -34,6 +34,38 @@
  * of the Diffie/Hellman/Merkle algorithm. It also provides the basis for
  * implementation of custom protocols for sending requests over a network.
  *
+ * Usage:
+ *
+ * In a typical network scenario, a client establishes a connection to a server
+ * over TCP or serial or some other physical means. The client then makes a
+ * call to dhm_init_session to establish a DHM session.
+ *
+ * With this session structure, a call is the made by the client to
+ * dhm_get_alice. This retrieves an Alice packet which is then sent over the
+ * insecure link to the server.
+ *
+ * On the server end, the server receives and catalogues the Alice packet from
+ * the client, and establishes its own session structure with its own call to
+ * dhm_init_session. Then it calls dhm_get_bob, providing the session
+ * structure, received Alice packet, and a buffer to populate with a generated
+ * Bob packet. Then the server sends the Bob packet back to the client.
+ *
+ * At this point Bob is in possession of the shared secret, which has been
+ * populated into the server side session structure by the call to dhm_get_bob.
+ *
+ * Upon receipt of the Bob packet, the client calls dhm_alice_secret, providing
+ * the received Bob packet, the Alice private key, and the client's session
+ * structure. This call populates the client side session with the shared
+ * secret, which can be read and used in any way the client wishes to create
+ * private keys, symmetric keys, initialization vectors, etc.
+ *
+ * At the end of the encrypted communication session, both the client and the
+ * server call dhm_end_session on their respective sides to close the DHM
+ * session. After closing the session, all memory that has been allocated for
+ * any data structures (sessions, packets, private keys, etc) needs to be
+ * freed by the caller or valgrind will report a memory leak. It is important
+ * to note that the DHM library does no memory management whatsoever!
+ *
  */
 
 #ifndef DHM_H
@@ -60,41 +92,65 @@
 #define GUIDSIZE 12 // size of unique session ID token
 #define SHASIZE 28 // size of a SHA2-224 hash
 
+/**
+ * @brief Store data relevant to a DHM session.
+ * It can be envisioned to be like a "context" used
+ * by an encryption library to establish a context or session.
+ */
+
 typedef struct {
-	int urandom_fd;
-	uint8_t guid[GUIDSIZE];
-	uint8_t s[PUBSIZE];
+	int urandom_fd; ///< File descriptor of open /dev/urandom device, used for reading cryptographically random bytes
+	uint8_t guid[GUIDSIZE]; ///< Unique global user identification used to identify the session, this gets stamped into packets
+	uint8_t s[PUBSIZE]; ///< Space for the computed secret, after "Alice" and "Bob" have exchanged packets
 } dhm_session_t;
 
+/**
+ * @brief The "Alice" packet, created by the client to establish a Diffie/Hellman/Merkle conversation with a server.
+ */
+
 typedef struct {
-	uint16_t packtype;
-	uint8_t hash[SHASIZE]; // hash of everything subsequent to this field
-	uint8_t guid[GUIDSIZE];
-	uint16_t g;
-	uint8_t p[PUBSIZE];
-	uint8_t A[PUBSIZE];
+	uint16_t packtype; ///< Packet type stamp, so receiver can identify this as an Alice packet
+	uint8_t hash[SHASIZE]; ///< SHA2 hash of everything subsequent to this field
+	uint8_t guid[GUIDSIZE]; ///< GUID, copied from the GUID established in dhm_session_t
+	uint16_t g; ///< Generator primitive, randomly chosen to be either 3 or 5
+	uint8_t p[PUBSIZE]; ///< Public key, which is a gigantic prime number
+	uint8_t A[PUBSIZE]; ///< Result of modular exponentiation of generator with private exponent and public modulus
 } dhm_alice_t;
 
+/**
+ * @brief The "Bob" packet, created by the server in response to an "Alice" packet.
+ */
+
 typedef struct {
-	uint16_t packtype;
-	uint8_t hash[SHASIZE];
-	uint8_t guid[GUIDSIZE];
-	uint8_t B[PUBSIZE];
+	uint16_t packtype; ///< Packet typ stamp, so receiver can identify this as a Bob packet
+	uint8_t hash[SHASIZE]; ///< SHA2 hash of everything subsequent to this field
+	uint8_t guid[GUIDSIZE]; ///< GUID, copied from the Alice packet received previously
+	uint8_t B[PUBSIZE]; ///< Result of modular exponentiation of generator with private exponent and public modulus
 } dhm_bob_t;
 
+/**
+ * @brief Private key structure
+ * This holds space for Alice and Bob's private keys, which are kept secret and never shared
+ */
+
 typedef struct {
-	uint8_t key[PRIVSIZE];
+	uint8_t key[PRIVSIZE]; ///< Space for private key
 } dhm_private_t;
 
+/**
+ * @enum dhm_error_t
+ * @brief An enumerated list of return error codes.
+ */
+
 typedef enum {
-	DHM_ERR_NONE = 0,
-	DHM_ERR_OPENURANDOM,
-	DHM_ERR_READURANDOM,
-	DHM_ERR_CLOSEURANDOM,
-	DHM_ERR_VALUE,
-	DHM_ERR_GENERAL,
-	DHM_ERR_WRONG_PACKTYPE,
-	DHM_ERR_HASH_FAILURE
+	DHM_ERR_NONE = 0, ///< No error occurred, situation nominal
+	DHM_ERR_OPENURANDOM, ///< Problems opening /dev/urandom
+	DHM_ERR_READURANDOM, ///< Problems reading from /dev/urandom
+	DHM_ERR_CLOSEURANDOM, ///< Problems closing /dev/urandom
+	DHM_ERR_VALUE, ///< Generic value error
+	DHM_ERR_GENERAL, ///< General unspecified error
+	DHM_ERR_WRONG_PACKTYPE, ///< Received an unexpected packet type
+	DHM_ERR_HASH_FAILURE ///< Hash mismatch error
 } dhm_error_t;
 
 const char *dhm_strerror     (dhm_error_t a_errno);

@@ -18,13 +18,13 @@
 \begin{DoxyCompactItemize}
 \item 
 struct \mbox{\hyperlink{structdhm__session__t}{dhm\+\_\+session\+\_\+t}}
-\item 
+\begin{DoxyCompactList}\small\item\em Store data relevant to a DHM session. It can be envisioned to be like a "{}context"{} used by an encryption library to establish a context or session. \end{DoxyCompactList}\item 
 struct \mbox{\hyperlink{structdhm__alice__t}{dhm\+\_\+alice\+\_\+t}}
-\item 
+\begin{DoxyCompactList}\small\item\em The "{}\+Alice"{} packet, created by the client to establish a Diffie/\+Hellman/\+Merkle conversation with a server. \end{DoxyCompactList}\item 
 struct \mbox{\hyperlink{structdhm__bob__t}{dhm\+\_\+bob\+\_\+t}}
-\item 
+\begin{DoxyCompactList}\small\item\em The "{}\+Bob"{} packet, created by the server in response to an "{}\+Alice"{} packet. \end{DoxyCompactList}\item 
 struct \mbox{\hyperlink{structdhm__private__t}{dhm\+\_\+private\+\_\+t}}
-\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Private key structure This holds space for Alice and Bob\textquotesingle{}s private keys, which are kept secret and never shared. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \doxysubsubsection*{Macros}
 \begin{DoxyCompactItemize}
 \item 
@@ -49,40 +49,33 @@ struct \mbox{\hyperlink{structdhm__private__t}{dhm\+\_\+private\+\_\+t}}
 \doxysubsubsection*{Enumerations}
 \begin{DoxyCompactItemize}
 \item 
-\Hypertarget{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}\label{dhm_8h_ad0e874d4b6aa4405e92045d1803df124} 
-enum {\bfseries dhm\+\_\+error\+\_\+t} \{ \newline
-{\bfseries DHM\+\_\+\+ERR\+\_\+\+NONE} = 0
-, {\bfseries DHM\+\_\+\+ERR\+\_\+\+OPENURANDOM}
-, {\bfseries DHM\+\_\+\+ERR\+\_\+\+READURANDOM}
-, {\bfseries DHM\+\_\+\+ERR\+\_\+\+CLOSEURANDOM}
+enum \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\+\_\+error\+\_\+t}} \{ \newline
+\mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124a40751e49087ae4c47856ee1d47f26a20}{DHM\+\_\+\+ERR\+\_\+\+NONE}} = 0
+, \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124a62726d5af869acf4d534c039f8ed2a9d}{DHM\+\_\+\+ERR\+\_\+\+OPENURANDOM}}
+, \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124a830e00c6060ded40a5336c077549198a}{DHM\+\_\+\+ERR\+\_\+\+READURANDOM}}
+, \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124a3c67655fc6090a549afcb2cfd35e53b8}{DHM\+\_\+\+ERR\+\_\+\+CLOSEURANDOM}}
 , \newline
-{\bfseries DHM\+\_\+\+ERR\+\_\+\+VALUE}
-, {\bfseries DHM\+\_\+\+ERR\+\_\+\+GENERAL}
-, {\bfseries DHM\+\_\+\+ERR\+\_\+\+WRONG\+\_\+\+PACKTYPE}
-, {\bfseries DHM\+\_\+\+ERR\+\_\+\+HASH\+\_\+\+FAILURE}
+\mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124aeb812962b3a47ba3eaf9ef3f24197933}{DHM\+\_\+\+ERR\+\_\+\+VALUE}}
+, \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124ab920a19a6beaeaa70da53a9f912172b8}{DHM\+\_\+\+ERR\+\_\+\+GENERAL}}
+, \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124a277e980fb4fe384de69290c114950b1c}{DHM\+\_\+\+ERR\+\_\+\+WRONG\+\_\+\+PACKTYPE}}
+, \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124a34b192eec889faa988a054368134e94a}{DHM\+\_\+\+ERR\+\_\+\+HASH\+\_\+\+FAILURE}}
  \}
-\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em An enumerated list of return error codes. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \doxysubsubsection*{Functions}
 \begin{DoxyCompactItemize}
 \item 
-\Hypertarget{dhm_8h_aa44c1cf8b7bca7f04a60b1ca52203282}\label{dhm_8h_aa44c1cf8b7bca7f04a60b1ca52203282} 
-const char \texorpdfstring{$\ast$}{*} {\bfseries dhm\+\_\+strerror} (dhm\+\_\+error\+\_\+t a\+\_\+errno)
-\item 
-\Hypertarget{dhm_8h_a21438ebaaf28c3e60b8ee4c4a70737f2}\label{dhm_8h_a21438ebaaf28c3e60b8ee4c4a70737f2} 
-dhm\+\_\+error\+\_\+t {\bfseries dhm\+\_\+init\+\_\+session} (\mbox{\hyperlink{structdhm__session__t}{dhm\+\_\+session\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+session, int a\+\_\+debug)
-\item 
-\Hypertarget{dhm_8h_a5c7f07b0fcd25d44cc6bf950bf1901ff}\label{dhm_8h_a5c7f07b0fcd25d44cc6bf950bf1901ff} 
-dhm\+\_\+error\+\_\+t {\bfseries dhm\+\_\+end\+\_\+session} (\mbox{\hyperlink{structdhm__session__t}{dhm\+\_\+session\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+session, int a\+\_\+debug)
-\item 
-\Hypertarget{dhm_8h_a20e498509ab2d72f873ae5cf8fbcb2f2}\label{dhm_8h_a20e498509ab2d72f873ae5cf8fbcb2f2} 
-dhm\+\_\+error\+\_\+t {\bfseries dhm\+\_\+get\+\_\+alice} (\mbox{\hyperlink{structdhm__session__t}{dhm\+\_\+session\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+session, \mbox{\hyperlink{structdhm__alice__t}{dhm\+\_\+alice\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+alice, \mbox{\hyperlink{structdhm__private__t}{dhm\+\_\+private\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+alice\+\_\+private, int a\+\_\+debug)
-\item 
-\Hypertarget{dhm_8h_aa38caf5aee4b1b879cce239d7e586e30}\label{dhm_8h_aa38caf5aee4b1b879cce239d7e586e30} 
-dhm\+\_\+error\+\_\+t {\bfseries dhm\+\_\+get\+\_\+bob} (\mbox{\hyperlink{structdhm__session__t}{dhm\+\_\+session\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+session, \mbox{\hyperlink{structdhm__alice__t}{dhm\+\_\+alice\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+alice, \mbox{\hyperlink{structdhm__bob__t}{dhm\+\_\+bob\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+bob, \mbox{\hyperlink{structdhm__private__t}{dhm\+\_\+private\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+bob\+\_\+private, int a\+\_\+debug)
-\item 
-\Hypertarget{dhm_8h_a2764b9e4a8ebde2e60b862d5d46d0ea9}\label{dhm_8h_a2764b9e4a8ebde2e60b862d5d46d0ea9} 
-dhm\+\_\+error\+\_\+t {\bfseries dhm\+\_\+alice\+\_\+secret} (\mbox{\hyperlink{structdhm__session__t}{dhm\+\_\+session\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+session, \mbox{\hyperlink{structdhm__alice__t}{dhm\+\_\+alice\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+alice, \mbox{\hyperlink{structdhm__bob__t}{dhm\+\_\+bob\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+bob, \mbox{\hyperlink{structdhm__private__t}{dhm\+\_\+private\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+alice\+\_\+private, int a\+\_\+debug)
-\end{DoxyCompactItemize}
+const char \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{dhm_8h_aa44c1cf8b7bca7f04a60b1ca52203282}{dhm\+\_\+strerror}} (\mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\+\_\+error\+\_\+t}} a\+\_\+errno)
+\begin{DoxyCompactList}\small\item\em Returns a char pointer to an existing error string Works in exactly the same way as the strerror(errno) function works in the standard library. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\+\_\+error\+\_\+t}} \mbox{\hyperlink{dhm_8h_a21438ebaaf28c3e60b8ee4c4a70737f2}{dhm\+\_\+init\+\_\+session}} (\mbox{\hyperlink{structdhm__session__t}{dhm\+\_\+session\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+session, int a\+\_\+debug)
+\begin{DoxyCompactList}\small\item\em Initialize the DHM session This function needs to be called before any other packet generation is attempted. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\+\_\+error\+\_\+t}} \mbox{\hyperlink{dhm_8h_a5c7f07b0fcd25d44cc6bf950bf1901ff}{dhm\+\_\+end\+\_\+session}} (\mbox{\hyperlink{structdhm__session__t}{dhm\+\_\+session\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+session, int a\+\_\+debug)
+\begin{DoxyCompactList}\small\item\em Close the DHM session This function needs to be called after using the DHM library functions. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\+\_\+error\+\_\+t}} \mbox{\hyperlink{dhm_8h_a20e498509ab2d72f873ae5cf8fbcb2f2}{dhm\+\_\+get\+\_\+alice}} (\mbox{\hyperlink{structdhm__session__t}{dhm\+\_\+session\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+session, \mbox{\hyperlink{structdhm__alice__t}{dhm\+\_\+alice\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+alice, \mbox{\hyperlink{structdhm__private__t}{dhm\+\_\+private\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+alice\+\_\+private, int a\+\_\+debug)
+\begin{DoxyCompactList}\small\item\em Get an Alice packet This function is called by the client in order to initiate a DHM coversation. It is the first step to establishing an encrypted communications channel. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\+\_\+error\+\_\+t}} \mbox{\hyperlink{dhm_8h_aa38caf5aee4b1b879cce239d7e586e30}{dhm\+\_\+get\+\_\+bob}} (\mbox{\hyperlink{structdhm__session__t}{dhm\+\_\+session\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+session, \mbox{\hyperlink{structdhm__alice__t}{dhm\+\_\+alice\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+alice, \mbox{\hyperlink{structdhm__bob__t}{dhm\+\_\+bob\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+bob, \mbox{\hyperlink{structdhm__private__t}{dhm\+\_\+private\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+bob\+\_\+private, int a\+\_\+debug)
+\begin{DoxyCompactList}\small\item\em Get a Bob packet This function is called by the server in reply to an Alice packet. It is the second step to establishing an encrypted communications channel. In the process of generating the Bob packet, the shared secret is stored in the server\textquotesingle{}s session structure. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\+\_\+error\+\_\+t}} \mbox{\hyperlink{dhm_8h_a2764b9e4a8ebde2e60b862d5d46d0ea9}{dhm\+\_\+alice\+\_\+secret}} (\mbox{\hyperlink{structdhm__session__t}{dhm\+\_\+session\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+session, \mbox{\hyperlink{structdhm__alice__t}{dhm\+\_\+alice\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+alice, \mbox{\hyperlink{structdhm__bob__t}{dhm\+\_\+bob\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+bob, \mbox{\hyperlink{structdhm__private__t}{dhm\+\_\+private\+\_\+t}} \texorpdfstring{$\ast$}{*}a\+\_\+alice\+\_\+private, int a\+\_\+debug)
+\begin{DoxyCompactList}\small\item\em Compute shared secret on the client side This function is called by the client in reply to a Bob packet. It computes the shared secret which then gets stored in Alice\textquotesingle{}s session structure. \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
 \doxysubsection{Detailed Description}
@@ -104,4 +97,205 @@ Commercial licensing of this content is available, any agreement must include co
 
 \href{mailto:ssviatko@gmail.com}{\texttt{ssviatko@gmail.\+com}}
 
-This file implements the Diffie/\+Hellman/\+Merkle API, which provides sessions, formatted packets, and mathematical functions for computing the secrets of the Diffie/\+Hellman/\+Merkle algorithm. It also provides the basis for implementation of custom protocols for sending requests over a network. 
+This file implements the Diffie/\+Hellman/\+Merkle API, which provides sessions, formatted packets, and mathematical functions for computing the secrets of the Diffie/\+Hellman/\+Merkle algorithm. It also provides the basis for implementation of custom protocols for sending requests over a network.
+
+Usage\+:
+
+In a typical network scenario, a client establishes a connection to a server over TCP or serial or some other physical means. The client then makes a call to dhm\+\_\+init\+\_\+session to establish a DHM session.
+
+With this session structure, a call is the made by the client to dhm\+\_\+get\+\_\+alice. This retrieves an Alice packet which is then sent over the insecure link to the server.
+
+On the server end, the server receives and catalogues the Alice packet from the client, and establishes its own session structure with its own call to dhm\+\_\+init\+\_\+session. Then it calls dhm\+\_\+get\+\_\+bob, providing the session structure, received Alice packet, and a buffer to populate with a generated Bob packet. Then the server sends the Bob packet back to the client.
+
+At this point Bob is in possession of the shared secret, which has been populated into the server side session structure by the call to dhm\+\_\+get\+\_\+bob.
+
+Upon receipt of the Bob packet, the client calls dhm\+\_\+alice\+\_\+secret, providing the received Bob packet, the Alice private key, and the client\textquotesingle{}s session structure. This call populates the client side session with the shared secret, which can be read and used in any way the client wishes to create private keys, symmetric keys, initialization vectors, etc.
+
+At the end of the encrypted communication session, both the client and the server call dhm\+\_\+end\+\_\+session on their respective sides to close the DHM session. After closing the session, all memory that has been allocated for any data structures (sessions, packets, private keys, etc) needs to be freed by the caller or valgrind will report a memory leak. It is important to note that the DHM library does no memory management whatsoever! 
+
+\label{doc-enum-members}
+\Hypertarget{dhm_8h_doc-enum-members}
+\doxysubsection{Enumeration Type Documentation}
+\Hypertarget{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}\index{dhm.h@{dhm.h}!dhm\_error\_t@{dhm\_error\_t}}
+\index{dhm\_error\_t@{dhm\_error\_t}!dhm.h@{dhm.h}}
+\doxysubsubsection{\texorpdfstring{dhm\_error\_t}{dhm\_error\_t}}
+{\footnotesize\ttfamily \label{dhm_8h_ad0e874d4b6aa4405e92045d1803df124} 
+enum \mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\+\_\+error\+\_\+t}}}
+
+
+
+An enumerated list of return error codes. 
+
+\begin{DoxyEnumFields}[2]{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{DHM\_ERR\_NONE@{DHM\_ERR\_NONE}!dhm.h@{dhm.h}}\index{dhm.h@{dhm.h}!DHM\_ERR\_NONE@{DHM\_ERR\_NONE}}}\Hypertarget{dhm_8h_ad0e874d4b6aa4405e92045d1803df124a40751e49087ae4c47856ee1d47f26a20}\label{dhm_8h_ad0e874d4b6aa4405e92045d1803df124a40751e49087ae4c47856ee1d47f26a20} 
+DHM\+\_\+\+ERR\+\_\+\+NONE&No error occurred, situation nominal. \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{DHM\_ERR\_OPENURANDOM@{DHM\_ERR\_OPENURANDOM}!dhm.h@{dhm.h}}\index{dhm.h@{dhm.h}!DHM\_ERR\_OPENURANDOM@{DHM\_ERR\_OPENURANDOM}}}\Hypertarget{dhm_8h_ad0e874d4b6aa4405e92045d1803df124a62726d5af869acf4d534c039f8ed2a9d}\label{dhm_8h_ad0e874d4b6aa4405e92045d1803df124a62726d5af869acf4d534c039f8ed2a9d} 
+DHM\+\_\+\+ERR\+\_\+\+OPENURANDOM&Problems opening /dev/urandom. \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{DHM\_ERR\_READURANDOM@{DHM\_ERR\_READURANDOM}!dhm.h@{dhm.h}}\index{dhm.h@{dhm.h}!DHM\_ERR\_READURANDOM@{DHM\_ERR\_READURANDOM}}}\Hypertarget{dhm_8h_ad0e874d4b6aa4405e92045d1803df124a830e00c6060ded40a5336c077549198a}\label{dhm_8h_ad0e874d4b6aa4405e92045d1803df124a830e00c6060ded40a5336c077549198a} 
+DHM\+\_\+\+ERR\+\_\+\+READURANDOM&Problems reading from /dev/urandom. \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{DHM\_ERR\_CLOSEURANDOM@{DHM\_ERR\_CLOSEURANDOM}!dhm.h@{dhm.h}}\index{dhm.h@{dhm.h}!DHM\_ERR\_CLOSEURANDOM@{DHM\_ERR\_CLOSEURANDOM}}}\Hypertarget{dhm_8h_ad0e874d4b6aa4405e92045d1803df124a3c67655fc6090a549afcb2cfd35e53b8}\label{dhm_8h_ad0e874d4b6aa4405e92045d1803df124a3c67655fc6090a549afcb2cfd35e53b8} 
+DHM\+\_\+\+ERR\+\_\+\+CLOSEURANDOM&Problems closing /dev/urandom. \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{DHM\_ERR\_VALUE@{DHM\_ERR\_VALUE}!dhm.h@{dhm.h}}\index{dhm.h@{dhm.h}!DHM\_ERR\_VALUE@{DHM\_ERR\_VALUE}}}\Hypertarget{dhm_8h_ad0e874d4b6aa4405e92045d1803df124aeb812962b3a47ba3eaf9ef3f24197933}\label{dhm_8h_ad0e874d4b6aa4405e92045d1803df124aeb812962b3a47ba3eaf9ef3f24197933} 
+DHM\+\_\+\+ERR\+\_\+\+VALUE&Generic value error. \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{DHM\_ERR\_GENERAL@{DHM\_ERR\_GENERAL}!dhm.h@{dhm.h}}\index{dhm.h@{dhm.h}!DHM\_ERR\_GENERAL@{DHM\_ERR\_GENERAL}}}\Hypertarget{dhm_8h_ad0e874d4b6aa4405e92045d1803df124ab920a19a6beaeaa70da53a9f912172b8}\label{dhm_8h_ad0e874d4b6aa4405e92045d1803df124ab920a19a6beaeaa70da53a9f912172b8} 
+DHM\+\_\+\+ERR\+\_\+\+GENERAL&General unspecified error. \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{DHM\_ERR\_WRONG\_PACKTYPE@{DHM\_ERR\_WRONG\_PACKTYPE}!dhm.h@{dhm.h}}\index{dhm.h@{dhm.h}!DHM\_ERR\_WRONG\_PACKTYPE@{DHM\_ERR\_WRONG\_PACKTYPE}}}\Hypertarget{dhm_8h_ad0e874d4b6aa4405e92045d1803df124a277e980fb4fe384de69290c114950b1c}\label{dhm_8h_ad0e874d4b6aa4405e92045d1803df124a277e980fb4fe384de69290c114950b1c} 
+DHM\+\_\+\+ERR\+\_\+\+WRONG\+\_\+\+PACKTYPE&Received an unexpected packet type. \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{DHM\_ERR\_HASH\_FAILURE@{DHM\_ERR\_HASH\_FAILURE}!dhm.h@{dhm.h}}\index{dhm.h@{dhm.h}!DHM\_ERR\_HASH\_FAILURE@{DHM\_ERR\_HASH\_FAILURE}}}\Hypertarget{dhm_8h_ad0e874d4b6aa4405e92045d1803df124a34b192eec889faa988a054368134e94a}\label{dhm_8h_ad0e874d4b6aa4405e92045d1803df124a34b192eec889faa988a054368134e94a} 
+DHM\+\_\+\+ERR\+\_\+\+HASH\+\_\+\+FAILURE&Hash mismatch error. \\
+\hline
+
+\end{DoxyEnumFields}
+
+
+\label{doc-func-members}
+\Hypertarget{dhm_8h_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{dhm_8h_a2764b9e4a8ebde2e60b862d5d46d0ea9}\index{dhm.h@{dhm.h}!dhm\_alice\_secret@{dhm\_alice\_secret}}
+\index{dhm\_alice\_secret@{dhm\_alice\_secret}!dhm.h@{dhm.h}}
+\doxysubsubsection{\texorpdfstring{dhm\_alice\_secret()}{dhm\_alice\_secret()}}
+{\footnotesize\ttfamily \label{dhm_8h_a2764b9e4a8ebde2e60b862d5d46d0ea9} 
+\mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\+\_\+error\+\_\+t}} dhm\+\_\+alice\+\_\+secret (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structdhm__session__t}{dhm\+\_\+session\+\_\+t}} \texorpdfstring{$\ast$}{*}}]{a\+\_\+session}{, }\item[{\mbox{\hyperlink{structdhm__alice__t}{dhm\+\_\+alice\+\_\+t}} \texorpdfstring{$\ast$}{*}}]{a\+\_\+alice}{, }\item[{\mbox{\hyperlink{structdhm__bob__t}{dhm\+\_\+bob\+\_\+t}} \texorpdfstring{$\ast$}{*}}]{a\+\_\+bob}{, }\item[{\mbox{\hyperlink{structdhm__private__t}{dhm\+\_\+private\+\_\+t}} \texorpdfstring{$\ast$}{*}}]{a\+\_\+alice\+\_\+private}{, }\item[{int}]{a\+\_\+debug}{}\end{DoxyParamCaption})}
+
+
+
+Compute shared secret on the client side This function is called by the client in reply to a Bob packet. It computes the shared secret which then gets stored in Alice\textquotesingle{}s session structure. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{in}}  & {\em a\+\_\+session} & Pointer to already-\/initialized session data structure. \\
+\hline
+\mbox{\texttt{in}}  & {\em a\+\_\+alice} & Pointer to buffer containing the original Alice packet created by the client. \\
+\hline
+\mbox{\texttt{in}}  & {\em a\+\_\+bob} & Pointer to buffer containing the received Bob packet. \\
+\hline
+\mbox{\texttt{in}}  & {\em a\+\_\+alice\+\_\+private} & Pointer to buffer containing the original Alice private key created by the call to dhm\+\_\+get\+\_\+alice. \\
+\hline
+\mbox{\texttt{in}}  & {\em a\+\_\+debug} & Set this flag to 1 if you want to print debugging information. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+standard DHM error enumeration \doxylink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\+\_\+error\+\_\+t} 
+\end{DoxyReturn}
+\Hypertarget{dhm_8h_a5c7f07b0fcd25d44cc6bf950bf1901ff}\index{dhm.h@{dhm.h}!dhm\_end\_session@{dhm\_end\_session}}
+\index{dhm\_end\_session@{dhm\_end\_session}!dhm.h@{dhm.h}}
+\doxysubsubsection{\texorpdfstring{dhm\_end\_session()}{dhm\_end\_session()}}
+{\footnotesize\ttfamily \label{dhm_8h_a5c7f07b0fcd25d44cc6bf950bf1901ff} 
+\mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\+\_\+error\+\_\+t}} dhm\+\_\+end\+\_\+session (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structdhm__session__t}{dhm\+\_\+session\+\_\+t}} \texorpdfstring{$\ast$}{*}}]{a\+\_\+session}{, }\item[{int}]{a\+\_\+debug}{}\end{DoxyParamCaption})}
+
+
+
+Close the DHM session This function needs to be called after using the DHM library functions. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{in}}  & {\em a\+\_\+session} & Pointer to session data structure. It is the responsibility of the caller to free memory for this structure after calling dhm\+\_\+end\+\_\+session. \\
+\hline
+\mbox{\texttt{in}}  & {\em a\+\_\+debug} & Set this flag to 1 if you want to print debugging information. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+standard DHM error enumeration \doxylink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\+\_\+error\+\_\+t} 
+\end{DoxyReturn}
+\Hypertarget{dhm_8h_a20e498509ab2d72f873ae5cf8fbcb2f2}\index{dhm.h@{dhm.h}!dhm\_get\_alice@{dhm\_get\_alice}}
+\index{dhm\_get\_alice@{dhm\_get\_alice}!dhm.h@{dhm.h}}
+\doxysubsubsection{\texorpdfstring{dhm\_get\_alice()}{dhm\_get\_alice()}}
+{\footnotesize\ttfamily \label{dhm_8h_a20e498509ab2d72f873ae5cf8fbcb2f2} 
+\mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\+\_\+error\+\_\+t}} dhm\+\_\+get\+\_\+alice (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structdhm__session__t}{dhm\+\_\+session\+\_\+t}} \texorpdfstring{$\ast$}{*}}]{a\+\_\+session}{, }\item[{\mbox{\hyperlink{structdhm__alice__t}{dhm\+\_\+alice\+\_\+t}} \texorpdfstring{$\ast$}{*}}]{a\+\_\+alice}{, }\item[{\mbox{\hyperlink{structdhm__private__t}{dhm\+\_\+private\+\_\+t}} \texorpdfstring{$\ast$}{*}}]{a\+\_\+alice\+\_\+private}{, }\item[{int}]{a\+\_\+debug}{}\end{DoxyParamCaption})}
+
+
+
+Get an Alice packet This function is called by the client in order to initiate a DHM coversation. It is the first step to establishing an encrypted communications channel. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{in}}  & {\em a\+\_\+session} & Pointer to already-\/initialized session data structure. \\
+\hline
+\mbox{\texttt{in}}  & {\em a\+\_\+alice} & Pointer to buffer to hold Alice packet. It is the responsibility of the caller to allocate memory for this structure. \\
+\hline
+\mbox{\texttt{in}}  & {\em a\+\_\+alice\+\_\+private} & Pointer to buffer to hold Alice\textquotesingle{}s prvate key. It is the responsibility of the caller to allocate memory for this structure. \\
+\hline
+\mbox{\texttt{in}}  & {\em a\+\_\+debug} & Set this flag to 1 if you want to print debugging information. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+standard DHM error enumeration \doxylink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\+\_\+error\+\_\+t} 
+\end{DoxyReturn}
+\Hypertarget{dhm_8h_aa38caf5aee4b1b879cce239d7e586e30}\index{dhm.h@{dhm.h}!dhm\_get\_bob@{dhm\_get\_bob}}
+\index{dhm\_get\_bob@{dhm\_get\_bob}!dhm.h@{dhm.h}}
+\doxysubsubsection{\texorpdfstring{dhm\_get\_bob()}{dhm\_get\_bob()}}
+{\footnotesize\ttfamily \label{dhm_8h_aa38caf5aee4b1b879cce239d7e586e30} 
+\mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\+\_\+error\+\_\+t}} dhm\+\_\+get\+\_\+bob (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structdhm__session__t}{dhm\+\_\+session\+\_\+t}} \texorpdfstring{$\ast$}{*}}]{a\+\_\+session}{, }\item[{\mbox{\hyperlink{structdhm__alice__t}{dhm\+\_\+alice\+\_\+t}} \texorpdfstring{$\ast$}{*}}]{a\+\_\+alice}{, }\item[{\mbox{\hyperlink{structdhm__bob__t}{dhm\+\_\+bob\+\_\+t}} \texorpdfstring{$\ast$}{*}}]{a\+\_\+bob}{, }\item[{\mbox{\hyperlink{structdhm__private__t}{dhm\+\_\+private\+\_\+t}} \texorpdfstring{$\ast$}{*}}]{a\+\_\+bob\+\_\+private}{, }\item[{int}]{a\+\_\+debug}{}\end{DoxyParamCaption})}
+
+
+
+Get a Bob packet This function is called by the server in reply to an Alice packet. It is the second step to establishing an encrypted communications channel. In the process of generating the Bob packet, the shared secret is stored in the server\textquotesingle{}s session structure. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{in}}  & {\em a\+\_\+session} & Pointer to already-\/initialized session data structure. \\
+\hline
+\mbox{\texttt{in}}  & {\em a\+\_\+alice} & Pointer to buffer containing a received Alice packet. \\
+\hline
+\mbox{\texttt{in}}  & {\em a\+\_\+bob} & Pointer to buffer large enough to contain a Bob packet. It is the responsibility of the caller to allocate memory for this structure. \\
+\hline
+\mbox{\texttt{in}}  & {\em a\+\_\+bob\+\_\+private} & Pointer to buffer to hold Bob\textquotesingle{}s prvate key. It is the responsibility of the caller to allocate memory for this structure. \\
+\hline
+\mbox{\texttt{in}}  & {\em a\+\_\+debug} & Set this flag to 1 if you want to print debugging information. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+standard DHM error enumeration \doxylink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\+\_\+error\+\_\+t} 
+\end{DoxyReturn}
+\Hypertarget{dhm_8h_a21438ebaaf28c3e60b8ee4c4a70737f2}\index{dhm.h@{dhm.h}!dhm\_init\_session@{dhm\_init\_session}}
+\index{dhm\_init\_session@{dhm\_init\_session}!dhm.h@{dhm.h}}
+\doxysubsubsection{\texorpdfstring{dhm\_init\_session()}{dhm\_init\_session()}}
+{\footnotesize\ttfamily \label{dhm_8h_a21438ebaaf28c3e60b8ee4c4a70737f2} 
+\mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\+\_\+error\+\_\+t}} dhm\+\_\+init\+\_\+session (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structdhm__session__t}{dhm\+\_\+session\+\_\+t}} \texorpdfstring{$\ast$}{*}}]{a\+\_\+session}{, }\item[{int}]{a\+\_\+debug}{}\end{DoxyParamCaption})}
+
+
+
+Initialize the DHM session This function needs to be called before any other packet generation is attempted. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{in}}  & {\em a\+\_\+session} & Pointer to session data structure. It is the responsibility of the caller to allocate memory for this structure. \\
+\hline
+\mbox{\texttt{in}}  & {\em a\+\_\+debug} & Set this flag to 1 if you want to print debugging information. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+standard DHM error enumeration \doxylink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\+\_\+error\+\_\+t} 
+\end{DoxyReturn}
+\Hypertarget{dhm_8h_aa44c1cf8b7bca7f04a60b1ca52203282}\index{dhm.h@{dhm.h}!dhm\_strerror@{dhm\_strerror}}
+\index{dhm\_strerror@{dhm\_strerror}!dhm.h@{dhm.h}}
+\doxysubsubsection{\texorpdfstring{dhm\_strerror()}{dhm\_strerror()}}
+{\footnotesize\ttfamily \label{dhm_8h_aa44c1cf8b7bca7f04a60b1ca52203282} 
+const char \texorpdfstring{$\ast$}{*} dhm\+\_\+strerror (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{dhm_8h_ad0e874d4b6aa4405e92045d1803df124}{dhm\+\_\+error\+\_\+t}}}]{a\+\_\+errno}{}\end{DoxyParamCaption})}
+
+
+
+Returns a char pointer to an existing error string Works in exactly the same way as the strerror(errno) function works in the standard library. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{in}}  & {\em a\+\_\+errno} & The numerical error returned by the function \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+character pointer to error message 
+\end{DoxyReturn}

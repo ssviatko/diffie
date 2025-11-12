@@ -92,19 +92,30 @@ $(function(){initNavTree('structdhm__bob__t.html','','structdhm__bob__t-members'
   <div class="headertitle"><div class="title">dhm_bob_t Struct Reference</div></div>
 </div><!--header-->
 <div class="contents">
+
+<p>The "Bob" packet, created by the server in response to an "Alice" packet.  
+ <a href="#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="dhm_8h_source.html">dhm.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a7c26c4655f48703e50232848af3f9d43" id="r_a7c26c4655f48703e50232848af3f9d43"><td class="memItemLeft" align="right" valign="top"><a id="a7c26c4655f48703e50232848af3f9d43" name="a7c26c4655f48703e50232848af3f9d43"></a>
 uint16_t&#160;</td><td class="memItemRight" valign="bottom"><b>packtype</b></td></tr>
+<tr class="memdesc:a7c26c4655f48703e50232848af3f9d43"><td class="mdescLeft">&#160;</td><td class="mdescRight">Packet typ stamp, so receiver can identify this as a Bob packet. <br /></td></tr>
 <tr class="memitem:a16b5c18adf932b7b1db44d16a5661b9f" id="r_a16b5c18adf932b7b1db44d16a5661b9f"><td class="memItemLeft" align="right" valign="top"><a id="a16b5c18adf932b7b1db44d16a5661b9f" name="a16b5c18adf932b7b1db44d16a5661b9f"></a>
 uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>hash</b> [SHASIZE]</td></tr>
+<tr class="memdesc:a16b5c18adf932b7b1db44d16a5661b9f"><td class="mdescLeft">&#160;</td><td class="mdescRight">SHA2 hash of everything subsequent to this field. <br /></td></tr>
 <tr class="memitem:a09eb12e06636ef0d867b07f191e9bb9a" id="r_a09eb12e06636ef0d867b07f191e9bb9a"><td class="memItemLeft" align="right" valign="top"><a id="a09eb12e06636ef0d867b07f191e9bb9a" name="a09eb12e06636ef0d867b07f191e9bb9a"></a>
 uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>guid</b> [GUIDSIZE]</td></tr>
+<tr class="memdesc:a09eb12e06636ef0d867b07f191e9bb9a"><td class="mdescLeft">&#160;</td><td class="mdescRight">GUID, copied from the Alice packet received previously. <br /></td></tr>
 <tr class="memitem:a014c9e66f577a25db9ab1fb86be7eed8" id="r_a014c9e66f577a25db9ab1fb86be7eed8"><td class="memItemLeft" align="right" valign="top"><a id="a014c9e66f577a25db9ab1fb86be7eed8" name="a014c9e66f577a25db9ab1fb86be7eed8"></a>
 uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>B</b> [PUBSIZE]</td></tr>
+<tr class="memdesc:a014c9e66f577a25db9ab1fb86be7eed8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Result of modular exponentiation of generator with private exponent and public modulus. <br /></td></tr>
 </table>
-<hr/>The documentation for this struct was generated from the following file:<ul>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The "Bob" packet, created by the server in response to an "Alice" packet. </p>
+</div><hr/>The documentation for this struct was generated from the following file:<ul>
 <li><a class="el" href="dhm_8h_source.html">dhm.h</a></li>
 </ul>
 </div><!-- contents -->

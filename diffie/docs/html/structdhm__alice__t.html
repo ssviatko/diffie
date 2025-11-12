@@ -92,23 +92,36 @@ $(function(){initNavTree('structdhm__alice__t.html','','structdhm__alice__t-memb
   <div class="headertitle"><div class="title">dhm_alice_t Struct Reference</div></div>
 </div><!--header-->
 <div class="contents">
+
+<p>The "Alice" packet, created by the client to establish a Diffie/Hellman/Merkle conversation with a server.  
+ <a href="#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="dhm_8h_source.html">dhm.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:aa4a408f70dea04aa947a24b9902b4527" id="r_aa4a408f70dea04aa947a24b9902b4527"><td class="memItemLeft" align="right" valign="top"><a id="aa4a408f70dea04aa947a24b9902b4527" name="aa4a408f70dea04aa947a24b9902b4527"></a>
 uint16_t&#160;</td><td class="memItemRight" valign="bottom"><b>packtype</b></td></tr>
+<tr class="memdesc:aa4a408f70dea04aa947a24b9902b4527"><td class="mdescLeft">&#160;</td><td class="mdescRight">Packet type stamp, so receiver can identify this as an Alice packet. <br /></td></tr>
 <tr class="memitem:ae26790c8d3c19b04554f5f078178f400" id="r_ae26790c8d3c19b04554f5f078178f400"><td class="memItemLeft" align="right" valign="top"><a id="ae26790c8d3c19b04554f5f078178f400" name="ae26790c8d3c19b04554f5f078178f400"></a>
 uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>hash</b> [SHASIZE]</td></tr>
+<tr class="memdesc:ae26790c8d3c19b04554f5f078178f400"><td class="mdescLeft">&#160;</td><td class="mdescRight">SHA2 hash of everything subsequent to this field. <br /></td></tr>
 <tr class="memitem:aa7afb3d5a40e56353a63b1528182fc6c" id="r_aa7afb3d5a40e56353a63b1528182fc6c"><td class="memItemLeft" align="right" valign="top"><a id="aa7afb3d5a40e56353a63b1528182fc6c" name="aa7afb3d5a40e56353a63b1528182fc6c"></a>
 uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>guid</b> [GUIDSIZE]</td></tr>
+<tr class="memdesc:aa7afb3d5a40e56353a63b1528182fc6c"><td class="mdescLeft">&#160;</td><td class="mdescRight">GUID, copied from the GUID established in <a class="el" href="structdhm__session__t.html" title="Store data relevant to a DHM session. It can be envisioned to be like a &quot;context&quot; used by an encrypti...">dhm_session_t</a>. <br /></td></tr>
 <tr class="memitem:a0e83866b8c79c93a104a23e36e191a60" id="r_a0e83866b8c79c93a104a23e36e191a60"><td class="memItemLeft" align="right" valign="top"><a id="a0e83866b8c79c93a104a23e36e191a60" name="a0e83866b8c79c93a104a23e36e191a60"></a>
 uint16_t&#160;</td><td class="memItemRight" valign="bottom"><b>g</b></td></tr>
+<tr class="memdesc:a0e83866b8c79c93a104a23e36e191a60"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generator primitive, randomly chosen to be either 3 or 5. <br /></td></tr>
 <tr class="memitem:a984a375b518b7d2770c1fdc2bbbbaaa4" id="r_a984a375b518b7d2770c1fdc2bbbbaaa4"><td class="memItemLeft" align="right" valign="top"><a id="a984a375b518b7d2770c1fdc2bbbbaaa4" name="a984a375b518b7d2770c1fdc2bbbbaaa4"></a>
 uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>p</b> [PUBSIZE]</td></tr>
+<tr class="memdesc:a984a375b518b7d2770c1fdc2bbbbaaa4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Public key, which is a gigantic prime number. <br /></td></tr>
 <tr class="memitem:a66ab29cc10a9c77189b5b27e195eb860" id="r_a66ab29cc10a9c77189b5b27e195eb860"><td class="memItemLeft" align="right" valign="top"><a id="a66ab29cc10a9c77189b5b27e195eb860" name="a66ab29cc10a9c77189b5b27e195eb860"></a>
 uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>A</b> [PUBSIZE]</td></tr>
+<tr class="memdesc:a66ab29cc10a9c77189b5b27e195eb860"><td class="mdescLeft">&#160;</td><td class="mdescRight">Result of modular exponentiation of generator with private exponent and public modulus. <br /></td></tr>
 </table>
-<hr/>The documentation for this struct was generated from the following file:<ul>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The "Alice" packet, created by the client to establish a Diffie/Hellman/Merkle conversation with a server. </p>
+</div><hr/>The documentation for this struct was generated from the following file:<ul>
 <li><a class="el" href="dhm_8h_source.html">dhm.h</a></li>
 </ul>
 </div><!-- contents -->
