@@ -1,7 +1,7 @@
 /**
  *
  * Diffie/Hellman/Merkle Implementation
- * 2025/Nov/11 - Revision 1
+ * 2025/Nov/11 - Revision 0.80 alpha
  *
  * Created by: Stephen Sviatko
  *
@@ -26,8 +26,8 @@
  *
  * ssviatko@gmail.com
  *
-  * @file: dhm.h
- * @brief: Diffie/Hellman/Merkle API
+  * @file dhm.h
+ * @brief Diffie/Hellman/Merkle API
  *
  * This file implements the Diffie/Hellman/Merkle API, which provides sessions,
  * formatted packets, and mathematical functions for computing the secrets

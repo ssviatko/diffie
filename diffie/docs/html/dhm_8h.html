@@ -93,7 +93,7 @@ $(function(){initNavTree('dhm_8h.html','',''); });
 </div><!--header-->
 <div class="contents">
 
-<p>: Diffie/Hellman/Merkle API  
+<p>Diffie/Hellman/Merkle API.  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &lt;stdio.h&gt;</code><br />
 <code>#include &lt;string.h&gt;</code><br />
@@ -171,8 +171,8 @@ Functions</h2></td></tr>
 <tr class="memdesc:a2764b9e4a8ebde2e60b862d5d46d0ea9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute shared secret on the client side This function is called by the client in reply to a Bob packet. It computes the shared secret which then gets stored in Alice's session structure.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>: Diffie/Hellman/Merkle API </p>
-<p>Diffie/Hellman/Merkle Implementation 2025/Nov/11 - Revision 1</p>
+<div class="textblock"><p>Diffie/Hellman/Merkle API. </p>
+<p>Diffie/Hellman/Merkle Implementation 2025/Nov/11 - Revision 0.80 alpha</p>
 <p>Created by: Stephen Sviatko</p>
 <p>(C) 2025 Good Neighbors LLC - All Rights Reserved, except where noted</p>
 <p>This file and any intellectual property (designs, algorithms, formulas, procedures, trademarks, and related documentation) contained herein are property of Good Neighbors, an Arizona Limited Liability Company.</p>
@@ -191,7 +191,7 @@ Functions</h2></td></tr>
 <p>At the end of the encrypted communication session, both the client and the server call dhm_end_session on their respective sides to close the DHM session. After closing the session, all memory that has been allocated for any data structures (sessions, packets, private keys, etc) needs to be freed by the caller or valgrind will report a memory leak. It is important to note that the DHM library does no memory management whatsoever!</p>
 <p>Build Info:</p>
 <p>To integrate this code into your project, copy the following files into your project and configure your Make file to compile them:</p>
-<p><a class="el" href="dhm_8c.html" title=": Diffie/Hellman/Merkle API">dhm.c</a> <a class="el" href="dhm_8h.html" title=": Diffie/Hellman/Merkle API">dhm.h</a> sha2.c sha2.h</p>
+<p><a class="el" href="dhm_8c.html" title="Diffie/Hellman/Merkle API.">dhm.c</a> <a class="el" href="dhm_8h.html" title="Diffie/Hellman/Merkle API.">dhm.h</a> sha2.c sha2.h</p>
 <p>The dhm.* files are the Diffie/Hellman/Merkle implementation and the sha2.* files are the official FIPS implemenation of SHA2 by Oliver Gay. DHM depends on SHA2 in order to compute hashes of packets to ensure data integrity.</p>
 <p>Linking: DHM uses the GMP (Gnu Multi-Precision) library to compute various coefficients needed for the DHM key exchange to work, and as a result of this you will need to include the following flag in your linker string:</p>
 <p>-lgmp </p>
