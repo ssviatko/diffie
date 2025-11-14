@@ -16,7 +16,7 @@
 
 #pragma pack(1)
 
-#define MAXBITS 16384
+#define MAXBITS 262144
 #define MAXBYTEBUFF (MAXBITS / 8)
 
 #define BUFFLEN 1024
@@ -485,7 +485,7 @@ void do_encrypt()
     }
     if (res < 0) {
         // actual error
-        fprintf(stderr, "rsa: unable to read from input file during encrypt operation: %s\n", strerror(errno));
+        fprintf(stderr, "rsa: unable to read from input file (fd %d) during 1st block encrypt operation: %s\n",g_infile_fd, strerror(errno));
         exit(EXIT_FAILURE);
     }
     if (res < g_1stblock_capacity) {
@@ -578,7 +578,7 @@ void do_encrypt()
         }
         if (res < 0) {
             // actual error
-            fprintf(stderr, "rsa: unable to read from input file during encrypt operation: %s\n", strerror(errno));
+            fprintf(stderr, "rsa: unable to read from input file (fd %d) during subsequent block encrypt operation: %s\n", g_infile_fd, strerror(errno));
             exit(EXIT_FAILURE);
         }
         if (res < g_block_capacity) {

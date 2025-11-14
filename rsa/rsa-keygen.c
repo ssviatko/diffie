@@ -13,7 +13,7 @@
 
 #pragma pack(1)
 
-#define MAXBITS 16384
+#define MAXBITS 262144
 #define MAXBYTEBUFF (MAXBITS / 8)
 #define MAXTHREADS 48
 
