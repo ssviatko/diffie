@@ -144,7 +144,7 @@ void *gen_tf(void *arg)
 			fprintf(stderr, "rsa-keygen: problems reading /dev/urandom: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
-		a_twa->p[0] |= 0x80; // make it between 2^n - 1 and 2^(n-1)
+		a_twa->p[0] |= 0xc0; // make it between (2^n - 1) + (2^n - 2) and 2^(n-1)
 		a_twa->p[(g_pqbits / 8) - 1] |= 0x01; // make it odd
 
 		mpz_import(l_p_import, (g_pqbits / 8), 1, sizeof(unsigned char), 0, 0, a_twa->p);
@@ -167,7 +167,7 @@ void *gen_tf(void *arg)
 		}
 //		a_twa->q[0] &= 0x7f; // set up q to hopefully be < p/2
 //		a_twa->q[0] |= 0x40; // but not too little, please.. enforce first byte between 0x40 and 0x7f
-		a_twa->q[0] |= 0x80; // make it between 2^n - 1 and 2^(n-1) just like p...
+		a_twa->q[0] |= 0xc0; // make it just just like p... instead of the old way commented out above
 		a_twa->q[(g_pqbits / 8) - 1] |= 0x01; // make it odd
 
 		// top 4 bits of p equal to top 4 bits of q? if so, invert bits 4-5 to make it different
