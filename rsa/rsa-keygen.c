@@ -165,9 +165,21 @@ void *gen_tf(void *arg)
 			fprintf(stderr, "rsa-keygen: problems reading /dev/urandom: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
-		a_twa->q[0] &= 0x7f; // set up q to hopefully be < p/2
-		a_twa->q[0] |= 0x40; // but not too little, please.. enforce first byte between 0x40 and 0x7f
+//		a_twa->q[0] &= 0x7f; // set up q to hopefully be < p/2
+//		a_twa->q[0] |= 0x40; // but not too little, please.. enforce first byte between 0x40 and 0x7f
+		a_twa->q[0] |= 0x80; // make it between 2^n - 1 and 2^(n-1) just like p...
 		a_twa->q[(g_pqbits / 8) - 1] |= 0x01; // make it odd
+
+		// top 4 bits of p equal to top 4 bits of q? if so, invert bits 4-5 to make it different
+		if ((a_twa->q[0] & 0xf0) == (a_twa->p[0] & 0xf0)) {
+			if (g_debug > 0) {
+				printf("tid %d: inversion: p[0]=%02X q[0]=%02X, inverting bits 4-5 of top byte of q: ", a_twa->id, a_twa->p[0], a_twa->q[0]);
+			}
+			a_twa->q[0] ^= 0x30;
+			if (g_debug > 0) {
+				printf("%02X\n", a_twa->q[0]);
+			}
+		}
 
 		mpz_import(l_q_import, (g_pqbits / 8), 1, sizeof(unsigned char), 0, 0, a_twa->q);
 		l_pp = mpz_probab_prime_p(l_q_import, 50);
@@ -179,18 +191,20 @@ void *gen_tf(void *arg)
 
 		l_pp = mpz_probab_prime_p(l_q_import, 50);
 
-		// p and q should not be identical
-		if (mpz_cmp(l_p_import, l_q_import) == 0) {
-			if (g_debug) fprintf(stderr, "tid %d: error: p and q cannot be identical.", a_twa->id);
-			continue;
-		}
+		// p and q will never be identical courtesy of our inversion scheme above
+//		// p and q should not be identical
+//		if (mpz_cmp(l_p_import, l_q_import) == 0) {
+//			if (g_debug) fprintf(stderr, "tid %d: error: p and q cannot be identical.", a_twa->id);
+//			continue;
+//		}
 
-		// p should be > than 2q
-		mpz_mul_ui(l_q2, l_q_import, 2);
-		if (mpz_cmp(l_q2, l_p_import) >= 0) {
-			if (g_debug) fprintf(stderr, "tid %d: error: p must be greater than 2q.\n", a_twa->id);
-			continue;
-		}
+		// openssl doesn't preform this test.. so why should we?
+//		// p should be > than 2q
+//		mpz_mul_ui(l_q2, l_q_import, 2);
+//		if (mpz_cmp(l_q2, l_p_import) >= 0) {
+//			if (g_debug) fprintf(stderr, "tid %d: error: p must be greater than 2q.\n", a_twa->id);
+//			continue;
+//		}
 
 		// establish p-1 and q-1
 		mpz_sub_ui(l_p1, l_p_import, 1);
@@ -253,6 +267,16 @@ void *gen_tf(void *arg)
 			continue;
 		} else {
 			if (g_debug) gmp_printf("tid %d: d       = %Zx\n", a_twa->id, l_d);
+		}
+
+		// make sure d isn't too small: we want it to be at least bits - 7 in size.
+		// i.e. the top byte of d should not be zero
+		unsigned int l_sib = mpz_sizeinbase(l_d, 2);
+		if (l_sib < (g_bits - 4)) {
+			if (g_debug > 0) printf("tid %d: error: d bit size to low: %d bits.\n", a_twa->id, l_sib);
+			continue;
+		} else {
+			if (g_debug > 0) printf("tid %d: d bit size is %d.\n", a_twa->id, l_sib);
 		}
 		l_success = 1; // made it this far, we generated a key pair!
 	}
