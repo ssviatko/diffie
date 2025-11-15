@@ -11,6 +11,7 @@
 #include <pthread.h>
 #include <arpa/inet.h>
 #include <sys/stat.h>
+#include <sys/ioctl.h>
 
 #include "sha2.h"
 
@@ -32,6 +33,9 @@ typedef union {
     char data[4];
 } reversible_float_t;
 
+unsigned int g_row;
+unsigned int g_col;
+
 int g_endianness = 0; // 0 = big, 1 = small
 
 uint8_t g_n[MAXBYTEBUFF];
@@ -40,6 +44,10 @@ uint8_t g_e[sizeof(uint32_t)];
 int g_e_loaded = 0;
 uint8_t g_d[MAXBYTEBUFF];
 int g_d_loaded = 0;
+uint8_t g_p[MAXBYTEBUFF];
+int g_p_loaded = 0;
+uint8_t g_q[MAXBYTEBUFF];
+int g_q_loaded = 0;
 
 uint8_t g_buff[MAXBYTEBUFF]; // general buffer
 uint8_t g_buff2[MAXBYTEBUFF]; // auziliary buffer
@@ -104,7 +112,7 @@ typedef enum {
     MODE_DECRYPT,
     MODE_SIGN,
     MODE_VERIFY,
-    MODE_TEST
+    MODE_TELL
 } operational_mode;
 
 operational_mode g_mode = MODE_NONE;;
@@ -120,7 +128,7 @@ struct option g_options[] = {
     { "decrypt", no_argument, NULL, 'd' },
     { "sign", no_argument, NULL, 's' },
     { "verify", no_argument, NULL, 'v' },
-    { "test", no_argument, NULL, 't' },
+    { "tell", no_argument, NULL, 't' },
     { "overwrite", no_argument, NULL, 'w' },
     { "latitude", required_argument, NULL, 1002 },
     { "longitude", required_argument, NULL, 1003 },
@@ -158,9 +166,10 @@ void reverse_float(reversible_float_t *a_val)
 
 void print_hex(uint8_t *a_buffer, size_t a_len)
 {
-    int i;
+    unsigned int i;
+    unsigned int l_bytes_to_print = (g_col / 48) * 16;
     for (i = 0; i < a_len; ++i) {
-        if (i % 32 == 0)
+        if (i % l_bytes_to_print == 0)
             printf("\n");
         printf("%02X ", a_buffer[i]);
     }
@@ -257,6 +266,20 @@ void load_key()
                 exit(EXIT_FAILURE);
             }
             g_d_loaded = 1;
+        } else if (l_kih.type == KIHT_P) {
+            res = read(key_fd, g_p, (ntohl(l_kih.bit_width) / 8));
+            if (res != (ntohl(l_kih.bit_width) / 8)) {
+                fprintf(stderr, "rsa: problems reading key file: can't read prime p.\n");
+                exit(EXIT_FAILURE);
+            }
+            g_p_loaded = 1;
+        } else if (l_kih.type == KIHT_Q) {
+            res = read(key_fd, g_q, (ntohl(l_kih.bit_width) / 8));
+            if (res != (ntohl(l_kih.bit_width) / 8)) {
+                fprintf(stderr, "rsa: problems reading key file: can't read prime q.\n");
+                exit(EXIT_FAILURE);
+            }
+            g_q_loaded = 1;
         } else {
             // that's all we care about for now, just throw away everything else
             res = read(key_fd, g_buff, (ntohl(l_kih.bit_width) / 8));
@@ -1095,7 +1118,7 @@ int main(int argc, char **argv)
                     fprintf(stderr, "rsa: please select only one operational mode.\n");
                     exit(EXIT_FAILURE);
                 }
-                g_mode = MODE_TEST;
+                g_mode = MODE_TELL;
             }
             break;
             case '?':
@@ -1115,13 +1138,19 @@ int main(int argc, char **argv)
                 printf("operational modes (select only one)\n");
                 printf("  -e (--encrypt) encrypt mode\n");
                 printf("       encrypts in->out with public key\n");
+                printf("       example: rsa -e -i plainfile -o encfile -k key-public.bin\n");
                 printf("  -d (--decrypt) decrypt mode\n");
                 printf("       decrypts in->out with private key\n");
+                printf("       example: rsa -d -i encfile -o decfile -k key-private.bin\n");
                 printf("  -s (--sign) sign mode (SHA2-512)\n");
                 printf("       computes sha2-512 hash of in, encrypts the hash and writes to signature file\n");
+                printf("       example: rsa -s -i filetosign -g sigfile -k key-private.bin\n");
                 printf("  -v (--verify) verify mode\n");
                 printf("       computes sha2-512 hash of in, compares with hash in decrypted signature file\n");
-                printf("  -t (--test) test mode\n");
+                printf("       example: rsa -v -i signedfile -g sigfile -k key-public.bin\n");
+                printf("  -t (--tell) tell about key\n");
+                printf("       show details about key specified by -k or --key\n");
+                printf("       example: rsa -t -k keyfile.bin\n");
                 exit(EXIT_SUCCESS);
             }
             break;
@@ -1129,6 +1158,10 @@ int main(int argc, char **argv)
     }
 
     setbuf(stdout, NULL); // disable buffering so we can print our progress
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    g_row = w.ws_row;
+    g_col = w.ws_col;
 
     // preform endianness test, for 64-bit and floating point values since there is no portable way to do this
     reversible_int64_t l_rev;
@@ -1278,9 +1311,30 @@ int main(int argc, char **argv)
             do_sign_verify(1);
         }
         break;
-        case MODE_TEST:
+        case MODE_TELL:
         {
-            printf("rsa: selected test mode.\n");
+            printf("rsa: selected tell mode.\n");
+            load_key();
+            if (g_n_loaded > 0) {
+                printf("modulus n (%d bits):", g_bits);
+                print_hex(g_n, (g_bits / 8));
+            }
+            if (g_e_loaded > 0) {
+                printf("public exponent e:");
+                print_hex(g_e, 4);
+            }
+            if (g_d_loaded > 0) {
+                printf("private exponent d:");
+                print_hex(g_d, (g_bits / 8));
+            }
+            if (g_p_loaded > 0) {
+                printf("prime p:");
+                print_hex(g_p, (g_bits / 8) / 2);
+            }
+            if (g_q_loaded > 0) {
+                printf("prime q:");
+                print_hex(g_q, (g_bits / 8) / 2);
+            }
         }
         break;
         default:
