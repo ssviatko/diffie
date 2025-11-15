@@ -850,8 +850,10 @@ void do_decrypt()
         if (l_fih.size == l_bytes_written_tab) {
             l_eof = 1;
             // don't leave our progress meter hanging
-            progress(l_bytes_written_tab, l_fih.size);
-            printf("\n");
+            if (l_block_ctr > 1) {
+                progress(l_bytes_written_tab, l_fih.size);
+                printf("\n");
+            }
             if (g_debug > 0) printf("do_decrypt: finished writing input data\n");
         }
     } while (l_eof == 0);
