@@ -1,3 +1,54 @@
+/**
+ *
+ * RSA Implementation
+ * 2025/Nov/15 - Revision 0.80 alpha
+ *
+ * Created by: Stephen Sviatko
+ *
+ * (C) 2025 Good Neighbors LLC - All Rights Reserved, except where noted
+ *
+ * This file and any intellectual property (designs, algorithms, formulas,
+ * procedures, trademarks, and related documentation) contained herein are
+ * property of Good Neighbors, an Arizona Limited Liability Company.
+ *
+ * LICENSING INFORMATION
+ *
+ * This file may not be distributed in any modified form without expressed
+ * written permission of Good Neighbors LLC or its regents. Permission is
+ * granted to use this file in any non-commercial, non-governmental capacity
+ * (such as student projects, hobby projects, etc) without an official
+ * licensing agreement as long as the original author(s) are credited in any
+ * derivative work.
+ *
+ * Commercial licensing of this content is available, any agreement must
+ * include consulting services as part of a deployment strategy. For more
+ * information, please contact Stephen Sviatko at the following email address:
+ *
+ * ssviatko@gmail.com
+ *
+ * @file rsa.c
+ * @brief RSA file encryptor/digital signature application
+ *
+ * This file implements RSA encryption/decryption of files, and digital
+ * signatures and verification of files.
+ *
+ * Usage:
+ *
+ * ./rsa
+ *
+ * (see usage screen for more details using -? or --help switch)
+ *
+ * Build Info:
+ *
+ * type "make"
+ *
+ * Linking: RSA uses the GMP (Gnu Multi-Precision) library to compute various
+ * coefficients needed for the RSA algorithms to work, and as a result of
+ * this you will need to have the GMP library and its relevant headers loaded
+ * onto your system in order to build.
+ *
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
@@ -1123,6 +1174,9 @@ int main(int argc, char **argv)
             break;
             case '?':
             {
+                printf("RSA file encryptor/digital signature application\n");
+                printf("by Stephen Sviatko - (C) 2025 Good Neighbors LLC\n");
+                printf("revision 0.80 alpha - 2025/Nov/15\n");
                 printf("usage: rsa <options>\n");
                 printf("  -i (--in) <name> specify input file\n");
                 printf("  -o (--out) <name> specify output file\n");
