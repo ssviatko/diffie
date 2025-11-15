@@ -47,17 +47,18 @@ struct option g_options[] = {
 
 int g_debug = 0;
 // note: for the keygen, g_bits now refers to the n/block size, not the p/q size
-unsigned int g_bits = 768; // default bit width
+unsigned int g_bits = 4096; // default bit width
 unsigned int g_pqbits; // convenience value
 pthread_mutex_t g_urandom_mtx;
 int g_urandom_fd; // file descriptor for /dev/urandom
-unsigned int g_threads = 1; // default number of threads
+unsigned int g_threads = 8; // default number of threads
 
 const char *g_private_suffix = "-private.bin";
 const char *g_public_suffix = "-public.bin";
 char g_private_filename[BUFFLEN];
 char g_public_filename[BUFFLEN];
 int g_filename_specified = 0;
+const char *g_default_filename = "default";
 
 const uint8_t KIHT_MODULUS = 1;
 const uint8_t KIHT_PUBEXP = 2;
@@ -308,12 +309,12 @@ void *gen_tf(void *arg)
 		strcat(g_public_filename, g_public_suffix);
 		printf("public key file : %s\n", g_public_filename);
 		printf("private key file: %s\n", g_private_filename);
-		privkey_fd = open(g_private_filename, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+		privkey_fd = open(g_private_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 		if (privkey_fd < 0) {
 			fprintf(stderr, "unable to open private key file for writing. error: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
-		pubkey_fd = open(g_public_filename, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+		pubkey_fd = open(g_public_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 		if (pubkey_fd < 0) {
 			fprintf(stderr, "unable to open public key file for writing. error: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
@@ -521,6 +522,7 @@ int main(int argc, char **argv)
 					printf("  -b (--bits) <bit width> key modulus size\n");
 					printf("  -t (--threads) <threads> number of threads to use\n");
 					printf("  -o (--out) <name> filename specifier to write out keys\n");
+					printf("     otherwise, key will be written to default-* filenames.\n");
 					printf("  RSA bit width must be between 768-%d in 256 bit increments\n", MAXBITS);
 					printf("  default: %d bits\n", g_bits);
 					exit(EXIT_SUCCESS);
@@ -539,6 +541,13 @@ int main(int argc, char **argv)
 	if ((g_bits % 256) != 0) {
 		fprintf(stderr, "rsa-keygen: bit width should be divisible by 256.\n");
 		exit(EXIT_FAILURE);
+	}
+
+	// do we need to specify a default filename for output?
+	if (g_filename_specified == 0) {
+		strcpy(g_private_filename, g_default_filename);
+		strcpy(g_public_filename, g_default_filename);
+		g_filename_specified = 1;
 	}
 
 	// police thread count
