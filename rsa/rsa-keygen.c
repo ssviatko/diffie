@@ -492,6 +492,13 @@ int main(int argc, char **argv)
 	unsigned int i;
 	int res; // result variable for UNIX reads
 	int opt;
+
+	// try to determine hardware concurrency
+	unsigned int l_tcnt = sysconf(_SC_NPROCESSORS_ONLN);
+	if (l_tcnt != 0) {
+		g_threads = l_tcnt;
+	}
+
 	while ((opt = getopt_long(argc, argv, "db:?t:o:", g_options, NULL)) != -1) {
 		switch (opt) {
 			case 'd':
