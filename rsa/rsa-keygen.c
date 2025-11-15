@@ -10,6 +10,7 @@
 #include <getopt.h>
 #include <pthread.h>
 #include <arpa/inet.h>
+#include <sys/ioctl.h>
 
 #pragma pack(1)
 
@@ -18,6 +19,9 @@
 #define MAXTHREADS 48
 
 #define BUFFLEN 1024
+
+unsigned int g_row;
+unsigned int g_col;
 
 typedef struct {
 	pthread_t thread;
@@ -68,9 +72,10 @@ typedef struct {
 
 void print_hex(uint8_t *a_buffer, size_t a_len)
 {
-	int i;
+	unsigned int i;
+	unsigned int l_bytes_to_print = (g_col / 48) * 16;
 	for (i = 0; i < a_len; ++i) {
-		if (i % 64 == 0)
+		if (i % l_bytes_to_print == 0)
 			printf("\n");
 		printf("%02X ", a_buffer[i]);
 	}
@@ -564,7 +569,12 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
+	// terminal stuff
 	setbuf(stdout, NULL); // disable buffering so we can print our progress
+	struct winsize w;
+	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+	g_row = w.ws_row;
+	g_col = w.ws_col;
 
 	for (i = 0; i < g_threads; ++i) {
 		twa[i].id = i;
