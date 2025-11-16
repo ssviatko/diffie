@@ -117,6 +117,9 @@ const uint8_t KIHT_PUBEXP = 2;
 const uint8_t KIHT_PRIVEXP = 3;
 const uint8_t KIHT_P = 4;
 const uint8_t KIHT_Q = 5;
+const uint8_t KIHT_DP = 6;
+const uint8_t KIHT_DQ = 7;
+const uint8_t KIHT_QINV = 8;
 
 typedef struct {
 	uint8_t type;
@@ -175,6 +178,21 @@ void *gen_tf(void *arg)
 	mpz_init(l_q2);
 	mpz_t l_counter;
 	mpz_init(l_counter);
+
+	// chinese remainder stuff
+	mpz_t l_dp;
+	mpz_init(l_dp);
+	mpz_t l_dq;
+	mpz_init(l_dq);
+	mpz_t l_qinv;
+	mpz_init(l_qinv);
+	mpz_t l_m1;
+	mpz_init(l_m1);
+	mpz_t l_m2;
+	mpz_init(l_m2);
+	mpz_t l_h;
+	mpz_init(l_h);
+
 	int l_success = 0;
 	unsigned int l_attempt = 1;
 	int res;
@@ -336,6 +354,15 @@ void *gen_tf(void *arg)
 		} else {
 			if (g_debug > 0) printf("tid %d: d bit size is %d.\n", a_twa->id, l_sib);
 		}
+
+		// set up for chinese remainder
+		mpz_mod(l_dp, l_d, l_p1);
+		if (g_debug > 0) gmp_printf("tid %d: chinese: dp = %Zx\n", a_twa->id, l_dp);
+		mpz_mod(l_dq, l_d, l_q1);
+		if (g_debug > 0) gmp_printf("tid %d: chinese: dq = %Zx\n", a_twa->id, l_dq);
+		mpz_invert(l_qinv, l_q_import, l_p_import);
+		if (g_debug > 0) gmp_printf("tid %d: chinese: qinv = %Zx\n", a_twa->id, l_qinv);
+
 		l_success = 1; // made it this far, we generated a key pair!
 	}
 
@@ -510,8 +537,75 @@ void *gen_tf(void *arg)
 			fprintf(stderr, "problems writing key data: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
-		close(privkey_fd);
 	}
+
+	mpz_export(a_twa->buff, &l_written, 1, sizeof(unsigned char), 0, 0, l_dp);
+	if (l_written != (g_pqbits / 8)) {
+		right_justify(l_written, (g_pqbits / 8) - l_written, (char *)a_twa->buff);
+	}
+	printf("exponent dp:");
+	print_hex(a_twa->buff, (g_pqbits / 8));
+	if (g_filename_specified) {
+		key_item_header l_kih;
+		l_kih.type = KIHT_DP;
+		l_kih.bit_width = htonl(g_pqbits);
+		res = write(privkey_fd, &l_kih, sizeof(l_kih));
+		if (res != sizeof(l_kih)) {
+			fprintf(stderr, "problems writing key data: %s\n", strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+		res = write(privkey_fd, a_twa->buff, (g_pqbits / 8));
+		if (res != (g_pqbits / 8)) {
+			fprintf(stderr, "problems writing key data: %s\n", strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	mpz_export(a_twa->buff, &l_written, 1, sizeof(unsigned char), 0, 0, l_dq);
+	if (l_written != (g_pqbits / 8)) {
+		right_justify(l_written, (g_pqbits / 8) - l_written, (char *)a_twa->buff);
+	}
+	printf("exponent dq:");
+	print_hex(a_twa->buff, (g_pqbits / 8));
+	if (g_filename_specified) {
+		key_item_header l_kih;
+		l_kih.type = KIHT_DQ;
+		l_kih.bit_width = htonl(g_pqbits);
+		res = write(privkey_fd, &l_kih, sizeof(l_kih));
+		if (res != sizeof(l_kih)) {
+			fprintf(stderr, "problems writing key data: %s\n", strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+		res = write(privkey_fd, a_twa->buff, (g_pqbits / 8));
+		if (res != (g_pqbits / 8)) {
+			fprintf(stderr, "problems writing key data: %s\n", strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	mpz_export(a_twa->buff, &l_written, 1, sizeof(unsigned char), 0, 0, l_qinv);
+	if (l_written != (g_pqbits / 8)) {
+		right_justify(l_written, (g_pqbits / 8) - l_written, (char *)a_twa->buff);
+	}
+	printf("coefficient qinv:");
+	print_hex(a_twa->buff, (g_pqbits / 8));
+	if (g_filename_specified) {
+		key_item_header l_kih;
+		l_kih.type = KIHT_QINV;
+		l_kih.bit_width = htonl(g_pqbits);
+		res = write(privkey_fd, &l_kih, sizeof(l_kih));
+		if (res != sizeof(l_kih)) {
+			fprintf(stderr, "problems writing key data: %s\n", strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+		res = write(privkey_fd, a_twa->buff, (g_pqbits / 8));
+		if (res != (g_pqbits / 8)) {
+			fprintf(stderr, "problems writing key data: %s\n", strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	close(privkey_fd);
 
 	// clean up
 	mpz_clear(l_p_import);
@@ -525,6 +619,12 @@ void *gen_tf(void *arg)
 	mpz_clear(l_d);
 	mpz_clear(l_q2);
 	mpz_clear(l_counter);
+	mpz_clear(l_m1);
+	mpz_clear(l_m2);
+	mpz_clear(l_h);
+	mpz_clear(l_dp);
+	mpz_clear(l_dq);
+	mpz_clear(l_qinv);
 
 	// cancel everybody else
 //	for (i = 0; i < g_threads; ++i) {

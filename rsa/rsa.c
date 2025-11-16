@@ -103,6 +103,14 @@ uint8_t g_p[MAXBYTEBUFF];
 int g_p_loaded = 0;
 uint8_t g_q[MAXBYTEBUFF];
 int g_q_loaded = 0;
+uint8_t g_dp[MAXBYTEBUFF];
+int g_dp_loaded = 0;
+uint8_t g_dq[MAXBYTEBUFF];
+int g_dq_loaded = 0;
+uint8_t g_qinv[MAXBYTEBUFF];
+int g_qinv_loaded = 0;
+
+int g_nochinese = 0; // set to 1 to disable chinese remainder theory calculations
 
 uint8_t g_buff[MAXBYTEBUFF]; // general buffer
 uint8_t g_buff2[MAXBYTEBUFF]; // auziliary buffer
@@ -112,6 +120,9 @@ const uint8_t KIHT_PUBEXP = 2;
 const uint8_t KIHT_PRIVEXP = 3;
 const uint8_t KIHT_P = 4;
 const uint8_t KIHT_Q = 5;
+const uint8_t KIHT_DP = 6;
+const uint8_t KIHT_DQ = 7;
+const uint8_t KIHT_QINV = 8;
 
 typedef struct {
     uint8_t type;
@@ -188,6 +199,7 @@ struct option g_options[] = {
     { "latitude", required_argument, NULL, 1002 },
     { "longitude", required_argument, NULL, 1003 },
     { "threads", required_argument, NULL, 1004 },
+    { "nochinese", no_argument, NULL, 1005 },
     { NULL, 0, NULL, 0 }
 };
 
@@ -356,6 +368,27 @@ void load_key()
                 exit(EXIT_FAILURE);
             }
             g_q_loaded = 1;
+        } else if (l_kih.type == KIHT_DP) {
+            res = read(key_fd, g_dp, (ntohl(l_kih.bit_width) / 8));
+            if (res != (ntohl(l_kih.bit_width) / 8)) {
+                fprintf(stderr, "rsa: problems reading key file: can't read prime q.\n");
+                exit(EXIT_FAILURE);
+            }
+            g_dp_loaded = 1;
+        } else if (l_kih.type == KIHT_DQ) {
+            res = read(key_fd, g_dq, (ntohl(l_kih.bit_width) / 8));
+            if (res != (ntohl(l_kih.bit_width) / 8)) {
+                fprintf(stderr, "rsa: problems reading key file: can't read prime q.\n");
+                exit(EXIT_FAILURE);
+            }
+            g_dq_loaded = 1;
+        } else if (l_kih.type == KIHT_QINV) {
+            res = read(key_fd, g_qinv, (ntohl(l_kih.bit_width) / 8));
+            if (res != (ntohl(l_kih.bit_width) / 8)) {
+                fprintf(stderr, "rsa: problems reading key file: can't read prime q.\n");
+                exit(EXIT_FAILURE);
+            }
+            g_qinv_loaded = 1;
         } else {
             // that's all we care about for now, just throw away everything else
             res = read(key_fd, g_buff, (ntohl(l_kih.bit_width) / 8));
@@ -754,11 +787,32 @@ void *decrypt_tf(void *arg)
     mpz_init(l_d);
     mpz_t l_n;
     mpz_init(l_n);
+    mpz_t l_p;
+    mpz_init(l_p);
+    mpz_t l_q;
+    mpz_init(l_q);
+    mpz_t l_dp;
+    mpz_init(l_dp);
+    mpz_t l_dq;
+    mpz_init(l_dq);
+    mpz_t l_qinv;
+    mpz_init(l_qinv);
+    mpz_t l_m1;
+    mpz_init(l_m1);
+    mpz_t l_m2;
+    mpz_init(l_m2);
+    mpz_t l_h;
+    mpz_init(l_h);
     size_t l_written;
 
     // load our key data
     mpz_import(l_d, g_block_size, 1, sizeof(unsigned char), 0, 0, g_d);
     mpz_import(l_n, g_block_size, 1, sizeof(unsigned char), 0, 0, g_n);
+    mpz_import(l_p, (g_block_size / 2), 1, sizeof(unsigned char), 0, 0, g_p);
+    mpz_import(l_q, (g_block_size / 2), 1, sizeof(unsigned char), 0, 0, g_q);
+    mpz_import(l_dp, (g_block_size / 2), 1, sizeof(unsigned char), 0, 0, g_dp);
+    mpz_import(l_dq, (g_block_size / 2), 1, sizeof(unsigned char), 0, 0, g_dq);
+    mpz_import(l_qinv, (g_block_size / 2), 1, sizeof(unsigned char), 0, 0, g_qinv);
 
     while (1) {
         // wait to get signalled
@@ -774,6 +828,14 @@ void *decrypt_tf(void *arg)
             mpz_clear(l_cipher);
             mpz_clear(l_d);
             mpz_clear(l_n);
+            mpz_clear(l_m1);
+            mpz_clear(l_m2);
+            mpz_clear(l_h);
+            mpz_clear(l_p);
+            mpz_clear(l_q);
+            mpz_clear(l_dp);
+            mpz_clear(l_dq);
+            mpz_clear(l_qinv);
 
             pthread_exit(NULL);
         }
@@ -784,7 +846,18 @@ void *decrypt_tf(void *arg)
         mpz_import(l_cipher, g_block_size, 1, sizeof(unsigned char), 0, 0, a_twa->cipher);
 
         // and decrypt it
-        mpz_powm(l_block, l_cipher, l_d, l_n);
+        if (g_nochinese > 0) {
+            mpz_powm(l_block, l_cipher, l_d, l_n);
+        } else {
+            mpz_powm(l_m1, l_cipher, l_dp, l_p);
+            mpz_powm(l_m2, l_cipher, l_dq, l_q);
+            mpz_sub(l_m1, l_m1, l_m2);
+            mpz_mul(l_h, l_qinv, l_m1);
+            mpz_mod(l_h, l_h, l_p);
+            mpz_mul(l_h, l_h, l_q);
+            mpz_add(l_block, l_m2, l_h);
+        }
+
         if (g_debug > 0) {
             pthread_mutex_lock(&g_debug_mtx);
             gmp_printf("tid %d: n      = %Zx\nd      = %Zx\ncipher = %Zx\nblock  = %Zx\n", a_twa->id, l_n, l_d, l_cipher, l_block);
@@ -1200,6 +1273,11 @@ int main(int argc, char **argv)
                 g_threads = atoi(optarg);
             }
             break;
+            case 1005: // nochinese
+            {
+                g_nochinese = 1;
+            }
+            break;
             case 'i':
             {
                 strcpy(g_infile, optarg);
@@ -1290,6 +1368,7 @@ int main(int argc, char **argv)
                 printf("       latitude and longitude are specified as floating point numbers\n");
                 printf("       will be rounded to 4 decimal places (accuracy of 11.1 meters/36.4 feet)\n");
                 printf("     (--threads) <count> specify number of threads to use during decryption process\n");
+                printf("     (--nochinese) defeat chinese remainder theorem calculations during decryption\n");
                 printf("     (--debug) use debug mode\n");
                 printf("  -? (--help) this screen\n");
                 printf("operational modes (select only one)\n");
@@ -1408,6 +1487,8 @@ int main(int argc, char **argv)
             printf("rsa: selected decryption mode.\n");
             if (g_threads > 1)
                 printf("rsa: enabling %d threads.\n", g_threads);
+            if (g_nochinese > 0)
+                printf("rsa: defeating chinese remainder theory calculations.\n");
             load_key();
             if (g_n_loaded == 0) {
                 fprintf(stderr, "rsa: this function requires the key file to contain a modulus.\n");
@@ -1533,6 +1614,18 @@ int main(int argc, char **argv)
             if (g_q_loaded > 0) {
                 printf("prime q:");
                 print_hex(g_q, (g_bits / 8) / 2);
+            }
+            if (g_dp_loaded > 0) {
+                printf("exponent dp:");
+                print_hex(g_dp, (g_bits / 8) / 2);
+            }
+            if (g_dq_loaded > 0) {
+                printf("exponent dq:");
+                print_hex(g_dq, (g_bits / 8) / 2);
+            }
+            if (g_qinv_loaded > 0) {
+                printf("coefficient qinv:");
+                print_hex(g_qinv, (g_bits / 8) / 2);
             }
         }
         break;
