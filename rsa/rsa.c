@@ -57,7 +57,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <gmp.h>
-#include <time.h>
+#include <sys/time.h>
 #include <getopt.h>
 #include <pthread.h>
 #include <arpa/inet.h>
@@ -83,6 +83,8 @@ typedef union {
     float f;
     char data[4];
 } reversible_float_t;
+
+struct timeval g_start_time, g_end_time;
 
 unsigned int g_row;
 unsigned int g_col;
@@ -1256,6 +1258,8 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
+    gettimeofday(&g_start_time, NULL);
+
     switch (g_mode) {
         case MODE_NONE:
         {
@@ -1399,6 +1403,11 @@ int main(int argc, char **argv)
         }
         break;
     }
+
+    gettimeofday(&g_end_time, NULL);
+    printf("rsa: completed operation in %ld seconds %ld usecs.\n",
+           g_end_time.tv_sec - g_start_time.tv_sec - ((g_end_time.tv_usec - g_start_time.tv_usec < 0) ? 1 : 0), // subtract 1 if there was a usec rollover
+           g_end_time.tv_usec - g_start_time.tv_usec + ((g_end_time.tv_usec - g_start_time.tv_usec < 0) ? 1000000 : 0)); // bump usecs by 1 million usec for rollover
 
     close(g_infile_fd);
     close(g_outfile_fd);

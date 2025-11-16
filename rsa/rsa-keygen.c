@@ -56,7 +56,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <gmp.h>
-#include <time.h>
+#include <sys/time.h>
 #include <getopt.h>
 #include <pthread.h>
 #include <arpa/inet.h>
@@ -69,6 +69,8 @@
 #define MAXTHREADS 48
 
 #define BUFFLEN 1024
+
+struct timeval g_start_time, g_end_time;
 
 unsigned int g_row;
 unsigned int g_col;
@@ -348,7 +350,11 @@ void *gen_tf(void *arg)
 	g_bell = 1;
 	pthread_mutex_unlock(&g_bell_mtx);
 	//printf("\ntid %d: Done.\n", a_twa->id);
-	printf("\nDone.\n");
+	printf("\nrsa-keygen: done.\n");
+	gettimeofday(&g_end_time, NULL);
+	printf("rsa-keygen: found key in %ld seconds %ld usecs.\n",
+		   g_end_time.tv_sec - g_start_time.tv_sec - ((g_end_time.tv_usec - g_start_time.tv_usec < 0) ? 1 : 0), // subtract 1 if there was a usec rollover
+		   g_end_time.tv_usec - g_start_time.tv_usec + ((g_end_time.tv_usec - g_start_time.tv_usec < 0) ? 1000000 : 0)); // bump usecs by 1 million usec for rollover
 
 	// export
 	
@@ -357,8 +363,8 @@ void *gen_tf(void *arg)
 	if (g_filename_specified) {
 		strcat(g_private_filename, g_private_suffix);
 		strcat(g_public_filename, g_public_suffix);
-		printf("public key file : %s\n", g_public_filename);
-		printf("private key file: %s\n", g_private_filename);
+		printf("rsa-keygen: public key file : %s\n", g_public_filename);
+		printf("rsa-keygen: private key file: %s\n", g_private_filename);
 		privkey_fd = open(g_private_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 		if (privkey_fd < 0) {
 			fprintf(stderr, "unable to open private key file for writing. error: %s\n", strerror(errno));
@@ -623,18 +629,17 @@ int main(int argc, char **argv)
 	pthread_mutex_init(&g_urandom_mtx, NULL);
 
 	g_pqbits = g_bits / 2;
-	printf("RSA keygen\n");
-	printf("RSA block bit width: %d\n", g_bits);
+	printf("rsa-keygen: block bit width: %d\n", g_bits);
 	if (g_debug > 0) {
 		printf("debug mode enabled\n");
 	}
 	if (g_threads > 1)
-		printf("enabling %d threads.\n", g_threads);
+		printf("rsa-keygen: enabling %d threads.\n", g_threads);
 
 	// open urandom
 	g_urandom_fd = open("/dev/urandom", O_RDONLY);
 	if (g_urandom_fd < 0) {
-		fprintf(stderr, "rsa: problems opening /dev/urandom: %s\n", strerror(errno));
+		fprintf(stderr, "rsa-keygen: problems opening /dev/urandom: %s\n", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 
@@ -644,6 +649,10 @@ int main(int argc, char **argv)
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 	g_row = w.ws_row;
 	g_col = w.ws_col;
+
+	gettimeofday(&g_start_time, NULL);
+
+	printf("rsa-keygen: searching for key ...");
 
 	for (i = 0; i < g_threads; ++i) {
 		twa[i].id = i;
