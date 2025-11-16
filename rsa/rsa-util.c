@@ -26,15 +26,15 @@
  *
  * ssviatko@gmail.com
  *
- * @file rsa.c
- * @brief RSA file encryptor/digital signature application
+ * @file rsa-util.c
+ * @brief RSA file encryptor/digital signature utility
  *
  * This file implements RSA encryption/decryption of files, and digital
  * signatures and verification of files.
  *
  * Usage:
  *
- * ./rsa
+ * ./rsa-util
  *
  * (see usage screen for more details using -? or --help switch)
  *
@@ -1354,10 +1354,10 @@ int main(int argc, char **argv)
             break;
             case '?':
             {
-                printf("RSA file encryptor/digital signature application\n");
+                printf("RSA file encryptor/digital signature utility\n");
                 printf("by Stephen Sviatko - (C) 2025 Good Neighbors LLC\n");
                 printf("revision 0.80 alpha - 2025/Nov/15\n");
-                printf("usage: rsa <options>\n");
+                printf("usage: rsa-util <options>\n");
                 printf("  -i (--in) <name> specify input file\n");
                 printf("  -o (--out) <name> specify output file\n");
                 printf("  -w (--overwrite) force overwrite of existing output file or signature file\n");
