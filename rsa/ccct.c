@@ -36,16 +36,27 @@
 
 #include "ccct.h"
 
-static unsigned int g_row = 24; // provide a default in case user neglects to call ccct_get_term_size
-static unsigned int g_col = 80;
-static int g_endianness = 0; // 0=big, 1=little
-static const unsigned int g_bufflen = 1024;
-static int g_debug = 0;
+static unsigned int g_row = 24; ///< Terminal rows: provide a default in case user neglects to call ccct_get_term_size
+static unsigned int g_col = 80; ///< Terminal columns: provide a default in case user neglects to call ccct_get_term_size
+static int g_endianness = 0; ///< Endianness marker: 0=big, 1=little
+static const unsigned int g_bufflen = 1024; ///< Constant to define length of common string buffers in CCCT library
+static int g_debug = 0; ///< Debug flag: 0=off, 1=on
+
+/**
+ * @brief Sets debug flag
+ *
+ * @param[in] a_debug The value to set
+ */
 
 void ccct_set_debug(int a_debug)
 {
     g_debug = a_debug;
 }
+
+/**
+ * @brief Query terminal size
+ * This routine calls an ioctl to find out the rows/columns of the terminal
+ */
 
 void ccct_get_term_size()
 {
@@ -54,6 +65,15 @@ void ccct_get_term_size()
     g_row = w.ws_row;
     g_col = w.ws_col;
 }
+
+/**
+ * @brief Print a hexadecimal string
+ * Prints a hex string automatically formatted to the size of the terminal in 16 byte increments
+ * Hex bytes are separated by a space in old-fashioned Apple ][ monitor style
+ *
+ * @param[in] a_buffer Pointer to buffer to print
+ * @param[in] a_len Number of bytes to print
+ */
 
 void ccct_print_hex(uint8_t *a_buffer, size_t a_len)
 {
@@ -67,6 +87,16 @@ void ccct_print_hex(uint8_t *a_buffer, size_t a_len)
     printf("\n");
 }
 
+/**
+ * @brief "Right justifies" a string of bytes within a set size byte buffer
+ * Shifts over the data to the right and pads the data with zeros, in the
+ * space on the left that was vacated by the move.
+ *
+ * @param[in] a_size The size of the byte buffer in bytes
+ * @param[in] a_offset Number of bytes to shift the data over, i.e. the size of the buffer - the length of the data
+ * @param[in] a_buff Pointer to the buffer to operate on
+ */
+
 void ccct_right_justify(size_t a_size, size_t a_offset, char *a_buff)
 {
     // move a_size number of bytes over by a_offset in buffer a_buff
@@ -79,6 +109,14 @@ void ccct_right_justify(size_t a_size, size_t a_offset, char *a_buff)
         a_buff[i] = 0;
     }
 }
+
+/**
+ * @brief Update a progress string
+ * Prints (# of #) string, i.e. number of bytes so far of total. Backspaces over string on every update.
+ *
+ * @param[in] a_sofar The value achieved so far
+ * @param[in] a_total The total/target value
+ */
 
 void ccct_progress(uint32_t a_sofar, uint32_t a_total)
 {
@@ -100,6 +138,10 @@ void ccct_progress(uint32_t a_sofar, uint32_t a_total)
     printf("%s", l_txt);
 }
 
+/**
+ * @brief Discover and set the endianness of the host machine
+ */
+
 void ccct_discover_endianness()
 {
     // preform endianness test, for 64-bit and floating point values since there is no portable way to do this
@@ -117,10 +159,21 @@ void ccct_discover_endianness()
     }
 }
 
+/**
+ * @brief Return the endianness factor for the host machine, after call to ccct_discover_endianness
+ *
+ * @return The endianness factor
+ */
+
 int ccct_endianness()
 {
     return g_endianness;
 }
+
+/**
+ * @brief Reverse a 64 bit integer, if we are in a little-endian machine
+ * Requires call to ccct_discover_endianness before use
+ */
 
 void ccct_reverse_int64(ccct_reversible_int64_t *a_val)
 {
@@ -135,6 +188,11 @@ void ccct_reverse_int64(ccct_reversible_int64_t *a_val)
         }
     }
 }
+
+/**
+ * @brief Reverse a float, if we are in a little-endian machine
+ * Requires call to ccct_discover_endianness before use
+ */
 
 void ccct_reverse_float(ccct_reversible_float_t *a_val)
 {

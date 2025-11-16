@@ -34,6 +34,13 @@
  *
  */
 
+#ifndef CCCT_H
+#define CCCT_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -41,22 +48,40 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 
+/**
+ * @union ccct_reversible_int64_t
+ * @brief Store an int64 that can be reversed.
+ * Data is mirrored in char array so data can be reversed based on endianness.
+ */
+
 typedef union {
-    int64_t ll;
-    char data[8];
+    int64_t ll; ///< The "long long" (int64)
+    char data[8]; ///< Raw byte data for int64
 } ccct_reversible_int64_t;
 
+/**
+ * @union ccct_reversible_float_t
+ * @brief Store a float that can be reversed.
+ * Data is mirrored in char array so data can be reversed based on endianness.
+ */
+
 typedef union {
-    float f;
-    char data[4];
+    float f; ///< The float value
+    char data[4]; ///< Rw byte data for float
 } ccct_reversible_float_t;
 
-void ccct_set_debug(int a_debug);
-void ccct_get_term_size();
-void ccct_print_hex(uint8_t *a_buffer, size_t a_len);
-void ccct_right_justify(size_t a_size, size_t a_offset, char *a_buff);
-void ccct_progress(uint32_t a_sofar, uint32_t a_total);
-void ccct_discover_endianness();
-int ccct_endianness();
-void ccct_reverse_int64(ccct_reversible_int64_t *a_val);
-void ccct_reverse_float(ccct_reversible_float_t *a_val);
+void ccct_set_debug             (int a_debug);
+void ccct_get_term_size         ();
+void ccct_print_hex             (uint8_t *a_buffer, size_t a_len);
+void ccct_right_justify         (size_t a_size, size_t a_offset, char *a_buff);
+void ccct_progress              (uint32_t a_sofar, uint32_t a_total);
+void ccct_discover_endianness   ();
+int  ccct_endianness            ();
+void ccct_reverse_int64         (ccct_reversible_int64_t *a_val);
+void ccct_reverse_float         (ccct_reversible_float_t *a_val);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* CCCT_H */

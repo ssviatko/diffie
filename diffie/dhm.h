@@ -101,6 +101,10 @@
 #ifndef DHM_H
 #define DHM_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #pragma pack(1)
 
 #include <stdio.h>
@@ -193,6 +197,10 @@ dhm_error_t dhm_end_session  (dhm_session_t *a_session, int a_debug);
 dhm_error_t dhm_get_alice    (dhm_session_t *a_session, dhm_alice_t *a_alice, dhm_private_t *a_alice_private, int a_debug);
 dhm_error_t dhm_get_bob      (dhm_session_t *a_session, dhm_alice_t *a_alice, dhm_bob_t *a_bob, dhm_private_t *a_bob_private, int a_debug);
 dhm_error_t dhm_alice_secret (dhm_session_t *a_session, dhm_alice_t *a_alice, dhm_bob_t *a_bob, dhm_private_t *a_alice_private, int a_debug);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // DHM_H
 
