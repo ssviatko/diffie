@@ -64,6 +64,7 @@
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 
+#include "ccct.h"
 #include "sha2.h"
 
 #pragma pack(1)
@@ -76,22 +77,7 @@
 
 #define MAXTHREADS 48
 
-typedef union {
-    int64_t ll;
-    char data[8];
-} reversible_int64_t;
-
-typedef union {
-    float f;
-    char data[4];
-} reversible_float_t;
-
 struct timeval g_start_time, g_end_time;
-
-unsigned int g_row;
-unsigned int g_col;
-
-int g_endianness = 0; // 0 = big, 1 = small
 
 uint8_t g_n[MAXBYTEBUFF];
 int g_n_loaded = 0;
@@ -165,9 +151,9 @@ typedef struct {
     uint32_t size_xor;
     uint32_t crc;
     uint32_t crc_xor;
-    reversible_int64_t time;
-    reversible_float_t latitude;
-    reversible_float_t longitude;
+    ccct_reversible_int64_t time;
+    ccct_reversible_float_t latitude;
+    ccct_reversible_float_t longitude;
 } fileinfo_header;
 
 int g_debug = 0;
@@ -222,80 +208,6 @@ pthread_mutex_t g_tally_mtx;
 pthread_cond_t g_tally_cond;
 int g_tally = 0;
 pthread_mutex_t g_debug_mtx; // protect debug messages in multithreaded environment
-
-void reverse_int64(reversible_int64_t *a_val)
-{
-    int i;
-    char ch;
-
-    if (g_endianness > 0) {
-        for (i = 0; i <= 3; ++i) {
-            ch = a_val->data[i];
-            a_val->data[i] = a_val->data[7 - i];
-            a_val->data[7 - i] = ch;
-        }
-    }
-}
-
-void reverse_float(reversible_float_t *a_val)
-{
-    int i;
-    char ch;
-
-    if (g_endianness > 0) {
-        ch = a_val->data[0];
-        a_val->data[0] = a_val->data[3];
-        a_val->data[3] = ch;
-        ch = a_val->data[1];
-        a_val->data[1] = a_val->data[2];
-        a_val->data[2] = ch;
-    }
-}
-
-void print_hex(uint8_t *a_buffer, size_t a_len)
-{
-    unsigned int i;
-    unsigned int l_bytes_to_print = (g_col / 48) * 16;
-    for (i = 0; i < a_len; ++i) {
-        if (i % l_bytes_to_print == 0)
-            printf("\n");
-        printf("%02X ", a_buffer[i]);
-    }
-    printf("\n");
-}
-
-static void right_justify(size_t a_size, size_t a_offset, char *a_buff)
-{
-    // move a_size number of bytes over by a_offset in buffer a_buff
-    int i;
-    for (i = a_size - 1; i >= 0; --i) {
-        a_buff[i + a_offset] = a_buff[i];
-    }
-    // zero out space we vacated in front
-    for (i = 0; i < a_offset; ++i) {
-        a_buff[i] = 0;
-    }
-}
-
-void progress(uint32_t a_sofar, uint32_t a_total)
-{
-    static size_t l_lastsize = 0;
-    int i;
-    char l_txt[BUFFLEN];
-
-    // cover over our previous message
-    for (i = 0; i < l_lastsize; ++i)
-        printf("\b");
-    for (i = 0; i < l_lastsize; ++i)
-        printf(" ");
-    for (i = 0; i < l_lastsize; ++i)
-        printf("\b");
-
-    // print our message
-    sprintf(l_txt, "(%d of %d) ", a_sofar, a_total);
-    l_lastsize = strlen(l_txt);
-    printf("%s", l_txt);
-}
 
 void load_key()
 {
@@ -595,11 +507,11 @@ void do_encrypt()
     if (g_debug > 0) {
         printf("embedding GMT time stamp: %s", asctime(gmtime((time_t *)&l_fih.time.ll)));
     }
-    reverse_int64(&l_fih.time);
+    ccct_reverse_int64(&l_fih.time);
     l_fih.latitude.f = g_latitude;
-    reverse_float(&l_fih.latitude);
+    ccct_reverse_float(&l_fih.latitude);
     l_fih.longitude.f = g_longitude;
-    reverse_float(&l_fih.longitude);
+    ccct_reverse_float(&l_fih.longitude);
     if (g_debug > 0) {
         printf("embedding geolocation: latitude %.4f, longitude %.4f\n", g_latitude, g_longitude);
     }
@@ -626,7 +538,7 @@ void do_encrypt()
     }
     if (g_debug > 0) {
         printf("do_encrypt: first block (fileinfo_header + %d used of initial data capacity of %d bytes)", res, g_1stblock_capacity);
-        print_hex(g_buff, g_block_size);
+        ccct_print_hex(g_buff, g_block_size);
     }
 
     mpz_t l_block;
@@ -655,11 +567,11 @@ void do_encrypt()
     // and export it to aux block
     mpz_export(g_buff2, &l_written, 1, sizeof(unsigned char), 0, 0, l_cipher);
     if (l_written != g_block_size) {
-        right_justify(l_written, g_block_size - l_written, (char *)g_buff2);
+        ccct_right_justify(l_written, g_block_size - l_written, (char *)g_buff2);
     }
     if (g_debug > 0) {
         printf("do_encrypt: first block (encrypted)");
-        print_hex(g_buff2, g_block_size);
+        ccct_print_hex(g_buff2, g_block_size);
     }
 
     // write it to output file
@@ -684,10 +596,10 @@ void do_encrypt()
         gmp_printf("decr.  = %Zx\n", l_decrypted);
         mpz_export(g_buff2, &l_written, 1, sizeof(unsigned char), 0, 0, l_decrypted);
         if (l_written != g_block_size) {
-            right_justify(l_written, g_block_size - l_written, (char *)g_buff2);
+            ccct_right_justify(l_written, g_block_size - l_written, (char *)g_buff2);
         }
         printf("do_encrypt: first block (decrypted)");
-        print_hex(g_buff2, g_block_size);
+        ccct_print_hex(g_buff2, g_block_size);
         mpz_clear(l_d);
         mpz_clear(l_decrypted);
     }
@@ -718,7 +630,7 @@ void do_encrypt()
         }
         if (g_debug > 0) {
             printf("\ndo_encrypt: block #%d - %d used of block data capacity of %d bytes)", l_block_ctr, res, g_block_capacity);
-            print_hex(g_buff, g_block_size);
+            ccct_print_hex(g_buff, g_block_size);
         }
         // load up our 1st block we just created
         mpz_import(l_block, g_block_size, 1, sizeof(unsigned char), 0, 0, g_buff);
@@ -731,11 +643,11 @@ void do_encrypt()
         // and export it to aux block
         mpz_export(g_buff2, &l_written, 1, sizeof(unsigned char), 0, 0, l_cipher);
         if (l_written != g_block_size) {
-            right_justify(l_written, g_block_size - l_written, (char *)g_buff2);
+            ccct_right_justify(l_written, g_block_size - l_written, (char *)g_buff2);
         }
         if (g_debug > 0) {
             printf("do_encrypt: block (encrypted)");
-            print_hex(g_buff2, g_block_size);
+            ccct_print_hex(g_buff2, g_block_size);
         }
         // write it to output file
         res = write(g_outfile_fd, g_buff2, g_block_size);
@@ -758,10 +670,10 @@ void do_encrypt()
             gmp_printf("decr.  = %Zx\n", l_decrypted);
             mpz_export(g_buff2, &l_written, 1, sizeof(unsigned char), 0, 0, l_decrypted);
             if (l_written != g_block_size) {
-                right_justify(l_written, g_block_size - l_written, (char *)g_buff2);
+                ccct_right_justify(l_written, g_block_size - l_written, (char *)g_buff2);
             }
             printf("do_encrypt: block (decrypted)");
-            print_hex(g_buff2, g_block_size);
+            ccct_print_hex(g_buff2, g_block_size);
             mpz_clear(l_d);
             mpz_clear(l_decrypted);
         }
@@ -867,12 +779,12 @@ void *decrypt_tf(void *arg)
         // and export it to aux block
         mpz_export(a_twa->plain, &l_written, 1, sizeof(unsigned char), 0, 0, l_block);
         if (l_written != g_block_size) {
-            right_justify(l_written, g_block_size - l_written, (char *)a_twa->plain);
+            ccct_right_justify(l_written, g_block_size - l_written, (char *)a_twa->plain);
         }
         if (g_debug > 0) {
             pthread_mutex_lock(&g_debug_mtx);
             printf("tid %d: decrypted block %d", a_twa->id, a_twa->curblock);
-            print_hex(a_twa->plain, g_block_size);
+            ccct_print_hex(a_twa->plain, g_block_size);
             pthread_mutex_unlock(&g_debug_mtx);
         }
         a_twa->sigflag = 0;
@@ -918,7 +830,7 @@ void do_decrypt()
             }
             if (g_debug > 0) {
                 printf("\ndo_decrypt: block %d from input file", l_block_ctr);
-                print_hex(twa[i].cipher, g_block_size);
+                ccct_print_hex(twa[i].cipher, g_block_size);
             }
             // populate a thread and signal it
             pthread_mutex_lock(&twa[i].sig_mtx);
@@ -949,9 +861,9 @@ void do_decrypt()
                 l_fih.size_xor = ntohl(l_fih.size_xor);
                 l_fih.crc = ntohl(l_fih.crc);
                 l_fih.crc_xor = ntohl(l_fih.crc_xor);
-                reverse_int64(&l_fih.time);
-                reverse_float(&l_fih.latitude);
-                reverse_float(&l_fih.longitude);
+                ccct_reverse_int64(&l_fih.time);
+                ccct_reverse_float(&l_fih.latitude);
+                ccct_reverse_float(&l_fih.longitude);
                 // check to see if we decrypted this block properly
                 if (l_fih.size != (l_fih.size_xor ^ ~0U)) {
                     goto do_decrypt_keyerror;
@@ -984,10 +896,10 @@ void do_decrypt()
                 // subsequent block, so just write it out
                 if (l_block_index == 2) {
                     printf("rsa: decrypting ");
-                    progress(l_bytes_written_tab, l_fih.size);
+                    ccct_progress(l_bytes_written_tab, l_fih.size);
                 }
 //            } else {
-//                // print progress dot every eight blocks
+//                // print ccct_progress dot every eight blocks
 //                if (l_block_ctr % 8 == 0) printf(".");
 //            }
                 uint32_t l_bytes_expected = g_block_capacity;
@@ -1004,15 +916,15 @@ void do_decrypt()
                     exit(EXIT_FAILURE);
                 }
                 l_bytes_written_tab += res;
-                if (l_block_ctr % 8 == 0) progress(l_bytes_written_tab, l_fih.size);
+                if (l_block_ctr % 8 == 0) ccct_progress(l_bytes_written_tab, l_fih.size);
             }
         }
         // done writing output?
         if (l_fih.size == l_bytes_written_tab) {
             l_eof = 1;
-            // don't leave our progress meter hanging
+            // don't leave our ccct_progress meter hanging
             if (l_block_ctr > 1) {
-                progress(l_bytes_written_tab, l_fih.size);
+                ccct_progress(l_bytes_written_tab, l_fih.size);
                 printf("\n");
             }
             if (g_debug > 0) printf("do_decrypt: finished writing input data\n");
@@ -1062,15 +974,15 @@ void do_sign_verify(int a_mode)
     }
     if (g_debug > 0) {
         printf("do_sign_verify: sha2-512 hash of input file");
-        print_hex(l_digest, 64);
+        ccct_print_hex(l_digest, 64);
     }
 
     // get time and location info
-    reversible_int64_t l_time;
+    ccct_reversible_int64_t l_time;
     l_time.ll = time(NULL);
-    reversible_float_t l_lat;
+    ccct_reversible_float_t l_lat;
     l_lat.f = g_latitude;
-    reversible_float_t l_long;
+    ccct_reversible_float_t l_long;
     l_long.f = g_longitude;
 
     if (a_mode == 0) {
@@ -1107,15 +1019,15 @@ void do_sign_verify(int a_mode)
         memcpy(g_buff + 8, l_digest, 64);
         printf("rsa: embedding GMT time stamp: %s", asctime(gmtime((time_t *)&l_time.ll)));
         printf("rsa: embedding geolocation: latitude %.4f, longitude %.4f\n", l_lat.f, l_long.f);
-        reverse_int64(&l_time);
-        reverse_float(&l_lat);
-        reverse_float(&l_long);
+        ccct_reverse_int64(&l_time);
+        ccct_reverse_float(&l_lat);
+        ccct_reverse_float(&l_long);
         memcpy(g_buff + 72, &l_time.ll, 8);
         memcpy(g_buff + 80, &l_lat.f, 4);
         memcpy(g_buff + 84, &l_long.f, 4);
         if (g_debug > 0) {
             printf("do_sign_verify: plaintext block with hash");
-            print_hex(g_buff, g_block_size);
+            ccct_print_hex(g_buff, g_block_size);
         }
 
         mpz_t l_block;
@@ -1144,11 +1056,11 @@ void do_sign_verify(int a_mode)
         // and export it to aux block
         mpz_export(g_buff2, &l_written, 1, sizeof(unsigned char), 0, 0, l_cipher);
         if (l_written != g_block_size) {
-            right_justify(l_written, g_block_size - l_written, (char *)g_buff2);
+            ccct_right_justify(l_written, g_block_size - l_written, (char *)g_buff2);
         }
         if (g_debug > 0) {
             printf("do_sign_verify: encrypted hash");
-            print_hex(g_buff2, g_block_size);
+            ccct_print_hex(g_buff2, g_block_size);
         }
         printf("rsa: writing signature file...\n");
         res = write(g_signaturefile_fd, g_buff2, g_block_size);
@@ -1207,26 +1119,26 @@ void do_sign_verify(int a_mode)
         // and export it to aux block
         mpz_export(g_buff2, &l_written, 1, sizeof(unsigned char), 0, 0, l_block);
         if (l_written != g_block_size) {
-            right_justify(l_written, g_block_size - l_written, (char *)g_buff2);
+            ccct_right_justify(l_written, g_block_size - l_written, (char *)g_buff2);
         }
 
         uint8_t l_digest_dec[64];
         memcpy(l_digest_dec, g_buff2 + 8, 64);
         if (g_debug > 0) {
             printf("do_sign_verify: decrypted hash from signature file");
-            print_hex(l_digest_dec, 64);
+            ccct_print_hex(l_digest_dec, 64);
             printf("do_sign_verify: computed hash of input file");
-            print_hex(l_digest, 64);
+            ccct_print_hex(l_digest, 64);
         }
         if (memcmp(l_digest_dec, l_digest, 64) == 0) {
             printf("rsa: verify OK\n");
             memcpy(&l_time.ll, g_buff2 + 72, 8);
-            reverse_int64(&l_time);
+            ccct_reverse_int64(&l_time);
             printf("rsa: GMT timestamp of signature: %s", asctime(gmtime((time_t *)&l_time.ll)));
             memcpy(&l_lat.f, g_buff2 + 80, 4);
             memcpy(&l_long.f, g_buff2 + 84, 4);
-            reverse_float(&l_lat);
-            reverse_float(&l_long);
+            ccct_reverse_float(&l_lat);
+            ccct_reverse_float(&l_long);
             printf("rsa: geolocation: latitude %.4f, longitude %.4f\n", l_lat.f, l_long.f);
         } else {
             printf("rsa: verify FAILED\n");
@@ -1256,6 +1168,7 @@ int main(int argc, char **argv)
             case 1001:
             {
                 g_debug = 1;
+                ccct_set_debug(1);
             }
             break;
             case 1002: // latitude
@@ -1393,25 +1306,9 @@ int main(int argc, char **argv)
         }
     }
 
-    setbuf(stdout, NULL); // disable buffering so we can print our progress
-    struct winsize w;
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    g_row = w.ws_row;
-    g_col = w.ws_col;
-
-    // preform endianness test, for 64-bit and floating point values since there is no portable way to do this
-    reversible_int64_t l_rev;
-    l_rev.ll = 0x1234567812345678LL;
-    if (l_rev.data[0] == 0x78) {
-        g_endianness = 1;
-        if (g_debug) printf("endianness: little\n");
-    } else if (l_rev.data[0] == 0x12) {
-        g_endianness = 0;
-        if (g_debug) printf("endianness: big\n");
-    } else {
-        fprintf(stderr, "unable to determine endianness of host machine.\n");
-        exit(EXIT_FAILURE);
-    }
+    setbuf(stdout, NULL); // disable buffering so we can print our ccct_progress
+    ccct_get_term_size();
+    ccct_discover_endianness();
 
     if (g_debug > 0)
         printf("rsa: debug mode enabled.\n");
@@ -1597,35 +1494,35 @@ int main(int argc, char **argv)
             load_key();
             if (g_n_loaded > 0) {
                 printf("modulus n (%d bits):", g_bits);
-                print_hex(g_n, (g_bits / 8));
+                ccct_print_hex(g_n, (g_bits / 8));
             }
             if (g_e_loaded > 0) {
                 printf("public exponent e:");
-                print_hex(g_e, 4);
+                ccct_print_hex(g_e, 4);
             }
             if (g_d_loaded > 0) {
                 printf("private exponent d:");
-                print_hex(g_d, (g_bits / 8));
+                ccct_print_hex(g_d, (g_bits / 8));
             }
             if (g_p_loaded > 0) {
                 printf("prime p:");
-                print_hex(g_p, (g_bits / 8) / 2);
+                ccct_print_hex(g_p, (g_bits / 8) / 2);
             }
             if (g_q_loaded > 0) {
                 printf("prime q:");
-                print_hex(g_q, (g_bits / 8) / 2);
+                ccct_print_hex(g_q, (g_bits / 8) / 2);
             }
             if (g_dp_loaded > 0) {
                 printf("exponent dp:");
-                print_hex(g_dp, (g_bits / 8) / 2);
+                ccct_print_hex(g_dp, (g_bits / 8) / 2);
             }
             if (g_dq_loaded > 0) {
                 printf("exponent dq:");
-                print_hex(g_dq, (g_bits / 8) / 2);
+                ccct_print_hex(g_dq, (g_bits / 8) / 2);
             }
             if (g_qinv_loaded > 0) {
                 printf("coefficient qinv:");
-                print_hex(g_qinv, (g_bits / 8) / 2);
+                ccct_print_hex(g_qinv, (g_bits / 8) / 2);
             }
         }
         break;

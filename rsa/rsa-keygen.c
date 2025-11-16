@@ -62,6 +62,8 @@
 #include <arpa/inet.h>
 #include <sys/ioctl.h>
 
+#include "ccct.h"
+
 #pragma pack(1)
 
 #define MAXBITS 262144
@@ -71,9 +73,6 @@
 #define BUFFLEN 1024
 
 struct timeval g_start_time, g_end_time;
-
-unsigned int g_row;
-unsigned int g_col;
 
 typedef struct {
 	pthread_t thread;
@@ -125,31 +124,6 @@ typedef struct {
 	uint8_t type;
 	uint32_t bit_width;
 } key_item_header;
-
-void print_hex(uint8_t *a_buffer, size_t a_len)
-{
-	unsigned int i;
-	unsigned int l_bytes_to_print = (g_col / 48) * 16;
-	for (i = 0; i < a_len; ++i) {
-		if (i % l_bytes_to_print == 0)
-			printf("\n");
-		printf("%02X ", a_buffer[i]);
-	}
-	printf("\n");
-}
-
-static void right_justify(size_t a_size, size_t a_offset, char *a_buff)
-{
-	// move a_size number of bytes over by a_offset in buffer a_buff
-	int i;
-	for (i = a_size - 1; i >= 0; --i) {
-		a_buff[i + a_offset] = a_buff[i];
-	}
-	// zero out space we vacated in front
-	for (i = 0; i < a_offset; ++i) {
-		a_buff[i] = 0;
-	}
-}
 
 void *gen_tf(void *arg)
 {
@@ -407,10 +381,10 @@ void *gen_tf(void *arg)
 
 	mpz_export(a_twa->buff, &l_written, 1, sizeof(unsigned char), 0, 0, l_n);
 	if (l_written != (g_bits / 8)) {
-		right_justify(l_written, (g_bits / 8) - l_written, (char *)a_twa->buff);
+		ccct_right_justify(l_written, (g_bits / 8) - l_written, (char *)a_twa->buff);
 	}
 	printf("modulus n (%d bits):", g_bits);
-	print_hex(a_twa->buff, (g_bits / 8));
+	ccct_print_hex(a_twa->buff, (g_bits / 8));
 	if (g_filename_specified) {
 		key_item_header l_kih;
 		l_kih.type = KIHT_MODULUS;
@@ -440,10 +414,10 @@ void *gen_tf(void *arg)
 
 	mpz_export(a_twa->buff, &l_written, 1, sizeof(unsigned char), 0, 0, l_e);
 	if (l_written != 4) { // save e as a 32 bit value, big endian
-		right_justify(l_written, 4 - l_written, (char *)a_twa->buff);
+		ccct_right_justify(l_written, 4 - l_written, (char *)a_twa->buff);
 	}
 	printf("public exponent e:", g_bits);
-	print_hex(a_twa->buff, 4);
+	ccct_print_hex(a_twa->buff, 4);
 	if (g_filename_specified) {
 		key_item_header l_kih;
 		l_kih.type = KIHT_PUBEXP;
@@ -475,10 +449,10 @@ void *gen_tf(void *arg)
 
 	mpz_export(a_twa->buff, &l_written, 1, sizeof(unsigned char), 0, 0, l_d);
 	if (l_written != (g_bits / 8)) {
-		right_justify(l_written, (g_bits / 8) - l_written, (char *)a_twa->buff);
+		ccct_right_justify(l_written, (g_bits / 8) - l_written, (char *)a_twa->buff);
 	}
 	printf("private exponent d:", g_bits);
-	print_hex(a_twa->buff, (g_bits / 8));
+	ccct_print_hex(a_twa->buff, (g_bits / 8));
 	if (g_filename_specified) {
 		key_item_header l_kih;
 		l_kih.type = KIHT_PRIVEXP;
@@ -497,10 +471,10 @@ void *gen_tf(void *arg)
 
 	mpz_export(a_twa->buff, &l_written, 1, sizeof(unsigned char), 0, 0, l_p_import);
 	if (l_written != (g_pqbits / 8)) {
-		right_justify(l_written, (g_pqbits / 8) - l_written, (char *)a_twa->buff);
+		ccct_right_justify(l_written, (g_pqbits / 8) - l_written, (char *)a_twa->buff);
 	}
 	printf("prime p:");
-	print_hex(a_twa->buff, (g_pqbits / 8));
+	ccct_print_hex(a_twa->buff, (g_pqbits / 8));
 	if (g_filename_specified) {
 		key_item_header l_kih;
 		l_kih.type = KIHT_P;
@@ -519,10 +493,10 @@ void *gen_tf(void *arg)
 
 	mpz_export(a_twa->buff, &l_written, 1, sizeof(unsigned char), 0, 0, l_q_import);
 	if (l_written != (g_pqbits / 8)) {
-		right_justify(l_written, (g_pqbits / 8) - l_written, (char *)a_twa->buff);
+		ccct_right_justify(l_written, (g_pqbits / 8) - l_written, (char *)a_twa->buff);
 	}
 	printf("prime q:");
-	print_hex(a_twa->buff, (g_pqbits / 8));
+	ccct_print_hex(a_twa->buff, (g_pqbits / 8));
 	if (g_filename_specified) {
 		key_item_header l_kih;
 		l_kih.type = KIHT_Q;
@@ -541,10 +515,10 @@ void *gen_tf(void *arg)
 
 	mpz_export(a_twa->buff, &l_written, 1, sizeof(unsigned char), 0, 0, l_dp);
 	if (l_written != (g_pqbits / 8)) {
-		right_justify(l_written, (g_pqbits / 8) - l_written, (char *)a_twa->buff);
+		ccct_right_justify(l_written, (g_pqbits / 8) - l_written, (char *)a_twa->buff);
 	}
 	printf("exponent dp:");
-	print_hex(a_twa->buff, (g_pqbits / 8));
+	ccct_print_hex(a_twa->buff, (g_pqbits / 8));
 	if (g_filename_specified) {
 		key_item_header l_kih;
 		l_kih.type = KIHT_DP;
@@ -563,10 +537,10 @@ void *gen_tf(void *arg)
 
 	mpz_export(a_twa->buff, &l_written, 1, sizeof(unsigned char), 0, 0, l_dq);
 	if (l_written != (g_pqbits / 8)) {
-		right_justify(l_written, (g_pqbits / 8) - l_written, (char *)a_twa->buff);
+		ccct_right_justify(l_written, (g_pqbits / 8) - l_written, (char *)a_twa->buff);
 	}
 	printf("exponent dq:");
-	print_hex(a_twa->buff, (g_pqbits / 8));
+	ccct_print_hex(a_twa->buff, (g_pqbits / 8));
 	if (g_filename_specified) {
 		key_item_header l_kih;
 		l_kih.type = KIHT_DQ;
@@ -585,10 +559,10 @@ void *gen_tf(void *arg)
 
 	mpz_export(a_twa->buff, &l_written, 1, sizeof(unsigned char), 0, 0, l_qinv);
 	if (l_written != (g_pqbits / 8)) {
-		right_justify(l_written, (g_pqbits / 8) - l_written, (char *)a_twa->buff);
+		ccct_right_justify(l_written, (g_pqbits / 8) - l_written, (char *)a_twa->buff);
 	}
 	printf("coefficient qinv:");
-	print_hex(a_twa->buff, (g_pqbits / 8));
+	ccct_print_hex(a_twa->buff, (g_pqbits / 8));
 	if (g_filename_specified) {
 		key_item_header l_kih;
 		l_kih.type = KIHT_QINV;
@@ -660,6 +634,7 @@ int main(int argc, char **argv)
 			case 'd':
 				{
 					g_debug = 1;
+					ccct_set_debug(1);
 				}
 				break;
 			case 't':
@@ -745,10 +720,7 @@ int main(int argc, char **argv)
 
 	// terminal stuff
 	setbuf(stdout, NULL); // disable buffering so we can print our progress
-	struct winsize w;
-	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-	g_row = w.ws_row;
-	g_col = w.ws_col;
+	ccct_get_term_size();
 
 	gettimeofday(&g_start_time, NULL);
 

@@ -1,8 +1,13 @@
 all:
-	gcc rsa-keygen.c -o rsa-keygen -lgmp -lpthread
-	gcc -c rsa-util.c -o rsa-util.o
+	# common files
 	gcc -c sha2.c -o sha2.o
-	gcc rsa-util.o sha2.o -o rsa-util -lgmp
+	gcc -c ccct.c -o ccct.o
+	# rsa-keygen
+	gcc -c rsa-keygen.c -o rsa-keygen.o
+	gcc rsa-keygen.o ccct.o -o rsa-keygen -lgmp -lpthread
+	# rsa-util
+	gcc -c rsa-util.c -o rsa-util.o
+	gcc rsa-util.o ccct.o sha2.o -o rsa-util -lgmp
 
 clean:
 	rm -f rsa-keygen
