@@ -187,6 +187,7 @@ struct option g_options[] = {
     { "overwrite", no_argument, NULL, 'w' },
     { "latitude", required_argument, NULL, 1002 },
     { "longitude", required_argument, NULL, 1003 },
+    { "threads", required_argument, NULL, 1004 },
     { NULL, 0, NULL, 0 }
 };
 
@@ -830,10 +831,9 @@ void do_decrypt()
             if (res == 0) {
                 if (g_debug > 0) printf("do_decrypt: EOF on input file, bailing out\n");
                 l_eof = 1;
-                if (i == 0) {
+                if (i == 0)
                     l_docontinue = 1;
-                    break; // if we read nothing, don't signal anybody and just bug out of here to bottom of enclosing do loop
-                }
+                break;
                 // at this point, i contains the number of blocks successfully read
             } else if (res < 0) {
                 fprintf(stderr, "rsa: unable to read from input file during decrypt operation: %s\n", strerror(errno));
@@ -845,7 +845,7 @@ void do_decrypt()
             }
             if (g_debug > 0) {
                 printf("\ndo_decrypt: block %d from input file", l_block_ctr);
-                print_hex(g_buff, g_block_size);
+                print_hex(twa[i].cipher, g_block_size);
             }
             // populate a thread and signal it
             pthread_mutex_lock(&twa[i].sig_mtx);
@@ -1195,6 +1195,11 @@ int main(int argc, char **argv)
                 g_longitude = atof(optarg);
             }
             break;
+            case 1004: // force thread count
+            {
+                g_threads = atoi(optarg);
+            }
+            break;
             case 'i':
             {
                 strcpy(g_infile, optarg);
@@ -1284,6 +1289,7 @@ int main(int argc, char **argv)
                 printf("     (--longitude) <value> specify your longitude\n");
                 printf("       latitude and longitude are specified as floating point numbers\n");
                 printf("       will be rounded to 4 decimal places (accuracy of 11.1 meters/36.4 feet)\n");
+                printf("     (--threads) <count> specify number of threads to use during decryption process\n");
                 printf("     (--debug) use debug mode\n");
                 printf("  -? (--help) this screen\n");
                 printf("operational modes (select only one)\n");
@@ -1348,6 +1354,16 @@ int main(int argc, char **argv)
     g_urandom_fd = open("/dev/urandom", O_RDONLY);
     if (g_urandom_fd < 0) {
         fprintf(stderr, "rsa: problems opening /dev/urandom: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+    // police thread count
+    if (g_threads < 1) {
+        fprintf(stderr, "rsa: need to use at least 1 thread.\n");
+        exit(EXIT_FAILURE);
+    }
+    if (g_threads > MAXTHREADS) {
+        fprintf(stderr, "rsa: thread limit: %d.\n", MAXTHREADS);;
         exit(EXIT_FAILURE);
     }
 
