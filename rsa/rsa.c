@@ -1406,7 +1406,8 @@ int main(int argc, char **argv)
         case MODE_DECRYPT:
         {
             printf("rsa: selected decryption mode.\n");
-            printf("rsa: enabled %d threads.\n", g_threads);
+            if (g_threads > 1)
+                printf("rsa: enabling %d threads.\n", g_threads);
             load_key();
             if (g_n_loaded == 0) {
                 fprintf(stderr, "rsa: this function requires the key file to contain a modulus.\n");
