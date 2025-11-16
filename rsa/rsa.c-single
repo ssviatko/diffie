@@ -74,8 +74,6 @@
 #define BUFFLEN 1024
 #define PADDING 12 // amount of random padding per block
 
-#define MAXTHREADS 48
-
 typedef union {
     int64_t ll;
     char data[8];
@@ -189,26 +187,6 @@ struct option g_options[] = {
     { "longitude", required_argument, NULL, 1003 },
     { NULL, 0, NULL, 0 }
 };
-
-// concurrency during decryption process
-typedef struct {
-    pthread_t thread;
-    unsigned int id;
-    int runflag;
-    int curblock;
-    pthread_mutex_t sig_mtx;
-    int sigflag;
-    pthread_cond_t sig_cond;
-    unsigned char cipher[MAXBYTEBUFF];
-    unsigned char plain[MAXBYTEBUFF];
-} thread_work_area;
-
-thread_work_area twa[MAXTHREADS];
-unsigned int g_threads = 8; // default number of threads
-pthread_mutex_t g_tally_mtx;
-pthread_cond_t g_tally_cond;
-int g_tally = 0;
-pthread_mutex_t g_debug_mtx; // protect debug messages in multithreaded environment
 
 void reverse_int64(reversible_int64_t *a_val)
 {
@@ -740,199 +718,135 @@ void do_encrypt()
     mpz_clear(l_n);
 }
 
-void *decrypt_tf(void *arg)
-{
-    thread_work_area *a_twa;
-    a_twa = arg;
-
-    mpz_t l_block;
-    mpz_init(l_block);
-    mpz_t l_cipher;
-    mpz_init(l_cipher);
-    mpz_t l_d;
-    mpz_init(l_d);
-    mpz_t l_n;
-    mpz_init(l_n);
-    size_t l_written;
-
-    // load our key data
-    mpz_import(l_d, g_block_size, 1, sizeof(unsigned char), 0, 0, g_d);
-    mpz_import(l_n, g_block_size, 1, sizeof(unsigned char), 0, 0, g_n);
-
-    while (1) {
-        // wait to get signalled
-        pthread_mutex_lock(&a_twa->sig_mtx);
-        while ((a_twa->sigflag == 0) && (a_twa->runflag > 0))
-            pthread_cond_wait(&a_twa->sig_cond, &a_twa->sig_mtx);
-        if (a_twa->runflag == 0) {
-            // telling us to quit
-            pthread_mutex_unlock(&a_twa->sig_mtx);
-
-            // clean up GMP variables
-            mpz_clear(l_block);
-            mpz_clear(l_cipher);
-            mpz_clear(l_d);
-            mpz_clear(l_n);
-
-            pthread_exit(NULL);
-        }
-        pthread_mutex_unlock(&a_twa->sig_mtx);
-//        printf("tid %d: signalled\n", a_twa->id);
-
-        // load up our cipher block
-        mpz_import(l_cipher, g_block_size, 1, sizeof(unsigned char), 0, 0, a_twa->cipher);
-
-        // and decrypt it
-        mpz_powm(l_block, l_cipher, l_d, l_n);
-        if (g_debug > 0) {
-            pthread_mutex_lock(&g_debug_mtx);
-            gmp_printf("tid %d: n      = %Zx\nd      = %Zx\ncipher = %Zx\nblock  = %Zx\n", a_twa->id, l_n, l_d, l_cipher, l_block);
-            pthread_mutex_unlock(&g_debug_mtx);
-        }
-
-        // and export it to aux block
-        mpz_export(a_twa->plain, &l_written, 1, sizeof(unsigned char), 0, 0, l_block);
-        if (l_written != g_block_size) {
-            right_justify(l_written, g_block_size - l_written, (char *)a_twa->plain);
-        }
-        if (g_debug > 0) {
-            pthread_mutex_lock(&g_debug_mtx);
-            printf("tid %d: decrypted block %d", a_twa->id, a_twa->curblock);
-            print_hex(a_twa->plain, g_block_size);
-            pthread_mutex_unlock(&g_debug_mtx);
-        }
-        a_twa->sigflag = 0;
-
-        // signal doneness
-        pthread_mutex_lock(&g_tally_mtx);
-        g_tally++;
-        pthread_cond_signal(&g_tally_cond);
-        pthread_mutex_unlock(&g_tally_mtx);
-    }
-}
-
 void do_decrypt()
 {
-    int i, j;
     int l_block_ctr = 0;
     int res;
     int l_eof = 0;
-    int l_docontinue = 0;
     fileinfo_header l_fih;
     uint32_t l_bytes_written_tab = 0;
 
     do {
-        g_tally = 0;
-        // now read a bunch of blocks
-        for (i = 0; i < g_threads; ++i) {
-            l_block_ctr++;
-            res = read(g_infile_fd, twa[i].cipher, g_block_size);
-            if (res == 0) {
-                if (g_debug > 0) printf("do_decrypt: EOF on input file, bailing out\n");
-                l_eof = 1;
-                if (i == 0) {
-                    l_docontinue = 1;
-                    break; // if we read nothing, don't signal anybody and just bug out of here to bottom of enclosing do loop
-                }
-                // at this point, i contains the number of blocks successfully read
-            } else if (res < 0) {
-                fprintf(stderr, "rsa: unable to read from input file during decrypt operation: %s\n", strerror(errno));
-                exit(EXIT_FAILURE);
-            } else if (res < g_block_size) {
-                // file is already supposed to be a multiple of our block size, so this should never happen
-                fprintf(stderr, "rsa: unable to read full block from input file during decrypt operation: expected %d got %d\n", g_block_size, res);
-                exit(EXIT_FAILURE);
-            }
-            if (g_debug > 0) {
-                printf("\ndo_decrypt: block %d from input file", l_block_ctr);
-                print_hex(g_buff, g_block_size);
-            }
-            // populate a thread and signal it
-            pthread_mutex_lock(&twa[i].sig_mtx);
-            twa[i].curblock = l_block_ctr;
-            twa[i].sigflag = 1;
-            pthread_cond_signal(&twa[i].sig_cond);
-            pthread_mutex_unlock(&twa[i].sig_mtx);
+        l_block_ctr++;
+        res = read(g_infile_fd, g_buff, g_block_size);
+        if (res == 0) {
+            // zero length file, or reached the end of our input
+            if (g_debug > 0) printf("do_decrypt: EOF on input file, bailing out\n");
+            l_eof = 1;
+            continue;
         }
-        if (l_docontinue > 0)
-            continue; // go down to bottom of do loop
+        if (res < 0) {
+            fprintf(stderr, "rsa: unable to read from input file during decrypt operation: %s\n", strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+        if (res < g_block_size) {
+            // file is already supposed to be a multiple of our block size, so this should never happen
+            fprintf(stderr, "rsa: unable to read full block from input file during decrypt operation: expected %d got %d\n", g_block_size, res);
+            exit(EXIT_FAILURE);
+        }
+        if (g_debug > 0) {
+            printf("\ndo_decrypt: block %d from input file", l_block_ctr);
+            print_hex(g_buff, g_block_size);
+        }
 
-        // wait for threads to finish
-        pthread_mutex_lock(&g_tally_mtx);
-        while (g_tally < i)
-            pthread_cond_wait(&g_tally_cond, &g_tally_mtx);
-        pthread_mutex_unlock(&g_tally_mtx);
+        // decrypt block
+        mpz_t l_block;
+        mpz_init(l_block);
+        mpz_t l_cipher;
+        mpz_init(l_cipher);
+        mpz_t l_d;
+        mpz_init(l_d);
+        mpz_t l_n;
+        mpz_init(l_n);
+        size_t l_written;
 
-        // all our threads are done and the plains are all contained in the twa data structures
-        int l_block_index;
-        for (j = 0; j < i; j++) {
-            memcpy(g_buff2, twa[j].plain, g_block_size);
-            l_block_index = twa[j].curblock;
-            // take care of business with the first block
-            if (l_block_index == 1) {
-                memcpy(&l_fih, g_buff2 + 8, sizeof(fileinfo_header));
-                // get everything in host byte order
-                l_fih.size = ntohl(l_fih.size);
-                l_fih.size_xor = ntohl(l_fih.size_xor);
-                l_fih.crc = ntohl(l_fih.crc);
-                l_fih.crc_xor = ntohl(l_fih.crc_xor);
-                reverse_int64(&l_fih.time);
-                reverse_float(&l_fih.latitude);
-                reverse_float(&l_fih.longitude);
-                // check to see if we decrypted this block properly
-                if (l_fih.size != (l_fih.size_xor ^ ~0U)) {
-                    goto do_decrypt_keyerror;
-                }
-                if (l_fih.crc != (l_fih.crc_xor ^ ~0U)) {
-                    goto do_decrypt_keyerror;
-                }
-                // assumed good fileinfo_header now
-                printf("rsa: data length in input file is %d bytes.\n", l_fih.size);
-                if (g_debug > 0) printf("do_decrypt: input file data CRC is %08X\n", l_fih.crc);
-                printf("rsa: GMT time stamp: %s", asctime(gmtime((time_t *)&l_fih.time.ll)));
-                printf("rsa: geolocation: latitude %.4f, longitude %.4f\n", l_fih.latitude.f, l_fih.longitude.f);
+        // load our key data
+        mpz_import(l_d, g_block_size, 1, sizeof(unsigned char), 0, 0, g_d);
+        mpz_import(l_n, g_block_size, 1, sizeof(unsigned char), 0, 0, g_n);
 
-                // write any data contained in first block to output file
-                uint32_t l_bytes_expected = g_1stblock_capacity;
-                if (l_fih.size < g_1stblock_capacity)
-                    l_bytes_expected = l_fih.size;
-                if (g_debug > 0) printf("do_decrypt: expecting to write %d bytes in write operation\n", l_bytes_expected);
-                res = write(g_outfile_fd, g_buff2 + 8 + sizeof(fileinfo_header), l_bytes_expected);
-                if (res < 0) {
-                    fprintf(stderr, "rsa: unable to write to output file during decrypt operation: %s\n", strerror(errno));
-                    exit(EXIT_FAILURE);
-                }
-                if (res < l_bytes_expected) {
-                    fprintf(stderr, "rsa: problems writing to output file, wrote %d bytes, expected %d\n", res, l_bytes_expected);
-                    exit(EXIT_FAILURE);
-                }
-                l_bytes_written_tab += res;
-            } else {
-                // subsequent block, so just write it out
-                if (l_block_index == 2) {
-                    printf("rsa: decrypting ");
-                    progress(l_bytes_written_tab, l_fih.size);
-                }
+        // load up our cipher block
+        mpz_import(l_cipher, g_block_size, 1, sizeof(unsigned char), 0, 0, g_buff);
+
+        // and decrypt it
+        mpz_powm(l_block, l_cipher, l_d, l_n);
+        if (g_debug > 0) {
+            gmp_printf("n      = %Zx\nd      = %Zx\ncipher = %Zx\nblock  = %Zx\n", l_n, l_d, l_cipher, l_block);
+        }
+
+        // and export it to aux block
+        mpz_export(g_buff2, &l_written, 1, sizeof(unsigned char), 0, 0, l_block);
+        if (l_written != g_block_size) {
+            right_justify(l_written, g_block_size - l_written, (char *)g_buff2);
+        }
+        if (g_debug > 0) {
+            printf("do_decrypt: decrypted block %d", l_block_ctr);
+            print_hex(g_buff2, g_block_size);
+        }
+
+        // take care of business with the first block
+        if (l_block_ctr == 1) {
+            memcpy(&l_fih, g_buff2 + 8, sizeof(fileinfo_header));
+            // get everything in host byte order
+            l_fih.size = ntohl(l_fih.size);
+            l_fih.size_xor = ntohl(l_fih.size_xor);
+            l_fih.crc = ntohl(l_fih.crc);
+            l_fih.crc_xor = ntohl(l_fih.crc_xor);
+            reverse_int64(&l_fih.time);
+            reverse_float(&l_fih.latitude);
+            reverse_float(&l_fih.longitude);
+            // check to see if we decrypted this block properly
+            if (l_fih.size != (l_fih.size_xor ^ ~0U)) {
+                goto do_decrypt_keyerror;
+            }
+            if (l_fih.crc != (l_fih.crc_xor ^ ~0U)) {
+                goto do_decrypt_keyerror;
+            }
+            // assumed good fileinfo_header now
+            printf("rsa: data length in input file is %d bytes.\n", l_fih.size);
+            if (g_debug > 0) printf("do_decrypt: input file data CRC is %08X\n", l_fih.crc);
+            printf("rsa: GMT time stamp: %s", asctime(gmtime((time_t *)&l_fih.time.ll)));
+            printf("rsa: geolocation: latitude %.4f, longitude %.4f\n", l_fih.latitude.f, l_fih.longitude.f);
+
+            // write any data contained in first block to output file
+            uint32_t l_bytes_expected = g_1stblock_capacity;
+            if (l_fih.size < g_1stblock_capacity)
+                l_bytes_expected = l_fih.size;
+            if (g_debug > 0) printf("do_decrypt: expecting to write %d bytes in write operation\n", l_bytes_expected);
+            res = write(g_outfile_fd, g_buff2 + 8 + sizeof(fileinfo_header), l_bytes_expected);
+            if (res < 0) {
+                fprintf(stderr, "rsa: unable to write to output file during decrypt operation: %s\n", strerror(errno));
+                exit(EXIT_FAILURE);
+            }
+            if (res < l_bytes_expected) {
+                fprintf(stderr, "rsa: problems writing to output file, wrote %d bytes, expected %d\n", res, l_bytes_expected);
+                exit(EXIT_FAILURE);
+            }
+            l_bytes_written_tab += res;
+        } else {
+            // subsequent block, so just write it out
+            if (l_block_ctr == 2) {
+                printf("rsa: decrypting ");
+                progress(l_bytes_written_tab, l_fih.size);
+            }
 //            } else {
 //                // print progress dot every eight blocks
 //                if (l_block_ctr % 8 == 0) printf(".");
 //            }
-                uint32_t l_bytes_expected = g_block_capacity;
-                if (l_fih.size - l_bytes_written_tab < g_block_capacity)
-                    l_bytes_expected = l_fih.size - l_bytes_written_tab;
-                if (g_debug > 0) printf("do_decrypt: expecting to write %d bytes in write operation\n", l_bytes_expected);
-                res = write(g_outfile_fd, g_buff2 + 8, l_bytes_expected);
-                if (res < 0) {
-                    fprintf(stderr, "rsa: unable to write to output file during decrypt operation: %s\n", strerror(errno));
-                    exit(EXIT_FAILURE);
-                }
-                if (res < l_bytes_expected) {
-                    fprintf(stderr, "rsa: problems writing to output file, wrote %d bytes, expected %d\n", res, l_bytes_expected);
-                    exit(EXIT_FAILURE);
-                }
-                l_bytes_written_tab += res;
-                if (l_block_ctr % 8 == 0) progress(l_bytes_written_tab, l_fih.size);
+            uint32_t l_bytes_expected = g_block_capacity;
+            if (l_fih.size - l_bytes_written_tab < g_block_capacity)
+                l_bytes_expected = l_fih.size - l_bytes_written_tab;
+            if (g_debug > 0) printf("do_decrypt: expecting to write %d bytes in write operation\n", l_bytes_expected);
+            res = write(g_outfile_fd, g_buff2 + 8, l_bytes_expected);
+            if (res < 0) {
+                fprintf(stderr, "rsa: unable to write to output file during decrypt operation: %s\n", strerror(errno));
+                exit(EXIT_FAILURE);
             }
+            if (res < l_bytes_expected) {
+                fprintf(stderr, "rsa: problems writing to output file, wrote %d bytes, expected %d\n", res, l_bytes_expected);
+                exit(EXIT_FAILURE);
+            }
+            l_bytes_written_tab += res;
+            if (l_block_ctr % 8 == 0) progress(l_bytes_written_tab, l_fih.size);
         }
         // done writing output?
         if (l_fih.size == l_bytes_written_tab) {
@@ -1171,13 +1085,6 @@ int main(int argc, char **argv)
     unsigned int i;
     int res; // result variable for UNIX reads
     int opt;
-
-    // try to determine hardware concurrency
-    unsigned int l_tcnt = sysconf(_SC_NPROCESSORS_ONLN);
-    if (l_tcnt != 0) {
-        g_threads = l_tcnt;
-    }
-
     while ((opt = getopt_long(argc, argv, "i:o:k:g:edsv?tw", g_options, NULL)) != -1) {
         switch (opt) {
             case 1001:
@@ -1390,7 +1297,6 @@ int main(int argc, char **argv)
         case MODE_DECRYPT:
         {
             printf("rsa: selected decryption mode.\n");
-            printf("rsa: enabled %d threads.\n", g_threads);
             load_key();
             if (g_n_loaded == 0) {
                 fprintf(stderr, "rsa: this function requires the key file to contain a modulus.\n");
@@ -1414,35 +1320,7 @@ int main(int argc, char **argv)
                 exit(EXIT_FAILURE);
             }
             prepare_outfile();
-            // initialize threaded environment
-            pthread_mutex_init(&g_debug_mtx, NULL);
-            pthread_mutex_init(&g_tally_mtx, NULL);
-            pthread_cond_init(&g_tally_cond, NULL);
-            for (i = 0; i < g_threads; ++i) {
-                pthread_mutex_init(&twa[i].sig_mtx, NULL);
-                pthread_cond_init(&twa[i].sig_cond, NULL);
-                twa[i].id = i;
-                twa[i].runflag = 1;
-                pthread_create(&twa[i].thread, NULL, decrypt_tf, &twa[i]);
-            }
             do_decrypt();
-            // join
-            for (i = 0; i < g_threads; ++i) {
-                pthread_mutex_lock(&twa[i].sig_mtx);
-                twa[i].runflag = 0;
-                pthread_cond_signal(&twa[i].sig_cond);
-                pthread_mutex_unlock(&twa[i].sig_mtx);
-//                printf("joining %d...\n", i);
-                pthread_join(twa[i].thread, NULL);
-            }
-            // clean up
-            for (i = 0; i < g_threads; ++i) {
-                pthread_mutex_destroy(&twa[i].sig_mtx);
-                pthread_cond_destroy(&twa[i].sig_cond);
-            }
-            pthread_cond_destroy(&g_tally_cond);
-            pthread_mutex_destroy(&g_tally_mtx);
-            pthread_mutex_destroy(&g_debug_mtx);
         }
         break;
         case MODE_SIGN:
