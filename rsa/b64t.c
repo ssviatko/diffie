@@ -21,5 +21,13 @@ int main(int argc, char **argv)
 	printf("unformatted message: len %d - %s\n",strlen(b64_unformatted), b64_unformatted);
 	int ret = ccct_base64_decode(b64_unformatted, decoded, &decoded_len);
 	printf("decode returned %d, len %d, message: %s\n", ret, decoded_len, decoded);
+
+	unsigned long long a = 0xc0edbabedeadbeefULL;
+	char beef[32];
+	ccct_base64_encode((char *)&a, sizeof(a), beef);
+	printf("long long: %s\n", beef);
+	char ll[8];
+	ccct_base64_decode(beef, ll, &decoded_len);
+	printf("long long decoded: len %d - %016lX\n", decoded_len, *((unsigned long long *)ll));
 	return 0;
 }
