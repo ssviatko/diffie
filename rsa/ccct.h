@@ -79,6 +79,10 @@ void ccct_discover_endianness   ();
 int  ccct_endianness            ();
 void ccct_reverse_int64         (ccct_reversible_int64_t *a_val);
 void ccct_reverse_float         (ccct_reversible_float_t *a_val);
+void ccct_base64_encode         (const uint8_t *a_data, size_t a_len, char *a_textout);
+void ccct_base64_format         (const char *a_textin, char *a_textout, char *a_header_text, char *a_footer_text);
+int  ccct_base64_decode         (const char *a_textin, char *a_binout, uint32_t *a_binout_len);
+void ccct_base64_unformat       (const char *a_textin, char *a_textout);
 
 #ifdef __cplusplus
 }

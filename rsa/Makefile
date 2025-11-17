@@ -8,6 +8,9 @@ all:
 	# rsa-util
 	gcc -c rsa-util.c -o rsa-util.o
 	gcc rsa-util.o ccct.o sha2.o -o rsa-util -lgmp -lpthread
+	# b64t
+	gcc -c b64t.c -o b64t.o
+	gcc b64t.o ccct.o -o b64t
 
 clean:
 	rm -f rsa-keygen

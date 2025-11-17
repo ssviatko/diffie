@@ -1,0 +1,25 @@
+#include <stdio.h>
+#include <string.h>
+
+#include "ccct.h"
+
+int main(int argc, char **argv)
+{
+	char *message = "The quick brown fox jumps over the lazy dog four times I believe last thursday without question it happened and this should be a nice long message to use for our base64 test application.";
+	char b64[256];
+	char b64_formatted[1024];
+	char b64_unformatted[256];
+	char decoded[256];
+	unsigned int decoded_len;
+
+	printf("message: len %d - %s\n", strlen(message), message);
+	ccct_base64_encode(message, strlen(message) + 1, b64);
+	printf("encode len: %d encoded message: %s\n", strlen(b64), b64);
+	ccct_base64_format(b64, b64_formatted, "BEGIN FOXY MESSAGE", "END FOXY MESSAGE");
+	printf("formatted message:\n%s\n", b64_formatted);
+	ccct_base64_unformat(b64_formatted, b64_unformatted);
+	printf("unformatted message: len %d - %s\n",strlen(b64_unformatted), b64_unformatted);
+	int ret = ccct_base64_decode(b64_unformatted, decoded, &decoded_len);
+	printf("decode returned %d, len %d, message: %s\n", ret, decoded_len, decoded);
+	return 0;
+}
