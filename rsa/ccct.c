@@ -316,6 +316,7 @@ void ccct_base64_format(const char *a_textin, char *a_textout, char *a_header_te
 {
     size_t i, l_textout_ptr;
 
+    a_textout[0] = 0;
     strcpy(a_textout, "----- ");
     strcat(a_textout, a_header_text);
     strcat(a_textout, " -----");
@@ -343,6 +344,7 @@ void ccct_base64_unformat(const char *a_textin, char *a_textout)
 {
     size_t l_textin_ptr = 0;
 
+    a_textout[0] = 0; // clear our output buffer before we work
 unformat_top:
     if (a_textin[l_textin_ptr] == '-') {
         // header present, throw away to next linefeed
@@ -362,4 +364,5 @@ unformat_top:
         strncat(a_textout, &a_textin[l_textin_ptr], 1);
         l_textin_ptr++;
     }
+    strcat(a_textout, "\0");
 }

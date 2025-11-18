@@ -74,6 +74,7 @@
 
 #define BUFFLEN 1024
 #define PADDING 12 // amount of random padding per block
+#define SEMLIMIT 16384 // maximum size of plaintext file that can be encrypted into a SEM format file
 
 #define MAXTHREADS 48
 
@@ -97,6 +98,7 @@ uint8_t g_qinv[MAXBYTEBUFF];
 int g_qinv_loaded = 0;
 
 int g_nochinese = 0; // set to 1 to disable chinese remainder theory calculations
+int g_sem = 0; // set to 1 to make SEM files when encrypting, if file size is below limit
 
 uint8_t g_buff[MAXBYTEBUFF]; // general buffer
 uint8_t g_buff2[MAXBYTEBUFF]; // auziliary buffer
@@ -186,6 +188,7 @@ struct option g_options[] = {
     { "longitude", required_argument, NULL, 1003 },
     { "threads", required_argument, NULL, 1004 },
     { "nochinese", no_argument, NULL, 1005 },
+    { "sem", no_argument, NULL, 1006 },
     { NULL, 0, NULL, 0 }
 };
 
@@ -787,6 +790,78 @@ void do_encrypt()
     mpz_clear(l_cipher);
     mpz_clear(l_e);
     mpz_clear(l_n);
+
+    if (g_sem == 1) {
+        printf("rsa: converting to security-enhanced message format ...");
+        // rewind g_outfile_fd, load it up and base64 encode it
+        res = lseek(g_outfile_fd, 0, SEEK_SET);
+        if (res < 0) {
+            fprintf(stderr, "rsa: can't rewind key file: %s\n", strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+        // find out how big what we just wrote happens to be
+        struct stat l_stat;
+        res = stat(g_outfile, &l_stat);
+        if (res < 0) {
+            fprintf(stderr, "rsa: unable to output file: %s\n", strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+        // and create a buffer big enough to load it in, and another to hold the base64, and another to hold the format
+        size_t l_buff_load_size = l_stat.st_size + 4096;
+        size_t l_buff_enc_size = (l_buff_load_size * 4 / 3) + 255;
+        char *buff_load = NULL;
+        buff_load = malloc(l_buff_load_size);
+        if (buff_load == NULL) {
+            fprintf(stderr, "rsa: unable to allocate buffer to load file.\n");
+            exit(EXIT_FAILURE);
+        }
+        char *buff_enc = NULL;
+        buff_enc = malloc(l_buff_enc_size);
+        if (buff_enc == NULL) {
+            fprintf(stderr, "rsa: unable to allocate buffer to encrypt file.\n");
+            exit(EXIT_FAILURE);
+        }
+        char *buff_fmt = NULL;
+        buff_fmt = malloc(l_buff_enc_size + 512);
+        if (buff_fmt == NULL) {
+            fprintf(stderr, "rsa: unable to allocate buffer to hold formatted file.\n");
+            exit(EXIT_FAILURE);
+        }
+        // load up what we just encrypted
+        size_t buff_load_len = 0;
+        do {
+            res = read(g_outfile_fd, buff_load + buff_load_len, 4096);
+            if (res < 0) {
+                fprintf(stderr, "rsa: problems reading file: %s\n", strerror(errno));
+                exit(EXIT_FAILURE);
+            }
+            buff_load_len += res;
+        } while (res != 0);
+        // convert it to base64
+        ccct_base64_encode(buff_load, buff_load_len, buff_enc);
+        ccct_base64_format(buff_enc, buff_fmt, "BEGIN MESSAGE", "END MESSAGE");
+
+        // close, delete, and reopen our output file
+        close(g_outfile_fd);
+        unlink(g_outfile);
+        g_outfile_fd = open(g_outfile, O_RDWR | O_TRUNC | O_CREAT, (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH));
+        if (g_outfile_fd < 0) {
+            fprintf(stderr, "rsa: error opening output file: %s\n", strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+        res = write(g_outfile_fd, buff_fmt, strlen(buff_fmt));
+        if (res < 0) {
+            fprintf(stderr, "rsa: unable to write output file: %s\n", strerror(errno));
+            exit(EXIT_FAILURE);
+        } else if (res != strlen(buff_fmt)) {
+            fprintf(stderr, "rsa: unable to write entire contents of formatted buffer: wrote %d expected %d.\n", res, strlen(buff_fmt));
+            exit(EXIT_FAILURE);
+        }
+        free(buff_fmt);
+        free(buff_enc);
+        free(buff_load);
+        printf(" done.\n");
+    }
 }
 
 void *decrypt_tf(void *arg)
@@ -909,6 +984,103 @@ void do_decrypt()
     int l_docontinue = 0;
     fileinfo_header l_fih;
     uint32_t l_bytes_written_tab = 0;
+    char l_template[32];
+
+    // auto-detect key format: SEM or BIN
+    char l_buff[16];
+    res = read(g_infile_fd, l_buff, 16);
+    if (res < 0) {
+        fprintf(stderr, "rsa: can't read input file: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    // there must be 5 dash characters contained within the first 16 bytes of the file to be a SEM
+    // otherwise, we assume it to be a BIN (binary) file
+    int l_dashcnt = 0;
+    for (i = 0; i < 16; ++i) {
+        if (l_buff[i] == '-')
+            l_dashcnt++;
+    }
+    // irrespective of type, we need to rewind it now
+    res = lseek(g_infile_fd, 0, SEEK_SET);
+    if (res < 0) {
+        fprintf(stderr, "rsa: can't rewind input file: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+    // following if/else stolen from load_key, more or less the same logic
+    if (l_dashcnt == 5) {
+        printf("rsa: decryption mode: security-enhanced message format\n");
+        // read file entirely into memory, convert from base64 to binary, then write it out to /tmp file, replacing g_infile_fd with file descriptor of tmp file
+        // we already know how big g_infile is, we statted it when we prepared it
+        size_t l_buff_load_size = g_infile_length + 4096;
+        size_t l_buff_dec_size = (l_buff_load_size * 3 / 4) + 255;
+        char *buff_load = NULL;
+        buff_load = malloc(l_buff_load_size);
+        if (buff_load == NULL) {
+            fprintf(stderr, "rsa: unable to allocate buffer to load inputfile.\n");
+            exit(EXIT_FAILURE);
+        }
+        char *buff_dec = NULL;
+        buff_dec = malloc(l_buff_dec_size);
+        if (buff_dec == NULL) {
+            fprintf(stderr, "rsa: unable to allocate buffer to decrypt inputfile.\n");
+            exit(EXIT_FAILURE);
+        }
+        char *buff_unfmt = NULL;
+        buff_unfmt = malloc(l_buff_dec_size + 512);
+        if (buff_unfmt == NULL) {
+            fprintf(stderr, "rsa: unable to allocate buffer to hold unformatted input file.\n");
+            exit(EXIT_FAILURE);
+        }
+
+        size_t buff_load_len = 0;
+        // load up sem message
+        do {
+            res = read(g_infile_fd, buff_load + buff_load_len, 4096);
+            if (res < 0) {
+                fprintf(stderr, "rsa: problems reading input file: %s\n", strerror(errno));
+                exit(EXIT_FAILURE);
+            }
+            buff_load_len += res;
+        } while (res != 0);
+//        printf("buff_load: %s\n", buff_load);
+        if (g_debug > 0) printf("do_decrypt: buff_load_len %d\n", buff_load_len);
+        ccct_base64_unformat(buff_load, buff_unfmt);
+        uint32_t buff_dec_len = 0;
+//        printf("buff_unfnt: %s\n", buff_unfmt);
+        ccct_base64_decode(buff_unfmt, buff_dec, &buff_dec_len);
+        if (g_debug > 0) printf("do_decrypt: buff_dec_len %d\n", buff_dec_len);
+        close(g_infile_fd);
+        // now open tmp file and point g_infile_fd there
+        strcpy(l_template, "/tmp/rsa-infileXXXXXX");
+        g_infile_fd = mkstemp(l_template);
+        if (g_infile_fd < 0) {
+            fprintf(stderr, "rsa: unable to open temporary input file for writing. error: %s\n", strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+        // write decoded binary format key to temp file
+        res = write(g_infile_fd, buff_dec, buff_dec_len);
+        if (res < 0) {
+            fprintf(stderr, "rsa: unable to write to temporary input file: %s\n", strerror(errno));
+            exit(EXIT_FAILURE);
+        } else if (res != buff_dec_len) {
+            fprintf(stderr, "rsa: unable to write entire contents of input buffer: wrote %d expected %d.\n", res, buff_dec_len);
+            exit(EXIT_FAILURE);
+        }
+        // rewind it so the rest of this function can read it, as if nothing happened
+        res = lseek(g_infile_fd, 0, SEEK_SET);
+        if (res < 0) {
+            fprintf(stderr, "rsa: can't rewind temporary input file: %s\n", strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+        // clean up
+        free(buff_load);
+        free(buff_dec);
+        free(buff_unfmt);
+    } else {
+        printf("rsa: decryption mode: native binary format\n");
+        // .... and proceed as normal
+    }
 
     do {
         g_tally = 0;
@@ -1026,7 +1198,7 @@ void do_decrypt()
         if (l_fih.size == l_bytes_written_tab) {
             l_eof = 1;
             // don't leave our ccct_progress meter hanging
-            if (l_block_ctr > 1) {
+            if (l_block_index > 1) {
                 ccct_progress(l_bytes_written_tab, l_fih.size);
                 printf("\n");
             }
@@ -1038,6 +1210,11 @@ void do_decrypt()
         printf("rsa: CRC OK\n");
     } else {
         printf("rsa: CRC failure, expected %08X, got %08X.\n", l_fih.crc, g_outfile_crc);
+    }
+    if (l_dashcnt == 5) {
+        // clean /tmp
+        close(g_infile_fd);
+        unlink(l_template);
     }
     return;
 
@@ -1294,6 +1471,11 @@ int main(int argc, char **argv)
                 g_nochinese = 1;
             }
             break;
+            case 1006: // sem
+            {
+                g_sem = 1;
+            }
+            break;
             case 'i':
             {
                 strcpy(g_infile, optarg);
@@ -1385,6 +1567,7 @@ int main(int argc, char **argv)
                 printf("       will be rounded to 4 decimal places (accuracy of 11.1 meters/36.4 feet)\n");
                 printf("     (--threads) <count> specify number of threads to use during decryption process\n");
                 printf("     (--nochinese) defeat chinese remainder theorem calculations during decryption\n");
+                printf("     (--sem) encrypt mode: save encrypted files in security-enhanced message format\n");
                 printf("     (--debug) use debug mode\n");
                 printf("  -? (--help) this screen\n");
                 printf("operational modes (select only one)\n");
@@ -1474,6 +1657,15 @@ int main(int argc, char **argv)
             }
             prepare_infile();
             get_infile_crc();
+            if (g_sem == 1) {
+                printf("rsa: selecting security-enhanced message format.\n");
+                if (g_infile_length > SEMLIMIT) {
+                    fprintf(stderr, "rsa: input file length exceeds maximum length of %d for sem formatted messages.\n", SEMLIMIT);
+                    exit(EXIT_FAILURE);
+                }
+            } else {
+                printf("rsa: selecting native binary format.\n");
+            }
             if (g_outfile_specified == 0) {
                 fprintf(stderr, "rsa: this function requires that you specify an output file.\n");
                 exit(EXIT_FAILURE);
@@ -1503,10 +1695,10 @@ int main(int argc, char **argv)
                 exit(EXIT_FAILURE);
             }
             prepare_infile();
-            if (g_infile_block_multiple > 0) {
-                fprintf(stderr, "rsa: input file must be a multiple of block size to decrypt.\n");
-                exit(EXIT_FAILURE);
-            }
+//            if (g_infile_block_multiple > 0) {
+//                fprintf(stderr, "rsa: input file must be a multiple of block size to decrypt.\n");
+//                exit(EXIT_FAILURE);
+//            }
             if (g_outfile_specified == 0) {
                 fprintf(stderr, "rsa: this function requires that you specify an output file.\n");
                 exit(EXIT_FAILURE);

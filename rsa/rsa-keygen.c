@@ -641,7 +641,7 @@ void *gen_tf(void *arg)
 		}
 		char *buff_enc = NULL;
 		buff_enc = malloc(l_buff_enc_size);
-		if (buff_load == NULL) {
+		if (buff_enc == NULL) {
 			fprintf(stderr, "rsa-keygen: unable to allocate buffer to encrypt temporary key files.\n");
 			exit(EXIT_FAILURE);
 		}
@@ -687,7 +687,7 @@ void *gen_tf(void *arg)
 		do {
 			res = read(pubkey_fd, buff_load + buff_load_len, 4096);
 			if (res < 0) {
-				fprintf(stderr, "rsa-keygen: problems readin temporary private key: %s\n", strerror(errno));
+				fprintf(stderr, "rsa-keygen: problems reading temporary private key: %s\n", strerror(errno));
 				exit(EXIT_FAILURE);
 			}
 			buff_load_len += res;
@@ -708,7 +708,7 @@ void *gen_tf(void *arg)
 			fprintf(stderr, "rsa-keygen: unable to write entire contents of formatted buffer: wrote %d expected %d.\n", res, strlen(buff_fmt));
 			exit(EXIT_FAILURE);
 		}
-		close(privkey_sem_fd);
+		close(pubkey_sem_fd);
 
 		free(buff_load);
 		free(buff_enc);
