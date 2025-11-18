@@ -211,6 +211,10 @@ pthread_mutex_t g_debug_mtx; // protect debug messages in multithreaded environm
 
 void load_key()
 {
+    int res;
+    int i;
+    char l_template[32];
+
     if (g_keyfile_specified == 0) {
         fprintf(stderr, "rsa: this operation requires that you specify a key file.\n");
         exit(EXIT_FAILURE);
@@ -224,8 +228,99 @@ void load_key()
         exit(EXIT_FAILURE);
     }
 
+    // auto-detect key format: SEM or BIN
+    char l_buff[16];
+    res = read(key_fd, l_buff, 16);
+    if (res < 0) {
+        fprintf(stderr, "rsa: can't read key file: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    // there must be 5 dash characters contained within the first 16 bytes of the file to be a SEM
+    // otherwise, we assume it to be a BIN (binary) file
+    int l_dashcnt = 0;
+    for (i = 0; i < 16; ++i) {
+        if (l_buff[i] == '-')
+            l_dashcnt++;
+    }
+    // irrespective of type, we need to rewind it now
+    res = lseek(key_fd, 0, SEEK_SET);
+    if (res < 0) {
+        fprintf(stderr, "rsa: can't rewind key file: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    if (l_dashcnt == 5) {
+        printf("rsa: key mode: security-enhanced message format\n");
+        // read key entirely into memory, convert from base64 to binary, then write it out to /tmp file, replacing key_fd with file descriptor of tmp file
+        // find out how big our key file is
+        struct stat l_stat;
+        res = stat(g_keyfile, &l_stat);
+        if (res < 0) {
+            fprintf(stderr, "rsa: unable to stat key file: %s\n", strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+        size_t l_buff_load_size = l_stat.st_size + 255;
+        size_t l_buff_dec_size = (l_buff_load_size * 3 / 4) + 255;
+        char *buff_load = NULL;
+        buff_load = malloc(l_buff_load_size);
+        if (buff_load == NULL) {
+            fprintf(stderr, "rsa: unable to allocate buffer to load key file.\n");
+            exit(EXIT_FAILURE);
+        }
+        char *buff_dec = NULL;
+        buff_dec = malloc(l_buff_dec_size);
+        if (buff_dec == NULL) {
+            fprintf(stderr, "rsa: unable to allocate buffer to decrypt key file.\n");
+            exit(EXIT_FAILURE);
+        }
+        char *buff_unfmt = NULL;
+        buff_unfmt = malloc(l_buff_dec_size + 512);
+        if (buff_unfmt == NULL) {
+            fprintf(stderr, "rsa: unable to allocate buffer to hold unformatted key file.\n");
+            exit(EXIT_FAILURE);
+        }
+
+        size_t buff_load_len = 0;
+        // load up sem key
+        do {
+            res = read(key_fd, buff_load + buff_load_len, 4096);
+            if (res < 0) {
+                fprintf(stderr, "rsa: problems reading key: %s\n", strerror(errno));
+                exit(EXIT_FAILURE);
+            }
+            buff_load_len += res;
+        } while (res != 0);
+        ccct_base64_unformat(buff_load, buff_unfmt);
+        uint32_t buff_dec_len = 0;
+        ccct_base64_decode(buff_unfmt, buff_dec, &buff_dec_len);
+        close(key_fd);
+        // now open tmp file and point key_fd there
+        strcpy(l_template, "/tmp/rsa-keyXXXXXX");
+        key_fd = mkstemp(l_template);
+        if (key_fd < 0) {
+            fprintf(stderr, "rsa: unable to open temporary key file for writing. error: %s\n", strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+        // write decoded binary format key to temp file
+        res = write(key_fd, buff_dec, buff_dec_len);
+        if (res < 0) {
+            fprintf(stderr, "rsa: unable to write to temporary key file: %s\n", strerror(errno));
+            exit(EXIT_FAILURE);
+        } else if (res != buff_dec_len) {
+            fprintf(stderr, "rsa: unable to write entire contents of key buffer: wrote %d expected %d.\n", res, buff_dec_len);
+            exit(EXIT_FAILURE);
+        }
+        // rewind it so the rest of this function can read it, as if nothing happened
+        res = lseek(key_fd, 0, SEEK_SET);
+        if (res < 0) {
+            fprintf(stderr, "rsa: can't rewind temporary key file: %s\n", strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+    } else {
+        printf("rsa: key mode: native binary format\n");
+        // .... and proceed as normal
+    }
+
     int l_eof = 0;
-    int res;
     do {
         key_item_header l_kih;
         res = read(key_fd, &l_kih, sizeof(l_kih));
@@ -310,6 +405,10 @@ void load_key()
             }
         }
     } while (l_eof == 0);
+    if (l_dashcnt == 5) {
+        // clean up /tmp
+        unlink(l_template);
+    }
 }
 
 void prepare_outfile()

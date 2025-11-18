@@ -60,7 +60,7 @@
 #include <getopt.h>
 #include <pthread.h>
 #include <arpa/inet.h>
-#include <sys/ioctl.h>
+#include <sys/stat.h>
 
 #include "ccct.h"
 
@@ -93,10 +93,12 @@ struct option g_options[] = {
 	{ "debug", no_argument, NULL, 'd' },
 	{ "threads", required_argument, NULL, 't' },
 	{ "out", required_argument, NULL, 'o' },
+	{ "sem", no_argument, NULL, 1001 },
 	{ NULL, 0, NULL, 0 }
 };
 
 int g_debug = 0;
+int g_sem = 0;
 // note: for the keygen, g_bits now refers to the n/block size, not the p/q size
 unsigned int g_bits = 4096; // default bit width
 unsigned int g_pqbits; // convenience value
@@ -106,6 +108,8 @@ unsigned int g_threads = 8; // default number of threads
 
 const char *g_private_suffix = "-private.bin";
 const char *g_public_suffix = "-public.bin";
+const char *g_private_sem_suffix = "-private.sem";
+const char *g_public_sem_suffix = "-public.sem";
 char g_private_filename[BUFFLEN];
 char g_public_filename[BUFFLEN];
 int g_filename_specified = 0;
@@ -360,21 +364,50 @@ void *gen_tf(void *arg)
 	// export
 	
 	int privkey_fd, pubkey_fd;
+	int privkey_sem_fd, pubkey_sem_fd;
 
-	if (g_filename_specified) {
+	if (g_sem == 1) {
+		printf("rsa-keygen: output mode: security-enhanced message format\n");
+		strcat(g_private_filename, g_private_sem_suffix);
+		strcat(g_public_filename, g_public_sem_suffix);
+	} else {
+		printf("rsa-keygen: output mode: native binary format\n");
 		strcat(g_private_filename, g_private_suffix);
 		strcat(g_public_filename, g_public_suffix);
-		printf("rsa-keygen: public key file : %s\n", g_public_filename);
-		printf("rsa-keygen: private key file: %s\n", g_private_filename);
+	}
+	printf("rsa-keygen: public key file : %s\n", g_public_filename);
+	printf("rsa-keygen: private key file: %s\n", g_private_filename);
+
+	char l_priv_template[32];
+	char l_public_template[32];
+
+	if (g_sem == 0) {
 		privkey_fd = open(g_private_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 		if (privkey_fd < 0) {
-			fprintf(stderr, "unable to open private key file for writing. error: %s\n", strerror(errno));
+			fprintf(stderr, "rsa-keygen: unable to open private key file for writing. error: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 		pubkey_fd = open(g_public_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 		if (pubkey_fd < 0) {
-			fprintf(stderr, "unable to open public key file for writing. error: %s\n", strerror(errno));
+			fprintf(stderr, "rsa-keygen: unable to open public key file for writing. error: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
+		}
+	} else {
+		strcpy(l_priv_template, "/tmp/rsa-keygen-privateXXXXXX");
+		strcpy(l_public_template, "/tmp/rsa-keygen-publicXXXXXX");
+		privkey_fd = mkstemp(l_priv_template);
+		if (privkey_fd < 0) {
+			fprintf(stderr, "rsa-keygen: unable to open temporary private key file for writing. error: %s\n", strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+		pubkey_fd = mkstemp(l_public_template);
+		if (pubkey_fd < 0) {
+			fprintf(stderr, "rsa-keygen: unable to open temporary public key file for writing. error: %s\n", strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+		if (g_debug > 0) {
+			printf("/tmp private template: %s\n", l_priv_template);
+			printf("/tmp public template: %s\n", l_public_template);
 		}
 	}
 	size_t l_written = 0;
@@ -391,23 +424,23 @@ void *gen_tf(void *arg)
 		l_kih.bit_width = htonl(g_bits);
 		res = write(privkey_fd, &l_kih, sizeof(l_kih));
 		if (res != sizeof(l_kih)) {
-			fprintf(stderr, "problems writing key data: %s\n", strerror(errno));
+			fprintf(stderr, "rsa-keygen: problems writing key data: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 		res = write(privkey_fd, a_twa->buff, (g_bits / 8));
 		if (res != (g_bits / 8)) {
-			fprintf(stderr, "problems writing key data: %s\n", strerror(errno));
+			fprintf(stderr, "rsa-keygen: problems writing key data: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 
 		res = write(pubkey_fd, &l_kih, sizeof(l_kih));
 		if (res != sizeof(l_kih)) {
-			fprintf(stderr, "problems writing key data: %s\n", strerror(errno));
+			fprintf(stderr, "rsa-keygen: problems writing key data: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 		res = write(pubkey_fd, a_twa->buff, (g_bits / 8));
 		if (res != (g_bits / 8)) {
-			fprintf(stderr, "problems writing key data: %s\n", strerror(errno));
+			fprintf(stderr, "rsa-keygen: problems writing key data: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -424,27 +457,25 @@ void *gen_tf(void *arg)
 		l_kih.bit_width = htonl(32);
 		res = write(privkey_fd, &l_kih, sizeof(l_kih));
 		if (res != sizeof(l_kih)) {
-			fprintf(stderr, "problems writing key data: %s\n", strerror(errno));
+			fprintf(stderr, "rsa-keygen: problems writing key data: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 		res = write(privkey_fd, a_twa->buff, 4);
 		if (res != 4) {
-			fprintf(stderr, "problems writing key data: %s\n", strerror(errno));
+			fprintf(stderr, "rsa-keygen: problems writing key data: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 
 		res = write(pubkey_fd, &l_kih, sizeof(l_kih));
 		if (res != sizeof(l_kih)) {
-			fprintf(stderr, "problems writing key data: %s\n", strerror(errno));
+			fprintf(stderr, "rsa-keygen: problems writing key data: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 		res = write(pubkey_fd, a_twa->buff, 4);
 		if (res != 4) {
-			fprintf(stderr, "problems writing key data: %s\n", strerror(errno));
+			fprintf(stderr, "rsa-keygen: problems writing key data: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
-		// done writing to public key file
-		close(pubkey_fd);
 	}
 
 	mpz_export(a_twa->buff, &l_written, 1, sizeof(unsigned char), 0, 0, l_d);
@@ -459,12 +490,12 @@ void *gen_tf(void *arg)
 		l_kih.bit_width = htonl(g_bits);
 		res = write(privkey_fd, &l_kih, sizeof(l_kih));
 		if (res != sizeof(l_kih)) {
-			fprintf(stderr, "problems writing key data: %s\n", strerror(errno));
+			fprintf(stderr, "rsa-keygen: problems writing key data: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 		res = write(privkey_fd, a_twa->buff, (g_bits / 8));
 		if (res != (g_bits / 8)) {
-			fprintf(stderr, "problems writing key data: %s\n", strerror(errno));
+			fprintf(stderr, "rsa-keygen: problems writing key data: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -481,12 +512,12 @@ void *gen_tf(void *arg)
 		l_kih.bit_width = htonl(g_pqbits);
 		res = write(privkey_fd, &l_kih, sizeof(l_kih));
 		if (res != sizeof(l_kih)) {
-			fprintf(stderr, "problems writing key data: %s\n", strerror(errno));
+			fprintf(stderr, "rsa-keygen: problems writing key data: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 		res = write(privkey_fd, a_twa->buff, (g_pqbits / 8));
 		if (res != (g_pqbits / 8)) {
-			fprintf(stderr, "problems writing key data: %s\n", strerror(errno));
+			fprintf(stderr, "rsa-keygen: problems writing key data: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -503,12 +534,12 @@ void *gen_tf(void *arg)
 		l_kih.bit_width = htonl(g_pqbits);
 		res = write(privkey_fd, &l_kih, sizeof(l_kih));
 		if (res != sizeof(l_kih)) {
-			fprintf(stderr, "problems writing key data: %s\n", strerror(errno));
+			fprintf(stderr, "rsa-keygen: problems writing key data: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 		res = write(privkey_fd, a_twa->buff, (g_pqbits / 8));
 		if (res != (g_pqbits / 8)) {
-			fprintf(stderr, "problems writing key data: %s\n", strerror(errno));
+			fprintf(stderr, "rsa-keygen: problems writing key data: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -525,12 +556,12 @@ void *gen_tf(void *arg)
 		l_kih.bit_width = htonl(g_pqbits);
 		res = write(privkey_fd, &l_kih, sizeof(l_kih));
 		if (res != sizeof(l_kih)) {
-			fprintf(stderr, "problems writing key data: %s\n", strerror(errno));
+			fprintf(stderr, "rsa-keygen: problems writing key data: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 		res = write(privkey_fd, a_twa->buff, (g_pqbits / 8));
 		if (res != (g_pqbits / 8)) {
-			fprintf(stderr, "problems writing key data: %s\n", strerror(errno));
+			fprintf(stderr, "rsa-keygen: problems writing key data: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -547,12 +578,12 @@ void *gen_tf(void *arg)
 		l_kih.bit_width = htonl(g_pqbits);
 		res = write(privkey_fd, &l_kih, sizeof(l_kih));
 		if (res != sizeof(l_kih)) {
-			fprintf(stderr, "problems writing key data: %s\n", strerror(errno));
+			fprintf(stderr, "rsa-keygen: problems writing key data: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 		res = write(privkey_fd, a_twa->buff, (g_pqbits / 8));
 		if (res != (g_pqbits / 8)) {
-			fprintf(stderr, "problems writing key data: %s\n", strerror(errno));
+			fprintf(stderr, "rsa-keygen: problems writing key data: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -569,17 +600,125 @@ void *gen_tf(void *arg)
 		l_kih.bit_width = htonl(g_pqbits);
 		res = write(privkey_fd, &l_kih, sizeof(l_kih));
 		if (res != sizeof(l_kih)) {
-			fprintf(stderr, "problems writing key data: %s\n", strerror(errno));
+			fprintf(stderr, "rsa-keygen: problems writing key data: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 		res = write(privkey_fd, a_twa->buff, (g_pqbits / 8));
 		if (res != (g_pqbits / 8)) {
-			fprintf(stderr, "problems writing key data: %s\n", strerror(errno));
+			fprintf(stderr, "rsa-keygen: problems writing key data: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 	}
 
+	// if we're writing a sem, rewind these files and load them up into memory
+	// then convert to base64, then write them to the normal filenames.
+	if (g_sem == 1) {
+		res = lseek(privkey_fd, 0, SEEK_SET);
+		if (res < 0) {
+			fprintf(stderr, "rsa-keygen: can't rewind temporary private key file: %s\n", strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+		res = lseek(pubkey_fd, 0, SEEK_SET);
+		if (res < 0) {
+			fprintf(stderr, "rsa-keygen: can't rewind temporary public key file: %s\n", strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+		// find out how big our private key file is
+		struct stat l_privstat;
+		res = stat(l_priv_template, &l_privstat);
+		if (res < 0) {
+			fprintf(stderr, "rsa-keygen: unable to stat temporary private key file: %s\n", strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+		// and create a buffer big enough to load it in, and another to hold the base64, and another to hold the format
+		size_t l_buff_load_size = l_privstat.st_size + 255;
+		size_t l_buff_enc_size = (l_buff_load_size * 4 / 3) + 255;
+		char *buff_load = NULL;
+		buff_load = malloc(l_buff_load_size);
+		if (buff_load == NULL) {
+			fprintf(stderr, "rsa-keygen: unable to allocate buffer to load temporary key files.\n");
+			exit(EXIT_FAILURE);
+		}
+		char *buff_enc = NULL;
+		buff_enc = malloc(l_buff_enc_size);
+		if (buff_load == NULL) {
+			fprintf(stderr, "rsa-keygen: unable to allocate buffer to encrypt temporary key files.\n");
+			exit(EXIT_FAILURE);
+		}
+		char *buff_fmt = NULL;
+		buff_fmt = malloc(l_buff_enc_size + 512);
+		if (buff_fmt == NULL) {
+			fprintf(stderr, "rsa-keygen: unable to allocate buffer to hold formatted temporary key files.\n");
+			exit(EXIT_FAILURE);
+		}
+
+		size_t buff_load_len = 0;
+
+		// load up private key
+		do {
+			res = read(privkey_fd, buff_load + buff_load_len, 4096);
+			if (res < 0) {
+				fprintf(stderr, "rsa-keygen: problems reading temporary private key: %s\n", strerror(errno));
+				exit(EXIT_FAILURE);
+			}
+			buff_load_len += res;
+		} while (res != 0);
+		// convert it to base64
+		ccct_base64_encode(buff_load, buff_load_len, buff_enc);
+		ccct_base64_format(buff_enc, buff_fmt, "BEGIN PRIVATE KEY", "END PRIVATE KEY");
+		// write out key to user specified file
+		privkey_sem_fd = open(g_private_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+		if (privkey_sem_fd < 0) {
+			fprintf(stderr, "rsa-keygen: unable to open private key file for writing. error: %s\n", strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+		res = write(privkey_sem_fd, buff_fmt, strlen(buff_fmt));
+		if (res < 0) {
+			fprintf(stderr, "rsa-keygen: unable to write to private key file: %s\n", strerror(errno));
+			exit(EXIT_FAILURE);
+		} else if (res != strlen(buff_fmt)) {
+			fprintf(stderr, "rsa-keygen: unable to write entire contents of formatted buffer: wrote %d expected %d.\n", res, strlen(buff_fmt));
+			exit(EXIT_FAILURE);
+		}
+		close(privkey_sem_fd);
+
+		// load up public key
+		buff_load_len = 0;
+		do {
+			res = read(pubkey_fd, buff_load + buff_load_len, 4096);
+			if (res < 0) {
+				fprintf(stderr, "rsa-keygen: problems readin temporary private key: %s\n", strerror(errno));
+				exit(EXIT_FAILURE);
+			}
+			buff_load_len += res;
+		} while (res != 0);
+		// convert it to base64
+		ccct_base64_encode(buff_load, buff_load_len, buff_enc);
+		ccct_base64_format(buff_enc, buff_fmt, "BEGIN PUBLIC KEY", "END PUBLIC KEY");
+		pubkey_sem_fd = open(g_public_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+		if (pubkey_sem_fd < 0) {
+			fprintf(stderr, "rsa-keygen: unable to open public key file for writing. error: %s\n", strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+		res = write(pubkey_sem_fd, buff_fmt, strlen(buff_fmt));
+		if (res < 0) {
+			fprintf(stderr, "rsa-keygen: unable to write to public key file: %s\n", strerror(errno));
+			exit(EXIT_FAILURE);
+		} else if (res != strlen(buff_fmt)) {
+			fprintf(stderr, "rsa-keygen: unable to write entire contents of formatted buffer: wrote %d expected %d.\n", res, strlen(buff_fmt));
+			exit(EXIT_FAILURE);
+		}
+		close(privkey_sem_fd);
+
+		free(buff_load);
+		free(buff_enc);
+
+		unlink(l_priv_template);
+		unlink(l_public_template);
+	}
+
 	close(privkey_fd);
+	close(pubkey_fd);
 
 	// clean up
 	mpz_clear(l_p_import);
@@ -631,6 +770,11 @@ int main(int argc, char **argv)
 
 	while ((opt = getopt_long(argc, argv, "db:?t:o:", g_options, NULL)) != -1) {
 		switch (opt) {
+			case 1001: // sem
+				{
+				g_sem = 1;
+				}
+			break;
 			case 'd':
 				{
 					g_debug = 1;
@@ -664,6 +808,7 @@ int main(int argc, char **argv)
 					printf("  -t (--threads) <threads> number of threads to use\n");
 					printf("  -o (--out) <name> filename specifier to write out keys\n");
 					printf("     otherwise, key will be written to default-* filenames.\n");
+					printf("     (--sem) output key in security-enhanced message format\n");
 					printf("  RSA bit width must be between 768-%d in 256 bit increments\n", MAXBITS);
 					printf("  default: %d bits\n", g_bits);
 					exit(EXIT_SUCCESS);

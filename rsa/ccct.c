@@ -346,6 +346,9 @@ void ccct_base64_unformat(const char *a_textin, char *a_textout)
     if (a_textin[l_textin_ptr] == '-') {
         // header present, throw away to next linefeed
         while (a_textin[l_textin_ptr++] != '\n');
+    } else {
+        // throw away spaces, tabs, linefeeds, or any character that isn't a -
+        while (a_textin[l_textin_ptr++] != '-');
     }
     while (l_textin_ptr < strlen(a_textin)) {
         if (a_textin[l_textin_ptr] == '-')
