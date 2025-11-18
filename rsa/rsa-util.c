@@ -100,8 +100,8 @@ int g_qinv_loaded = 0;
 int g_nochinese = 0; // set to 1 to disable chinese remainder theory calculations
 int g_pem = 0; // set to 1 to make SEM files when encrypting, if file size is below limit
 
-uint8_t g_buff[MAXBYTEBUFF]; // general buffer
-uint8_t g_buff2[MAXBYTEBUFF]; // auziliary buffer
+uint8_t g_buff[(MAXBYTEBUFF * 4 / 3) + 4096]; // general buffer
+uint8_t g_buff2[(MAXBYTEBUFF * 4 / 3) + 4096]; // auxiliary buffer, designed to hold a base64 string version if needed
 
 const uint8_t KIHT_MODULUS = 1;
 const uint8_t KIHT_PUBEXP = 2;
@@ -1342,8 +1342,21 @@ void do_sign_verify(int a_mode)
             printf("do_sign_verify: encrypted hash");
             ccct_print_hex(g_buff2, g_block_size);
         }
+
+        size_t l_sig_write_size;
+        if (g_pem) {
+            printf("rsa: converting signature to privacy-enhanced mail format...\n");
+            memcpy(g_buff, g_buff2, g_block_size);
+            ccct_base64_encode(g_buff, g_block_size, g_buff2);
+            memcpy(g_buff, g_buff2, strlen(g_buff2));
+            ccct_base64_format(g_buff, g_buff2, "BEGIN SIGNATURE", "END SIGNATURE");
+            l_sig_write_size = strlen(g_buff2);
+        } else {
+            printf("rsa: creating signature as native binary format...\n");
+            l_sig_write_size = g_block_size;
+        }
         printf("rsa: writing signature file...\n");
-        res = write(g_signaturefile_fd, g_buff2, g_block_size);
+        res = write(g_signaturefile_fd, g_buff2, l_sig_write_size);
         if (res < 0) {
             fprintf(stderr, "rsa: problems writing to signature file: %s\n", strerror(errno));
             exit(EXIT_FAILURE);
@@ -1567,7 +1580,7 @@ int main(int argc, char **argv)
                 printf("       will be rounded to 4 decimal places (accuracy of 11.1 meters/36.4 feet)\n");
                 printf("     (--threads) <count> specify number of threads to use during decryption process\n");
                 printf("     (--nochinese) defeat chinese remainder theorem calculations during decryption\n");
-                printf("     (--pem) encrypt mode: save encrypted files in privacy-enhanced mail format\n");
+                printf("     (--pem) encrypt mode: save encrypted files and signatures in privacy-enhanced mail format\n");
                 printf("     (--debug) use debug mode\n");
                 printf("  -? (--help) this screen\n");
                 printf("operational modes (select only one)\n");
