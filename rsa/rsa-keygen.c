@@ -93,12 +93,12 @@ struct option g_options[] = {
 	{ "debug", no_argument, NULL, 'd' },
 	{ "threads", required_argument, NULL, 't' },
 	{ "out", required_argument, NULL, 'o' },
-	{ "sem", no_argument, NULL, 1001 },
+	{ "pem", no_argument, NULL, 1001 },
 	{ NULL, 0, NULL, 0 }
 };
 
 int g_debug = 0;
-int g_sem = 0;
+int g_pem = 0;
 // note: for the keygen, g_bits now refers to the n/block size, not the p/q size
 unsigned int g_bits = 4096; // default bit width
 unsigned int g_pqbits; // convenience value
@@ -108,8 +108,8 @@ unsigned int g_threads = 8; // default number of threads
 
 const char *g_private_suffix = "-private.bin";
 const char *g_public_suffix = "-public.bin";
-const char *g_private_sem_suffix = "-private.sem";
-const char *g_public_sem_suffix = "-public.sem";
+const char *g_private_pem_suffix = "-private.pem";
+const char *g_public_pem_suffix = "-public.pem";
 char g_private_filename[BUFFLEN];
 char g_public_filename[BUFFLEN];
 int g_filename_specified = 0;
@@ -364,12 +364,12 @@ void *gen_tf(void *arg)
 	// export
 	
 	int privkey_fd, pubkey_fd;
-	int privkey_sem_fd, pubkey_sem_fd;
+	int privkey_pem_fd, pubkey_pem_fd;
 
-	if (g_sem == 1) {
-		printf("rsa-keygen: output mode: security-enhanced message format\n");
-		strcat(g_private_filename, g_private_sem_suffix);
-		strcat(g_public_filename, g_public_sem_suffix);
+	if (g_pem == 1) {
+		printf("rsa-keygen: output mode: privacy-enhanced mail format\n");
+		strcat(g_private_filename, g_private_pem_suffix);
+		strcat(g_public_filename, g_public_pem_suffix);
 	} else {
 		printf("rsa-keygen: output mode: native binary format\n");
 		strcat(g_private_filename, g_private_suffix);
@@ -381,7 +381,7 @@ void *gen_tf(void *arg)
 	char l_priv_template[32];
 	char l_public_template[32];
 
-	if (g_sem == 0) {
+	if (g_pem == 0) {
 		privkey_fd = open(g_private_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 		if (privkey_fd < 0) {
 			fprintf(stderr, "rsa-keygen: unable to open private key file for writing. error: %s\n", strerror(errno));
@@ -610,9 +610,9 @@ void *gen_tf(void *arg)
 		}
 	}
 
-	// if we're writing a sem, rewind these files and load them up into memory
+	// if we're writing a pem, rewind these files and load them up into memory
 	// then convert to base64, then write them to the normal filenames.
-	if (g_sem == 1) {
+	if (g_pem == 1) {
 		res = lseek(privkey_fd, 0, SEEK_SET);
 		if (res < 0) {
 			fprintf(stderr, "rsa-keygen: can't rewind temporary private key file: %s\n", strerror(errno));
@@ -667,12 +667,12 @@ void *gen_tf(void *arg)
 		ccct_base64_encode(buff_load, buff_load_len, buff_enc);
 		ccct_base64_format(buff_enc, buff_fmt, "BEGIN PRIVATE KEY", "END PRIVATE KEY");
 		// write out key to user specified file
-		privkey_sem_fd = open(g_private_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-		if (privkey_sem_fd < 0) {
+		privkey_pem_fd = open(g_private_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+		if (privkey_pem_fd < 0) {
 			fprintf(stderr, "rsa-keygen: unable to open private key file for writing. error: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
-		res = write(privkey_sem_fd, buff_fmt, strlen(buff_fmt));
+		res = write(privkey_pem_fd, buff_fmt, strlen(buff_fmt));
 		if (res < 0) {
 			fprintf(stderr, "rsa-keygen: unable to write to private key file: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
@@ -680,7 +680,7 @@ void *gen_tf(void *arg)
 			fprintf(stderr, "rsa-keygen: unable to write entire contents of formatted buffer: wrote %d expected %d.\n", res, strlen(buff_fmt));
 			exit(EXIT_FAILURE);
 		}
-		close(privkey_sem_fd);
+		close(privkey_pem_fd);
 
 		// load up public key
 		buff_load_len = 0;
@@ -695,12 +695,12 @@ void *gen_tf(void *arg)
 		// convert it to base64
 		ccct_base64_encode(buff_load, buff_load_len, buff_enc);
 		ccct_base64_format(buff_enc, buff_fmt, "BEGIN PUBLIC KEY", "END PUBLIC KEY");
-		pubkey_sem_fd = open(g_public_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-		if (pubkey_sem_fd < 0) {
+		pubkey_pem_fd = open(g_public_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+		if (pubkey_pem_fd < 0) {
 			fprintf(stderr, "rsa-keygen: unable to open public key file for writing. error: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
-		res = write(pubkey_sem_fd, buff_fmt, strlen(buff_fmt));
+		res = write(pubkey_pem_fd, buff_fmt, strlen(buff_fmt));
 		if (res < 0) {
 			fprintf(stderr, "rsa-keygen: unable to write to public key file: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
@@ -708,7 +708,7 @@ void *gen_tf(void *arg)
 			fprintf(stderr, "rsa-keygen: unable to write entire contents of formatted buffer: wrote %d expected %d.\n", res, strlen(buff_fmt));
 			exit(EXIT_FAILURE);
 		}
-		close(pubkey_sem_fd);
+		close(pubkey_pem_fd);
 
 		free(buff_load);
 		free(buff_enc);
@@ -771,9 +771,9 @@ int main(int argc, char **argv)
 
 	while ((opt = getopt_long(argc, argv, "db:?t:o:", g_options, NULL)) != -1) {
 		switch (opt) {
-			case 1001: // sem
+			case 1001: // pem
 				{
-				g_sem = 1;
+				g_pem = 1;
 				}
 			break;
 			case 'd':
@@ -809,7 +809,7 @@ int main(int argc, char **argv)
 					printf("  -t (--threads) <threads> number of threads to use\n");
 					printf("  -o (--out) <name> filename specifier to write out keys\n");
 					printf("     otherwise, key will be written to default-* filenames.\n");
-					printf("     (--sem) output key in security-enhanced message format\n");
+					printf("     (--pem) output key in privacy-enhanced mail format\n");
 					printf("  RSA bit width must be between 768-%d in 256 bit increments\n", MAXBITS);
 					printf("  default: %d bits\n", g_bits);
 					exit(EXIT_SUCCESS);
