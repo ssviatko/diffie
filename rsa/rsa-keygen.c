@@ -712,6 +712,7 @@ void *gen_tf(void *arg)
 
 		free(buff_load);
 		free(buff_enc);
+		free(buff_fmt);
 
 		unlink(l_priv_template);
 		unlink(l_public_template);

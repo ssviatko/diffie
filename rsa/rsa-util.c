@@ -258,7 +258,7 @@ void load_key()
             fprintf(stderr, "rsa: unable to stat key file: %s\n", strerror(errno));
             exit(EXIT_FAILURE);
         }
-        size_t l_buff_load_size = l_stat.st_size + 255;
+        size_t l_buff_load_size = l_stat.st_size + 4096;
         size_t l_buff_dec_size = (l_buff_load_size * 3 / 4) + 255;
         char *buff_load = NULL;
         buff_load = malloc(l_buff_load_size);
@@ -315,6 +315,10 @@ void load_key()
             fprintf(stderr, "rsa: can't rewind temporary key file: %s\n", strerror(errno));
             exit(EXIT_FAILURE);
         }
+        // clean up
+        free(buff_load);
+        free(buff_dec);
+        free(buff_unfmt);
     } else {
         printf("rsa: key mode: native binary format\n");
         // .... and proceed as normal
