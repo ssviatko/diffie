@@ -986,7 +986,7 @@ void do_decrypt()
     uint32_t l_bytes_written_tab = 0;
     char l_template[32];
 
-    // auto-detect key format: SEM or BIN
+    // auto-detect key format: PEM or BIN
     char l_buff[16];
     res = read(g_infile_fd, l_buff, 16);
     if (res < 0) {
@@ -1375,16 +1375,64 @@ void do_sign_verify(int a_mode)
             fprintf(stderr, "rsa: problems opening signature file: %s\n", strerror(errno));
             exit(EXIT_FAILURE);
         }
-        res = read(g_signaturefile_fd, g_buff, g_block_size);
+        // auto-detect key format: PEM or BIN
+        char l_buff[16];
+        res = read(g_signaturefile_fd, l_buff, 16);
+        if (res < 0) {
+            fprintf(stderr, "rsa: can't read signature file: %s\n", strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+        // there must be 5 dash characters contained within the first 16 bytes of the file to be a PEM
+        // otherwise, we assume it to be a BIN (binary) file
+        int l_dashcnt = 0;
+        for (i = 0; i < 16; ++i) {
+            if (l_buff[i] == '-')
+                l_dashcnt++;
+        }
+        size_t l_sig_read_size;
+        // irrespective of type, we need to rewind it now
+        res = lseek(g_signaturefile_fd, 0, SEEK_SET);
+        if (res < 0) {
+            fprintf(stderr, "rsa: can't rewind signature file: %s\n", strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+        if (l_dashcnt == 5) {
+            struct stat l_stat;
+            res = stat(g_signaturefile, &l_stat);
+            if (res < 0) {
+                fprintf(stderr, "rsa: can't stat signature file: %s\n", strerror(errno));
+                exit(EXIT_FAILURE);
+            }
+            printf("rsa: reading privacy-enhanced mail format signature...\n");
+            l_sig_read_size = l_stat.st_size;
+        } else {
+            printf("rsa: reading native binary format signature...\n");
+            l_sig_read_size = g_block_size;
+        }
+        res = read(g_signaturefile_fd, g_buff, l_sig_read_size);
         if (res < 0) {
             fprintf(stderr, "rsa: problems reading signature file: %s\n", strerror(errno));
             exit(EXIT_FAILURE);
         }
-        if (res != g_block_size) {
+        if (res != l_sig_read_size) {
             fprintf(stderr, "rsa: block size mismatch in signature, wrong key file or damaged key.\n");
             exit(EXIT_FAILURE);
         }
         close(g_signaturefile_fd);
+
+        if (l_dashcnt == 5) {
+            // null terminate our formatted string
+            g_buff[l_sig_read_size] = 0;
+            ccct_base64_unformat(g_buff, g_buff2);
+            memcpy(g_buff, g_buff2, strlen(g_buff2) + 1); // copy the null terminator too
+            uint32_t l_decode_len;
+            ccct_base64_decode(g_buff, g_buff2, &l_decode_len);
+            if (l_decode_len != g_block_size) {
+                fprintf(stderr, "rsa: block size mismatch when decoding PEM format signature.\n");
+                exit(EXIT_FAILURE);
+            }
+            memcpy(g_buff, g_buff2, g_block_size);
+        }
 
         mpz_t l_block;
         mpz_init(l_block);
@@ -1580,7 +1628,7 @@ int main(int argc, char **argv)
                 printf("       will be rounded to 4 decimal places (accuracy of 11.1 meters/36.4 feet)\n");
                 printf("     (--threads) <count> specify number of threads to use during decryption process\n");
                 printf("     (--nochinese) defeat chinese remainder theorem calculations during decryption\n");
-                printf("     (--pem) encrypt mode: save encrypted files and signatures in privacy-enhanced mail format\n");
+                printf("     (--pem) save encrypted files and signatures in privacy-enhanced mail format\n");
                 printf("     (--debug) use debug mode\n");
                 printf("  -? (--help) this screen\n");
                 printf("operational modes (select only one)\n");
@@ -1671,13 +1719,13 @@ int main(int argc, char **argv)
             prepare_infile();
             get_infile_crc();
             if (g_pem == 1) {
-                printf("rsa: selecting privacy-enhanced mail format.\n");
+                printf("rsa: selecting privacy-enhanced mail format for encrypted message.\n");
                 if (g_infile_length > SEMLIMIT) {
                     fprintf(stderr, "rsa: input file length exceeds maximum length of %d for pem formatted messages.\n", SEMLIMIT);
                     exit(EXIT_FAILURE);
                 }
             } else {
-                printf("rsa: selecting native binary format.\n");
+                printf("rsa: selecting native binary format for encrypted message.\n");
             }
             if (g_outfile_specified == 0) {
                 fprintf(stderr, "rsa: this function requires that you specify an output file.\n");
@@ -1768,6 +1816,11 @@ int main(int argc, char **argv)
             if (g_signaturefile_specified == 0) {
                 fprintf(stderr, "rsa: this function requires that you specify a signature file.\n");
                 exit(EXIT_FAILURE);
+            }
+            if (g_pem == 1) {
+                printf("rsa: selecting privacy-enhanced mail format for digital signature.\n");
+            } else {
+                printf("rsa: selecting native binary format for digital signature.\n");
             }
             do_sign_verify(0);
         }
