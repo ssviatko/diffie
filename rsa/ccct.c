@@ -317,9 +317,9 @@ void ccct_base64_format(const char *a_textin, char *a_textout, char *a_header_te
     size_t i, l_textout_ptr;
 
     a_textout[0] = 0;
-    strcpy(a_textout, "----- ");
+    strcpy(a_textout, "-----");
     strcat(a_textout, a_header_text);
-    strcat(a_textout, " -----");
+    strcat(a_textout, "-----");
 
     for (i = 0; i < strlen(a_textin); ++i) {
         if (i % 64 == 0) {
@@ -328,9 +328,9 @@ void ccct_base64_format(const char *a_textin, char *a_textout, char *a_header_te
         strncat(a_textout, &a_textin[i], 1);
     }
 
-    strcat(a_textout, "\n----- ");
+    strcat(a_textout, "\n-----");
     strcat(a_textout, a_footer_text);
-    strcat(a_textout, " -----\n");
+    strcat(a_textout, "-----\n");
 }
 
 /**

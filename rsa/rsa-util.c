@@ -98,7 +98,7 @@ uint8_t g_qinv[MAXBYTEBUFF];
 int g_qinv_loaded = 0;
 
 int g_nochinese = 0; // set to 1 to disable chinese remainder theory calculations
-int g_sem = 0; // set to 1 to make SEM files when encrypting, if file size is below limit
+int g_pem = 0; // set to 1 to make SEM files when encrypting, if file size is below limit
 
 uint8_t g_buff[MAXBYTEBUFF]; // general buffer
 uint8_t g_buff2[MAXBYTEBUFF]; // auziliary buffer
@@ -188,7 +188,7 @@ struct option g_options[] = {
     { "longitude", required_argument, NULL, 1003 },
     { "threads", required_argument, NULL, 1004 },
     { "nochinese", no_argument, NULL, 1005 },
-    { "sem", no_argument, NULL, 1006 },
+    { "pem", no_argument, NULL, 1006 },
     { NULL, 0, NULL, 0 }
 };
 
@@ -252,7 +252,7 @@ void load_key()
         exit(EXIT_FAILURE);
     }
     if (l_dashcnt == 5) {
-        printf("rsa: key mode: security-enhanced message format\n");
+        printf("rsa: key mode: privacy-enhanced mail format\n");
         // read key entirely into memory, convert from base64 to binary, then write it out to /tmp file, replacing key_fd with file descriptor of tmp file
         // find out how big our key file is
         struct stat l_stat;
@@ -283,7 +283,7 @@ void load_key()
         }
 
         size_t buff_load_len = 0;
-        // load up sem key
+        // load up pem key
         do {
             res = read(key_fd, buff_load + buff_load_len, 4096);
             if (res < 0) {
@@ -791,8 +791,8 @@ void do_encrypt()
     mpz_clear(l_e);
     mpz_clear(l_n);
 
-    if (g_sem == 1) {
-        printf("rsa: converting to security-enhanced message format ...");
+    if (g_pem == 1) {
+        printf("rsa: converting to privacy-enhanced mail format ...");
         // rewind g_outfile_fd, load it up and base64 encode it
         res = lseek(g_outfile_fd, 0, SEEK_SET);
         if (res < 0) {
@@ -993,7 +993,7 @@ void do_decrypt()
         fprintf(stderr, "rsa: can't read input file: %s\n", strerror(errno));
         exit(EXIT_FAILURE);
     }
-    // there must be 5 dash characters contained within the first 16 bytes of the file to be a SEM
+    // there must be 5 dash characters contained within the first 16 bytes of the file to be a PEM
     // otherwise, we assume it to be a BIN (binary) file
     int l_dashcnt = 0;
     for (i = 0; i < 16; ++i) {
@@ -1009,7 +1009,7 @@ void do_decrypt()
 
     // following if/else stolen from load_key, more or less the same logic
     if (l_dashcnt == 5) {
-        printf("rsa: decryption mode: security-enhanced message format\n");
+        printf("rsa: decryption mode: privacy-enhanced mail format\n");
         // read file entirely into memory, convert from base64 to binary, then write it out to /tmp file, replacing g_infile_fd with file descriptor of tmp file
         // we already know how big g_infile is, we statted it when we prepared it
         size_t l_buff_load_size = g_infile_length + 4096;
@@ -1034,7 +1034,7 @@ void do_decrypt()
         }
 
         size_t buff_load_len = 0;
-        // load up sem message
+        // load up pem message
         do {
             res = read(g_infile_fd, buff_load + buff_load_len, 4096);
             if (res < 0) {
@@ -1471,9 +1471,9 @@ int main(int argc, char **argv)
                 g_nochinese = 1;
             }
             break;
-            case 1006: // sem
+            case 1006: // pem
             {
-                g_sem = 1;
+                g_pem = 1;
             }
             break;
             case 'i':
@@ -1567,7 +1567,7 @@ int main(int argc, char **argv)
                 printf("       will be rounded to 4 decimal places (accuracy of 11.1 meters/36.4 feet)\n");
                 printf("     (--threads) <count> specify number of threads to use during decryption process\n");
                 printf("     (--nochinese) defeat chinese remainder theorem calculations during decryption\n");
-                printf("     (--sem) encrypt mode: save encrypted files in security-enhanced message format\n");
+                printf("     (--pem) encrypt mode: save encrypted files in privacy-enhanced mail format\n");
                 printf("     (--debug) use debug mode\n");
                 printf("  -? (--help) this screen\n");
                 printf("operational modes (select only one)\n");
@@ -1657,10 +1657,10 @@ int main(int argc, char **argv)
             }
             prepare_infile();
             get_infile_crc();
-            if (g_sem == 1) {
-                printf("rsa: selecting security-enhanced message format.\n");
+            if (g_pem == 1) {
+                printf("rsa: selecting privacy-enhanced mail format.\n");
                 if (g_infile_length > SEMLIMIT) {
-                    fprintf(stderr, "rsa: input file length exceeds maximum length of %d for sem formatted messages.\n", SEMLIMIT);
+                    fprintf(stderr, "rsa: input file length exceeds maximum length of %d for pem formatted messages.\n", SEMLIMIT);
                     exit(EXIT_FAILURE);
                 }
             } else {
