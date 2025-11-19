@@ -103,7 +103,6 @@ int g_pem = 0;
 unsigned int g_bits = 4096; // default bit width
 unsigned int g_pqbits; // convenience value
 pthread_mutex_t g_urandom_mtx;
-int g_urandom_fd; // file descriptor for /dev/urandom
 unsigned int g_threads = 8; // default number of threads
 
 const char *g_private_suffix = "-private.bin";
@@ -191,13 +190,7 @@ void *gen_tf(void *arg)
 		else printf(".");
 
 		// prepare random n-bit odd number for p factor
-		pthread_mutex_lock(&g_urandom_mtx);
-		res = read(g_urandom_fd, a_twa->p, (g_pqbits / 8));
-		pthread_mutex_unlock(&g_urandom_mtx);
-		if (res != (g_pqbits / 8)) {
-			fprintf(stderr, "rsa-keygen: problems reading /dev/urandom: %s\n", strerror(errno));
-			exit(EXIT_FAILURE);
-		}
+		ccct_get_random(a_twa->p, (g_pqbits / 8));
 		a_twa->p[0] |= 0xc0; // make it between (2^n - 1) + (2^n - 2) and 2^(n-1)
 		a_twa->p[(g_pqbits / 8) - 1] |= 0x01; // make it odd
 
@@ -212,13 +205,7 @@ void *gen_tf(void *arg)
 		l_pp = mpz_probab_prime_p(l_p_import, 50);
 
 		// prepare random n-bit odd number for q factor
-		pthread_mutex_lock(&g_urandom_mtx);
-		res = read(g_urandom_fd, a_twa->q, (g_pqbits / 8));
-		pthread_mutex_unlock(&g_urandom_mtx);
-		if (res != (g_pqbits / 8)) {
-			fprintf(stderr, "rsa-keygen: problems reading /dev/urandom: %s\n", strerror(errno));
-			exit(EXIT_FAILURE);
-		}
+		ccct_get_random(a_twa->q, (g_pqbits / 8));
 //		a_twa->q[0] &= 0x7f; // set up q to hopefully be < p/2
 //		a_twa->q[0] |= 0x40; // but not too little, please.. enforce first byte between 0x40 and 0x7f
 		a_twa->q[0] |= 0xc0; // make it just just like p... instead of the old way commented out above
@@ -858,11 +845,7 @@ int main(int argc, char **argv)
 		printf("rsa-keygen: enabling %d threads.\n", g_threads);
 
 	// open urandom
-	g_urandom_fd = open("/dev/urandom", O_RDONLY);
-	if (g_urandom_fd < 0) {
-		fprintf(stderr, "rsa-keygen: problems opening /dev/urandom: %s\n", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
+	ccct_open_urandom();
 
 	// terminal stuff
 	setbuf(stdout, NULL); // disable buffering so we can print our progress
@@ -885,6 +868,7 @@ int main(int argc, char **argv)
 
 	pthread_mutex_destroy(&g_bell_mtx);
 	pthread_mutex_destroy(&g_urandom_mtx);
+	ccct_close_urandom();
 
 	return 0;
 }

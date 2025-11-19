@@ -43,10 +43,13 @@ extern "C" {
 
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
+#include <sys/fcntl.h>
+#include <pthread.h>
 
 /**
  * @union ccct_reversible_int64_t
@@ -83,6 +86,9 @@ void ccct_base64_encode         (const uint8_t *a_data, size_t a_len, char *a_te
 void ccct_base64_format         (const char *a_textin, char *a_textout, char *a_header_text, char *a_footer_text);
 int  ccct_base64_decode         (const char *a_textin, char *a_binout, uint32_t *a_binout_len);
 void ccct_base64_unformat       (const char *a_textin, char *a_textout);
+int  ccct_open_urandom          ();
+void ccct_get_random            (uint8_t *a_buffer, size_t a_len);
+int  ccct_close_urandom         ();
 
 #ifdef __cplusplus
 }

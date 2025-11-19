@@ -74,7 +74,7 @@
 
 #define BUFFLEN 1024
 #define PADDING 12 // amount of random padding per block
-#define PEMLIMIT 16384 // maximum size of plaintext file that can be encrypted into a PEM format file
+#define PEMLIMIT 32768 // maximum size of plaintext file that can be encrypted into a PEM format file
 
 #define MAXTHREADS 48
 
@@ -137,8 +137,6 @@ char g_signaturefile[BUFFLEN];
 int g_signaturefile_specified = 0;
 int g_signaturefile_fd;
 
-int g_urandom_fd;
-
 // block related
 uint32_t g_block_size;
 int g_infile_block_multiple = 0; // is infile a multiple of the specified block size?
@@ -166,10 +164,23 @@ typedef enum {
     MODE_DECRYPT,
     MODE_SIGN,
     MODE_VERIFY,
-    MODE_TELL
+    MODE_TELL,
+    MODE_BASE64ENCODE,
+    MODE_BASE64DECODE
 } operational_mode;
 
 operational_mode g_mode = MODE_NONE;;
+
+typedef enum {
+    FORMAT_NONE,
+    FORMAT_KEY_PRIVATE,
+    FORMAT_KEY_PUBLIC,
+    FORMAT_MESSAGE,
+    FORMAT_SIGNATURE
+} base64_format;
+
+base64_format g_format = FORMAT_NONE;
+char g_format_spec[BUFFLEN];
 
 struct option g_options[] = {
     { "help", no_argument, NULL, '?' },
@@ -189,6 +200,9 @@ struct option g_options[] = {
     { "threads", required_argument, NULL, 1004 },
     { "nochinese", no_argument, NULL, 1005 },
     { "pem", no_argument, NULL, 1006 },
+    { "base64encode", no_argument, NULL, 'b' },
+    { "base64decode", no_argument, NULL, 'c' },
+    { "format", required_argument, NULL, 'f' },
     { NULL, 0, NULL, 0 }
 };
 
@@ -580,16 +594,6 @@ void get_outfile_crc()
     if (g_debug > 0) printf("get_outfile_crc: CRC is %08X\n", g_outfile_crc);
 }
 
-void get_random(uint8_t *a_buffer, size_t a_len)
-{
-    int res;
-    res = read(g_urandom_fd, a_buffer, a_len);
-    if (res != a_len) {
-        fprintf(stderr, "rsa-util: problems reading /dev/urandom: %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-}
-
 void do_encrypt()
 {
     int lastblock = 0; // flag to indicate we have run out of data, this is the last block
@@ -598,12 +602,12 @@ void do_encrypt()
 
     // prepare first block
     l_block_ctr++;
-    get_random(g_buff, g_block_size);
+    ccct_get_random(g_buff, g_block_size);
     // PKCS#1 style padding of first two bytes
     g_buff[0] = 0;
     // prepare fileinfo header
     fileinfo_header l_fih;
-    get_random(&l_fih.flags, 1); // fill flags byte with random data
+    ccct_get_random(&l_fih.flags, 1); // fill flags byte with random data
     l_fih.flags &= 0x7f; // mask off high bit, not signing this content
     l_fih.size = htonl(g_infile_length);
     l_fih.size_xor = htonl(g_infile_length ^ ~0UL);
@@ -714,7 +718,7 @@ void do_encrypt()
     while (lastblock == 0) {
         // prepare block
         l_block_ctr++;
-        get_random(g_buff, g_block_size);
+        ccct_get_random(g_buff, g_block_size);
         // padding
         g_buff[0] = 0;
         // copy data into block
@@ -1293,7 +1297,7 @@ void do_sign_verify(int a_mode)
             exit(EXIT_FAILURE);
         }
         // create a block in g_buff
-        get_random(g_buff, g_block_size);
+        ccct_get_random(g_buff, g_block_size);
         g_buff[0] = 0;
         // copy our digest into this block, after the random padding
         memcpy(g_buff + 8, l_digest, 64);
@@ -1504,7 +1508,7 @@ int main(int argc, char **argv)
         g_threads = l_tcnt;
     }
 
-    while ((opt = getopt_long(argc, argv, "i:o:k:g:edsv?tw", g_options, NULL)) != -1) {
+    while ((opt = getopt_long(argc, argv, "i:o:k:g:edsv?twbcf:", g_options, NULL)) != -1) {
         switch (opt) {
             case 1001:
             {
@@ -1611,6 +1615,44 @@ int main(int argc, char **argv)
                 g_mode = MODE_TELL;
             }
             break;
+            case 'b':
+            {
+                if (g_mode != MODE_NONE) {
+                    fprintf(stderr, "rsa-util: please select only one operational mode.\n");
+                    exit(EXIT_FAILURE);
+                }
+                g_mode = MODE_BASE64ENCODE;
+            }
+            break;
+            case 'c':
+            {
+                if (g_mode != MODE_NONE) {
+                    fprintf(stderr, "rsa-util: please select only one operational mode.\n");
+                    exit(EXIT_FAILURE);
+                }
+                g_mode = MODE_BASE64DECODE;
+            }
+            break;
+            case 'f':
+            {
+                g_format_spec[0] = 0;
+                strcpy(g_format_spec, optarg);
+                if (strcmp(g_format_spec, "priv") == 0) {
+                    g_format = FORMAT_KEY_PRIVATE;
+                } else if (strcmp(g_format_spec, "pub") == 0) {
+                    g_format = FORMAT_KEY_PUBLIC;
+                } else if (strcmp(g_format_spec, "message") == 0) {
+                    g_format = FORMAT_MESSAGE;
+                } else if (strcmp(g_format_spec, "sig") == 0) {
+                    g_format = FORMAT_SIGNATURE;
+                } else if (strcmp(g_format_spec, "none") == 0) {
+                    g_format = FORMAT_NONE;
+                } else {
+                    fprintf(stderr, "rsa-util: unrecognized format specifier.\n");
+                    exit(EXIT_FAILURE);
+                }
+            }
+            break;
             case '?':
             {
                 printf("RSA file encryptor/digital signature utility\n");
@@ -1629,6 +1671,7 @@ int main(int argc, char **argv)
                 printf("     (--threads) <count> specify number of threads to use during decryption process\n");
                 printf("     (--nochinese) defeat chinese remainder theorem calculations during decryption\n");
                 printf("     (--pem) save encrypted files and signatures in privacy-enhanced mail format\n");
+                printf("  -f (--format) <priv, pub, message, sig, none> choose format when using -b or --base64encode\n");
                 printf("     (--debug) use debug mode\n");
                 printf("  -? (--help) this screen\n");
                 printf("operational modes (select only one)\n");
@@ -1647,6 +1690,10 @@ int main(int argc, char **argv)
                 printf("  -t (--tell) tell about key\n");
                 printf("       show details about key specified by -k or --key\n");
                 printf("       example: rsa-util -t -k keyfile.bin\n");
+                printf("  -b (--base64encode) convert infile to base64 and save to outfile\n");
+                printf("       example: rsa-util -b -i infile -o outfile\n");
+                printf("  -c (--base64decode) convert infile back to binary and save to outfile\n");
+                printf("       example: rsa-util -c -i infile -o outfile\n");
                 exit(EXIT_SUCCESS);
             }
             break;
@@ -1674,11 +1721,7 @@ int main(int argc, char **argv)
     }
 
     // prepare urandom
-    g_urandom_fd = open("/dev/urandom", O_RDONLY);
-    if (g_urandom_fd < 0) {
-        fprintf(stderr, "rsa-util: problems opening /dev/urandom: %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
+    ccct_open_urandom();
 
     // police thread count
     if (g_threads < 1) {
@@ -1887,6 +1930,119 @@ int main(int argc, char **argv)
             }
         }
         break;
+        case MODE_BASE64ENCODE:
+        {
+            printf("rsa-util: selected base64 encode mode.\n");
+            // set g_bits to something to satisfy prepare_infile: otherwise there will be errors
+            g_bits = 4096;
+            prepare_infile();
+            if (g_infile_length > PEMLIMIT) {
+                fprintf(stderr, "rsa-util: input file length exceeds maximum length of %d for base64 file conversion.\n", PEMLIMIT);
+                exit(EXIT_FAILURE);
+            }
+            if (g_outfile_specified == 0) {
+                fprintf(stderr, "rsa-util: this function requires that you specify an output file.\n");
+                exit(EXIT_FAILURE);
+            }
+            prepare_outfile();
+            // load g_infile into g_buff
+            int res;
+            res = read(g_infile_fd, g_buff, g_infile_length);
+            if (res < 0) {
+                fprintf(stderr, "rsa-util: unable to load input file for conversion: %s\n", strerror(errno));
+                exit(EXIT_FAILURE);
+            }
+            if (res < g_infile_length) {
+                fprintf(stderr, "rsa-util: unable to load input file for conversion. expected %d got %d\n", g_infile_length, res);
+                exit(EXIT_FAILURE);
+            }
+            ccct_base64_encode(g_buff, g_infile_length, g_buff2);
+            if (g_format != FORMAT_NONE) {
+                switch(g_format) {
+                    case FORMAT_KEY_PRIVATE:
+                    {
+                        printf("rsa-util: formatting as private key...\n");
+                        ccct_base64_format(g_buff2, g_buff, "BEGIN PRIVATE KEY", "END PRIVATE KEY");
+                    }
+                    break;
+                    case FORMAT_KEY_PUBLIC:
+                    {
+                        printf("rsa-util: formatting as public key...\n");
+                        ccct_base64_format(g_buff2, g_buff, "BEGIN PUBLIC KEY", "END PUBLIC KEY");
+                    }
+                    break;
+                    case FORMAT_SIGNATURE:
+                    {
+                        printf("rsa-util: formatting as signature...\n");
+                        ccct_base64_format(g_buff2, g_buff, "BEGIN SIGNATURE", "END SIGNATURE");
+                    }
+                    break;
+                    case FORMAT_MESSAGE:
+                    {
+                        printf("rsa-util: formatting as message...\n");
+                        ccct_base64_format(g_buff2, g_buff, "BEGIN MESSAGE", "END MESSAGE");
+                    }
+                    break;
+                    default:
+                    break;
+                }
+            } else {
+                // no format, copy g_buff2 to g_buff as is
+                memcpy(g_buff, g_buff2, strlen(g_buff2) + 1);
+            }
+            // write string in g_buff to outfile
+            res = write(g_outfile_fd, g_buff, strlen(g_buff));
+            if (res < 0) {
+                fprintf(stderr, "rsa-util: unable to write converted file to output file: %s\n", strerror(errno));
+                exit(EXIT_FAILURE);
+            }
+        }
+        break;
+        case MODE_BASE64DECODE:
+        {
+            printf("rsa-util: selected base64 decode mode.\n");
+            // set g_bits to something to satisfy prepare_infile: otherwise there will be errors
+            g_bits = 4096;
+            prepare_infile();
+            if (g_infile_length > (PEMLIMIT * 4 / 3)) {
+                fprintf(stderr, "rsa-util: input file length exceeds maximum length of %d for base64 file decode.\n", (PEMLIMIT * 4 / 3));
+                exit(EXIT_FAILURE);
+            }
+            if (g_outfile_specified == 0) {
+                fprintf(stderr, "rsa-util: this function requires that you specify an output file.\n");
+                exit(EXIT_FAILURE);
+            }
+            prepare_outfile();
+            // load g_infile into g_buff
+            int res;
+            res = read(g_infile_fd, g_buff, g_infile_length);
+            if (res < 0) {
+                fprintf(stderr, "rsa-util: unable to load input file for conversion: %s\n", strerror(errno));
+                exit(EXIT_FAILURE);
+            }
+            if (res < g_infile_length) {
+                fprintf(stderr, "rsa-util: unable to load input file for conversion. expected %d got %d\n", g_infile_length, res);
+                exit(EXIT_FAILURE);
+            }
+            int l_dashcnt = 0;
+            for (i = 0; i < 16; ++i) {
+                if (g_buff[i] == '-')
+                    l_dashcnt++;
+            }
+            if (l_dashcnt == 5) {
+                // formatted, so get rid of it
+                ccct_base64_unformat(g_buff, g_buff2);
+                memcpy(g_buff, g_buff2, strlen(g_buff2) + 1);
+            }
+            uint32_t decode_len = 0;
+            ccct_base64_decode(g_buff, g_buff2, &decode_len);
+            res = write(g_outfile_fd, g_buff2, decode_len);
+            if (res < 0) {
+                fprintf(stderr, "rsa-util: unable to write converted file to output file: %s\n", strerror(errno));
+                exit(EXIT_FAILURE);
+            }
+        }
+        break;
         default:
         {
             printf("I don't know what to do!\n");
@@ -1901,6 +2057,7 @@ int main(int argc, char **argv)
 
     close(g_infile_fd);
     close(g_outfile_fd);
+    ccct_close_urandom();
 
     return 0;
 }

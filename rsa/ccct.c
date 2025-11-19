@@ -41,6 +41,8 @@ static unsigned int g_col = 80; ///< Terminal columns: provide a default in case
 static int g_endianness = 0; ///< Endianness marker: 0=big, 1=little
 static const unsigned int g_bufflen = 1024; ///< Constant to define length of common string buffers in CCCT library
 static int g_debug = 0; ///< Debug flag: 0=off, 1=on
+static int g_urandom_fd; ///< UNIX file descriptor of /dev/urandom
+static pthread_mutex_t g_urandom_mtx; ///< mutex to protect urandom in multithreaded environments
 
 /**
  * @brief Sets debug flag
@@ -365,4 +367,47 @@ unformat_top:
         l_textin_ptr++;
     }
     strcat(a_textout, "\0");
+}
+
+/**
+ * @brief Open /dev/urandom
+ */
+
+int ccct_open_urandom()
+{
+    g_urandom_fd = open("/dev/urandom", O_RDONLY);
+    if (g_urandom_fd < 0) {
+        fprintf(stderr, "ccct: problems opening /dev/urandom: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    pthread_mutex_init(&g_urandom_mtx, NULL);
+}
+
+/**
+ * @brief Return a string of random bytes
+ *
+ * @param[in] a_buffer Buffer large enough to hold bytes
+ * @param[in] a_len Number of bytes to write
+ */
+
+void ccct_get_random(uint8_t *a_buffer, size_t a_len)
+{
+    int res;
+    pthread_mutex_lock(&g_urandom_mtx);
+    res = read(g_urandom_fd, a_buffer, a_len);
+    if (res != a_len) {
+        fprintf(stderr, "ccct: problems reading /dev/urandom: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    pthread_mutex_unlock(&g_urandom_mtx);
+}
+
+/**
+ * @brief Close /dev/urandom
+ */
+
+int ccct_close_urandom()
+{
+    close(g_urandom_fd);
+    pthread_mutex_destroy(&g_urandom_mtx);
 }
