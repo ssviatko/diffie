@@ -41,6 +41,7 @@ usage: rsa-util <options>
      (--threads) <count> specify number of threads to use during decryption process
      (--nochinese) defeat chinese remainder theorem calculations during decryption
      (--pem) save encrypted files and signatures in privacy-enhanced mail format
+  -f (--format) <priv, pub, message, sig, raw, none> choose format when using -b or --base64encode
      (--debug) use debug mode
   -? (--help) this screen
 operational modes (select only one)
@@ -59,6 +60,10 @@ operational modes (select only one)
   -t (--tell) tell about key
        show details about key specified by -k or --key
        example: rsa-util -t -k keyfile.bin
+  -b (--base64encode) convert infile to base64 and save to outfile
+       example: rsa-util -b -i infile -o outfile
+  -c (--base64decode) convert infile back to binary and save to outfile
+       example: rsa-util -c -i infile -o outfile
 
 Sample runs (encryption, decryption, signing, verifying):
 
@@ -114,6 +119,41 @@ rsa-util: verify OK
 rsa-util: GMT timestamp of signature: Wed Nov 19 18:52:21 2025
 rsa-util: geolocation: latitude 0.0000, longitude 0.0000
 rsa-util: completed operation in 0 seconds 34145 usecs.
+
+And now, playing with the base64 encode/decode feature:
+
+[ssviatko@catamaran rsa]$ ./rsa-util -b -i smallfile -o smallfile.b64 -w -f raw
+rsa-util: input file : smallfile
+rsa-util: output file: smallfile.b64
+rsa-util: selected base64 encode mode.
+rsa-util: overwriting existing output file smallfile.b64
+rsa-util: formatting as raw binary...
+rsa-util: completed operation in 0 seconds 264 usecs.
+[ssviatko@catamaran rsa]$ ./rsa-util -c -i smallfile.b64 -o smallfile.orig -w
+rsa-util: input file : smallfile.b64
+rsa-util: output file: smallfile.orig
+rsa-util: selected base64 decode mode.
+rsa-util: overwriting existing output file smallfile.orig
+rsa-util: completed operation in 0 seconds 240 usecs.
+[ssviatko@catamaran rsa]$ diff -s smallfile smallfile.orig
+Files smallfile and smallfile.orig are identical
+[ssviatko@catamaran rsa]$ cat smallfile.b64
+-----BEGIN RAW BINARY DATA-----
+c21hbGwgZmlsZSBhYm91dCB0d28gYmxvY2tzIGxvbmcuIFdlIG5lZWQgdG8gaGF2
+ZSBhIGZpbGUgdGhhdCBpcyBhYm91dCA1MDAgYnl0ZXMgbG9uZyBpbiBvcmRlciB0
+byBzcGFuIHR3byBibG9ja3MuClRoZSBxdWljayBicm93biBmb3gganVtcHMgb3Zl
+ciB0aGUgbGF6eSBkb2cuIFRoZSBxdWljayBicm93biBmb3gganVtcHMgb3ZlciB0
+aGUgbGF6eSBkb2cuCkkgaG9wZSB0aGF0IHRoaXMgaXMgZW5vdWdoIGRhdGEgdG8g
+c3BhbiBhYm91dCB0d28gYmxvY2tzIHNvIHdlIGNhbiBzZWUgd2hlcmUgdGhlIGVy
+cm9yIGlzIHdpdGggb3VyIG5ldyB0aHJlYWRlZCBtb2RlbC4KVGhlIHF1aWNrIGJy
+b3duIGZveCBqdW1wcyBvdmVyIHRoZSBsYXp5IGRvZy4gVGhlIHF1aWNrIGJyb3du
+IGZveCBqdW1wcyBvdmVyIHRoZSBsYXp5IGRvZy4KSSBob3BlIHRoYXQgdGhpcyBp
+cyBlbm91Z2ggZGF0YSB0byBzcGFuIGFib3V0IHR3byBibG9ja3Mgc28gd2UgY2Fu
+IHNlZSB3aGVyZSB0aGUgZXJyb3IgaXMgd2l0aCBvdXIgbmV3IHRocmVhZGVkIG1v
+ZGVsLgpzbWFsbCBmaWxlIGFib3V0IHR3byBibG9ja3MgbG9uZy4gV2UgbmVlZCB0
+byBoYXZlIGEgZmlsZSB0aGF0IGlzIGFib3V0IDUwMCBieXRlcyBsb25nIGluIG9y
+ZGVyIHRvIHNwYW4gdHdvIGJsb2Nrcy4KCg==
+-----END RAW BINARY DATA-----
 
 rsa-keygen Sample key generation:
 
