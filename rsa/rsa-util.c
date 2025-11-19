@@ -176,7 +176,8 @@ typedef enum {
     FORMAT_KEY_PRIVATE,
     FORMAT_KEY_PUBLIC,
     FORMAT_MESSAGE,
-    FORMAT_SIGNATURE
+    FORMAT_SIGNATURE,
+    FORMAT_RAWBIN
 } base64_format;
 
 base64_format g_format = FORMAT_NONE;
@@ -1645,6 +1646,8 @@ int main(int argc, char **argv)
                     g_format = FORMAT_MESSAGE;
                 } else if (strcmp(g_format_spec, "sig") == 0) {
                     g_format = FORMAT_SIGNATURE;
+                } else if (strcmp(g_format_spec, "raw") == 0) {
+                    g_format = FORMAT_RAWBIN;
                 } else if (strcmp(g_format_spec, "none") == 0) {
                     g_format = FORMAT_NONE;
                 } else {
@@ -1671,7 +1674,7 @@ int main(int argc, char **argv)
                 printf("     (--threads) <count> specify number of threads to use during decryption process\n");
                 printf("     (--nochinese) defeat chinese remainder theorem calculations during decryption\n");
                 printf("     (--pem) save encrypted files and signatures in privacy-enhanced mail format\n");
-                printf("  -f (--format) <priv, pub, message, sig, none> choose format when using -b or --base64encode\n");
+                printf("  -f (--format) <priv, pub, message, sig, raw, none> choose format when using -b or --base64encode\n");
                 printf("     (--debug) use debug mode\n");
                 printf("  -? (--help) this screen\n");
                 printf("operational modes (select only one)\n");
@@ -1981,6 +1984,12 @@ int main(int argc, char **argv)
                     {
                         printf("rsa-util: formatting as message...\n");
                         ccct_base64_format(g_buff2, g_buff, "BEGIN MESSAGE", "END MESSAGE");
+                    }
+                    break;
+                    case FORMAT_RAWBIN:
+                    {
+                        printf("rsa-util: formatting as raw binary...\n");
+                        ccct_base64_format(g_buff2, g_buff, "BEGIN RAW BINARY DATA", "END RAW BINARY DATA");
                     }
                     break;
                     default:
