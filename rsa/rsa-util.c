@@ -74,7 +74,7 @@
 
 #define BUFFLEN 1024
 #define PADDING 12 // amount of random padding per block
-#define SEMLIMIT 16384 // maximum size of plaintext file that can be encrypted into a SEM format file
+#define PEMLIMIT 16384 // maximum size of plaintext file that can be encrypted into a PEM format file
 
 #define MAXTHREADS 48
 
@@ -98,7 +98,7 @@ uint8_t g_qinv[MAXBYTEBUFF];
 int g_qinv_loaded = 0;
 
 int g_nochinese = 0; // set to 1 to disable chinese remainder theory calculations
-int g_pem = 0; // set to 1 to make SEM files when encrypting, if file size is below limit
+int g_pem = 0; // set to 1 to make PEM files when encrypting, if file size is below limit
 
 uint8_t g_buff[(MAXBYTEBUFF * 4 / 3) + 4096]; // general buffer
 uint8_t g_buff2[(MAXBYTEBUFF * 4 / 3) + 4096]; // auxiliary buffer, designed to hold a base64 string version if needed
@@ -231,14 +231,14 @@ void load_key()
         exit(EXIT_FAILURE);
     }
 
-    // auto-detect key format: SEM or BIN
+    // auto-detect key format: PEM or BIN
     char l_buff[16];
     res = read(key_fd, l_buff, 16);
     if (res < 0) {
         fprintf(stderr, "rsa: can't read key file: %s\n", strerror(errno));
         exit(EXIT_FAILURE);
     }
-    // there must be 5 dash characters contained within the first 16 bytes of the file to be a SEM
+    // there must be 5 dash characters contained within the first 16 bytes of the file to be a PEM
     // otherwise, we assume it to be a BIN (binary) file
     int l_dashcnt = 0;
     for (i = 0; i < 16; ++i) {
@@ -1720,8 +1720,8 @@ int main(int argc, char **argv)
             get_infile_crc();
             if (g_pem == 1) {
                 printf("rsa: selecting privacy-enhanced mail format for encrypted message.\n");
-                if (g_infile_length > SEMLIMIT) {
-                    fprintf(stderr, "rsa: input file length exceeds maximum length of %d for pem formatted messages.\n", SEMLIMIT);
+                if (g_infile_length > PEMLIMIT) {
+                    fprintf(stderr, "rsa: input file length exceeds maximum length of %d for pem formatted messages.\n", PEMLIMIT);
                     exit(EXIT_FAILURE);
                 }
             } else {
