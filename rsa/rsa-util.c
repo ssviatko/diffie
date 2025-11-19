@@ -1651,7 +1651,9 @@ int main(int argc, char **argv)
                 } else if (strcmp(g_format_spec, "none") == 0) {
                     g_format = FORMAT_NONE;
                 } else {
-                    fprintf(stderr, "rsa-util: unrecognized format specifier.\n");
+                    fprintf(stderr, "rsa-util: unrecognized base64 format specifier \"%s\".\n", g_format_spec);
+                    fprintf(stderr, "rsa-util: allowed formats are: priv, pub, message, sig, raw, or none.\n");
+                    fprintf(stderr, "rsa-util: use -? or --help for usage info.\n");
                     exit(EXIT_FAILURE);
                 }
             }
@@ -1742,7 +1744,7 @@ int main(int argc, char **argv)
         case MODE_NONE:
         {
             fprintf(stderr, "rsa-util: you must select one operational mode.\n");
-	    fprintf(stderr, "rsa-util: use -? or --help for usage info.\n");
+            fprintf(stderr, "rsa-util: use -? or --help for usage info.\n");
             exit(EXIT_FAILURE);
         }
         break;
