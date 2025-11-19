@@ -1,0 +1,7 @@
+Cryptography demonstration programs
+
+aesctr - AES file encryptor that uses the AES/CTR mode.
+
+diffie - Contains my private Diffie Hellman (Merkle) implementation with C/C++ API to implement the DHM function into user programs.
+
+rsa - Fully functioning RSA implementation, key generator and utility program that encrypts/decrypts files, and signs/verifies files with a SHA2-512 based digital signature.

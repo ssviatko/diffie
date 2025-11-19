@@ -4,7 +4,7 @@ Notes: This program does not use ASN.1 DER format to store the keys, so therefor
 
 Security professionals: input and commentary on this code is welcomed and encouraged. Iron sharpens iron!
 
-The proponderance of the security in the RSA algorithm is tied up in the quality of the keys. I have given a lot of attention an consideration to how my keys are generated (by rsa-keygen.c). The algorithm, in a nutshell, is as follows:
+The proponderance of the security in the RSA algorithm is tied up in the quality of the keys. I have given a lot of attention and consideration to how my keys are generated (by rsa-keygen.c). The algorithm, in a nutshell, is as follows:
 
 1) choose random strings of bytes at half the key bit width using cryptographically secure RNG to be P and Q values
 2) Set high bit of these strings to place them at the appropriate bit width
