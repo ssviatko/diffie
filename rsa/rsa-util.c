@@ -242,7 +242,7 @@ void load_key()
     char l_template[32];
 
     if (g_keyfile_specified == 0) {
-        fprintf(stderr, "rsa-util: this operation requires that you specify a key file.\n");
+        fprintf(stderr, "%srsa-util: this operation requires that you specify a key file.%s\n", g_color_error, g_color_default);
         exit(EXIT_FAILURE);
     }
 
@@ -250,7 +250,7 @@ void load_key()
     int key_fd;
     key_fd = open(g_keyfile, O_RDONLY);
     if (key_fd < 0) {
-        fprintf(stderr, "rsa-util: unable to open key file: %s\n", strerror(errno));
+        fprintf(stderr, "%srsa-util: unable to open key file: %s%s\n", g_color_error, strerror(errno), g_color_default);
         exit(EXIT_FAILURE);
     }
 
@@ -258,7 +258,7 @@ void load_key()
     char l_buff[16];
     res = read(key_fd, l_buff, 16);
     if (res < 0) {
-        fprintf(stderr, "rsa-util: can't read key file: %s\n", strerror(errno));
+        fprintf(stderr, "%srsa-util: can't read key file: %s%s\n", g_color_error, strerror(errno), g_color_default);
         exit(EXIT_FAILURE);
     }
     // there must be 5 dash characters contained within the first 16 bytes of the file to be a PEM
@@ -271,17 +271,17 @@ void load_key()
     // irrespective of type, we need to rewind it now
     res = lseek(key_fd, 0, SEEK_SET);
     if (res < 0) {
-        fprintf(stderr, "rsa-util: can't rewind key file: %s\n", strerror(errno));
+        fprintf(stderr, "%srsa-util: can't rewind key file: %s%s\n", g_color_error, strerror(errno), g_color_default);
         exit(EXIT_FAILURE);
     }
     if (l_dashcnt == 5) {
-        printf("rsa-util: key mode: privacy-enhanced mail format\n");
+        printf("%srsa-util:%s key mode: privacy-enhanced mail format\n", g_color_heading, g_color_default);
         // read key entirely into memory, convert from base64 to binary, then write it out to /tmp file, replacing key_fd with file descriptor of tmp file
         // find out how big our key file is
         struct stat l_stat;
         res = stat(g_keyfile, &l_stat);
         if (res < 0) {
-            fprintf(stderr, "rsa-util: unable to stat key file: %s\n", strerror(errno));
+            fprintf(stderr, "%srsa-util: unable to stat key file: %s%s\n", g_color_error, strerror(errno), g_color_default);
             exit(EXIT_FAILURE);
         }
         size_t l_buff_load_size = l_stat.st_size + 4096;
@@ -289,19 +289,19 @@ void load_key()
         char *buff_load = NULL;
         buff_load = malloc(l_buff_load_size);
         if (buff_load == NULL) {
-            fprintf(stderr, "rsa-util: unable to allocate buffer to load key file.\n");
+            fprintf(stderr, "%srsa-util: unable to allocate buffer to load key file.%s\n", g_color_error, g_color_default);
             exit(EXIT_FAILURE);
         }
         char *buff_dec = NULL;
         buff_dec = malloc(l_buff_dec_size);
         if (buff_dec == NULL) {
-            fprintf(stderr, "rsa-util: unable to allocate buffer to decrypt key file.\n");
+            fprintf(stderr, "%srsa-util: unable to allocate buffer to decrypt key file.%s\n", g_color_error, g_color_default);
             exit(EXIT_FAILURE);
         }
         char *buff_unfmt = NULL;
         buff_unfmt = malloc(l_buff_dec_size + 512);
         if (buff_unfmt == NULL) {
-            fprintf(stderr, "rsa-util: unable to allocate buffer to hold unformatted key file.\n");
+            fprintf(stderr, "%srsa-util: unable to allocate buffer to hold unformatted key file.%s\n", g_color_error, g_color_default);
             exit(EXIT_FAILURE);
         }
 
@@ -310,7 +310,7 @@ void load_key()
         do {
             res = read(key_fd, buff_load + buff_load_len, 4096);
             if (res < 0) {
-                fprintf(stderr, "rsa-util: problems reading key: %s\n", strerror(errno));
+                fprintf(stderr, "%srsa-util: problems reading key: %s%s\n", g_color_error, strerror(errno), g_color_default);
                 exit(EXIT_FAILURE);
             }
             buff_load_len += res;
@@ -323,22 +323,22 @@ void load_key()
         strcpy(l_template, "/tmp/rsa-keyXXXXXX");
         key_fd = mkstemp(l_template);
         if (key_fd < 0) {
-            fprintf(stderr, "rsa-util: unable to open temporary key file for writing. error: %s\n", strerror(errno));
+            fprintf(stderr, "%srsa-util: unable to open temporary key file for writing. error: %s%s\n", g_color_error, strerror(errno), g_color_default);
             exit(EXIT_FAILURE);
         }
         // write decoded binary format key to temp file
         res = write(key_fd, buff_dec, buff_dec_len);
         if (res < 0) {
-            fprintf(stderr, "rsa-util: unable to write to temporary key file: %s\n", strerror(errno));
+            fprintf(stderr, "%srsa-util: unable to write to temporary key file: %s%s\n", g_color_error, strerror(errno), g_color_default);
             exit(EXIT_FAILURE);
         } else if (res != buff_dec_len) {
-            fprintf(stderr, "rsa-util: unable to write entire contents of key buffer: wrote %d expected %d.\n", res, buff_dec_len);
+            fprintf(stderr, "%srsa-util: unable to write entire contents of key buffer: wrote %d expected %d.%s\n", g_color_error, res, buff_dec_len, g_color_default);
             exit(EXIT_FAILURE);
         }
         // rewind it so the rest of this function can read it, as if nothing happened
         res = lseek(key_fd, 0, SEEK_SET);
         if (res < 0) {
-            fprintf(stderr, "rsa-util: can't rewind temporary key file: %s\n", strerror(errno));
+            fprintf(stderr, "%srsa-util: can't rewind temporary key file: %s%s\n", g_color_error, strerror(errno), g_color_default);
             exit(EXIT_FAILURE);
         }
         // clean up
@@ -346,7 +346,7 @@ void load_key()
         free(buff_dec);
         free(buff_unfmt);
     } else {
-        printf("rsa-util: key mode: native binary format\n");
+        printf("%srsa-util:%s key mode: native binary format\n", g_color_heading, g_color_default);
         // .... and proceed as normal
     }
 
@@ -359,7 +359,7 @@ void load_key()
             continue;
         }
         if (res != sizeof(l_kih)) {
-            fprintf(stderr, "rsa-util: problems reading key file: unexpected end of file.\n");
+            fprintf(stderr, "%srsa-util: problems reading key file: unexpected end of file.%s\n", g_color_error, g_color_default);
             exit(EXIT_FAILURE);
         }
 
@@ -367,62 +367,62 @@ void load_key()
             // if we read the modulus, set the over bit width
             g_bits = ntohl(l_kih.bit_width);
             if (g_bits < 768) {
-                printf("rsa-util: a 768 bit or larger key is required to use this program.\n");
+                printf("%srsa-util:%s a %s768%s bit or larger key is required to use this program.\n", g_color_heading, g_color_default, g_color_bullet, g_color_default);
                 exit(EXIT_FAILURE);
             }
-            printf("rsa-util: selected %d bit key.\n", g_bits);
+            printf("%srsa-util:%s selected %s%d%s bit key.\n", g_color_heading, g_color_default, g_color_bullet, g_bits, g_color_default);
             res = read(key_fd, g_n, (g_bits / 8));
             if (res != (g_bits / 8)) {
-                fprintf(stderr, "rsa-util: problems reading key file: can't read modulus.\n");
+                fprintf(stderr, "%srsa-util: problems reading key file: can't read modulus.%s\n", g_color_error, g_color_default);
                 exit(EXIT_FAILURE);
             }
             g_n_loaded = 1;
         } else if (l_kih.type == KIHT_PUBEXP) {
             res = read(key_fd, g_e, sizeof(uint32_t));
             if (res != sizeof(uint32_t)) {
-                fprintf(stderr, "rsa-util: problems reading key file: can't read public exponent.\n");
+                fprintf(stderr, "%srsa-util: problems reading key file: can't read public exponent.%s\n", g_color_error, g_color_default);
                 exit(EXIT_FAILURE);
             }
             g_e_loaded = 1;
         } else if (l_kih.type == KIHT_PRIVEXP) {
             res = read(key_fd, g_d, (ntohl(l_kih.bit_width) / 8));
             if (res != (ntohl(l_kih.bit_width) / 8)) {
-                fprintf(stderr, "rsa-util: problems reading key file: can't read private exponent.\n");
+                fprintf(stderr, "%srsa-util: problems reading key file: can't read private exponent.%s\n", g_color_error, g_color_default);
                 exit(EXIT_FAILURE);
             }
             g_d_loaded = 1;
         } else if (l_kih.type == KIHT_P) {
             res = read(key_fd, g_p, (ntohl(l_kih.bit_width) / 8));
             if (res != (ntohl(l_kih.bit_width) / 8)) {
-                fprintf(stderr, "rsa-util: problems reading key file: can't read prime p.\n");
+                fprintf(stderr, "%srsa-util: problems reading key file: can't read prime p.%s\n", g_color_error, g_color_default);
                 exit(EXIT_FAILURE);
             }
             g_p_loaded = 1;
         } else if (l_kih.type == KIHT_Q) {
             res = read(key_fd, g_q, (ntohl(l_kih.bit_width) / 8));
             if (res != (ntohl(l_kih.bit_width) / 8)) {
-                fprintf(stderr, "rsa-util: problems reading key file: can't read prime q.\n");
+                fprintf(stderr, "%srsa-util: problems reading key file: can't read prime q.%s\n", g_color_error, g_color_default);
                 exit(EXIT_FAILURE);
             }
             g_q_loaded = 1;
         } else if (l_kih.type == KIHT_DP) {
             res = read(key_fd, g_dp, (ntohl(l_kih.bit_width) / 8));
             if (res != (ntohl(l_kih.bit_width) / 8)) {
-                fprintf(stderr, "rsa-util: problems reading key file: can't read prime q.\n");
+                fprintf(stderr, "%srsa-util: problems reading key file: can't read prime q.%s\n", g_color_error, g_color_default);
                 exit(EXIT_FAILURE);
             }
             g_dp_loaded = 1;
         } else if (l_kih.type == KIHT_DQ) {
             res = read(key_fd, g_dq, (ntohl(l_kih.bit_width) / 8));
             if (res != (ntohl(l_kih.bit_width) / 8)) {
-                fprintf(stderr, "rsa-util: problems reading key file: can't read prime q.\n");
+                fprintf(stderr, "%srsa-util: problems reading key file: can't read prime q.%s\n", g_color_error, g_color_default);
                 exit(EXIT_FAILURE);
             }
             g_dq_loaded = 1;
         } else if (l_kih.type == KIHT_QINV) {
             res = read(key_fd, g_qinv, (ntohl(l_kih.bit_width) / 8));
             if (res != (ntohl(l_kih.bit_width) / 8)) {
-                fprintf(stderr, "rsa-util: problems reading key file: can't read prime q.\n");
+                fprintf(stderr, "%srsa-util: problems reading key file: can't read prime q.%s\n", g_color_error, g_color_default);
                 exit(EXIT_FAILURE);
             }
             g_qinv_loaded = 1;
@@ -430,7 +430,7 @@ void load_key()
             // that's all we care about for now, just throw away everything else
             res = read(key_fd, g_buff, (ntohl(l_kih.bit_width) / 8));
             if (res != (ntohl(l_kih.bit_width) / 8)) {
-                fprintf(stderr, "rsa-util: problems reading key file: can't read unspecified field.\n");
+                fprintf(stderr, "%srsa-util: problems reading key file: can't read unspecified field.%s\n", g_color_error, g_color_default);
                 exit(EXIT_FAILURE);
             }
         }
@@ -1743,16 +1743,16 @@ int main(int argc, char **argv)
         printf("rsa-util: debug mode enabled.\n");
 
     if (g_infile_specified > 0) {
-        printf("rsa-util: input file : %s\n", g_infile);
+        printf("%srsa-util: input file : %s%s%s\n", g_color_heading, g_color_default, g_color_highlight, g_infile, g_color_default);
     }
     if (g_outfile_specified > 0) {
-        printf("rsa-util: output file: %s\n", g_outfile);
+        printf("%srsa-util: output file: %s%s%s\n", g_color_heading, g_color_default, g_color_highlight, g_outfile, g_color_default);
     }
     if (g_keyfile_specified > 0) {
-        printf("rsa-util: key file   : %s\n", g_keyfile);
+        printf("%srsa-util:%s key file   : %s%s%s\n", g_color_heading, g_color_default, g_color_highlight, g_keyfile, g_color_default);
     }
     if (g_signaturefile_specified > 0) {
-        printf("rsa-util: signature  : %s\n", g_signaturefile);
+        printf("%srsa-util: signature  : %s%s%s\n", g_color_heading, g_color_default, g_color_highlight, g_signaturefile, g_color_default);
     }
 
     // prepare urandom
@@ -1929,38 +1929,38 @@ int main(int argc, char **argv)
         break;
         case MODE_TELL:
         {
-            printf("rsa-util: selected tell mode.\n");
+            printf("%srsa-util:%s selected %stell%s mode.\n", g_color_heading, g_color_default, g_color_highlight, g_color_default);
             load_key();
             if (g_n_loaded > 0) {
-                printf("modulus n (%d bits):", g_bits);
+                printf("%smodulus n (%s%d%s bits):%s", g_color_heading, g_color_bullet, g_bits, g_color_heading, g_color_default);
                 ccct_print_hex(g_n, (g_bits / 8));
             }
             if (g_e_loaded > 0) {
-                printf("public exponent e:");
+                printf("%spublic exponent e:%s", g_color_heading, g_color_default);
                 ccct_print_hex(g_e, 4);
             }
             if (g_d_loaded > 0) {
-                printf("private exponent d:");
+                printf("%sprivate exponent d:%s", g_color_heading, g_color_default);
                 ccct_print_hex(g_d, (g_bits / 8));
             }
             if (g_p_loaded > 0) {
-                printf("prime p:");
+                printf("%sprime p:%s", g_color_heading, g_color_default);
                 ccct_print_hex(g_p, (g_bits / 8) / 2);
             }
             if (g_q_loaded > 0) {
-                printf("prime q:");
+                printf("%sprime q:%s", g_color_heading, g_color_default);
                 ccct_print_hex(g_q, (g_bits / 8) / 2);
             }
             if (g_dp_loaded > 0) {
-                printf("exponent dp:");
+                printf("%sexponent dp:%s", g_color_heading, g_color_default);
                 ccct_print_hex(g_dp, (g_bits / 8) / 2);
             }
             if (g_dq_loaded > 0) {
-                printf("exponent dq:");
+                printf("%sexponent dq:%s", g_color_heading, g_color_default);
                 ccct_print_hex(g_dq, (g_bits / 8) / 2);
             }
             if (g_qinv_loaded > 0) {
-                printf("coefficient qinv:");
+                printf("%scoefficient qinv:%s", g_color_heading, g_color_default);
                 ccct_print_hex(g_qinv, (g_bits / 8) / 2);
             }
         }
@@ -2092,9 +2092,12 @@ int main(int argc, char **argv)
     }
 
     gettimeofday(&g_end_time, NULL);
-    printf("rsa-util: completed operation in %ld seconds %ld usecs.\n",
+
+    printf("%srsa-util:%s completed operation in %s%ld%s seconds %s%ld%s usecs.\n", g_color_heading, g_color_default, g_color_highlight,
            g_end_time.tv_sec - g_start_time.tv_sec - ((g_end_time.tv_usec - g_start_time.tv_usec < 0) ? 1 : 0), // subtract 1 if there was a usec rollover
-           g_end_time.tv_usec - g_start_time.tv_usec + ((g_end_time.tv_usec - g_start_time.tv_usec < 0) ? 1000000 : 0)); // bump usecs by 1 million usec for rollover
+           g_color_default, g_color_highlight,
+           g_end_time.tv_usec - g_start_time.tv_usec + ((g_end_time.tv_usec - g_start_time.tv_usec < 0) ? 1000000 : 0),
+           g_color_default); // bump usecs by 1 million usec for rollover
 
     close(g_infile_fd);
     close(g_outfile_fd);
