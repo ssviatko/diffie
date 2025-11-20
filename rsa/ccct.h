@@ -51,6 +51,12 @@ extern "C" {
 #include <sys/fcntl.h>
 #include <pthread.h>
 
+#define CCCT_COLOR_HEADING   "\033[32m"          ///< Heading color
+#define CCCT_COLOR_ERROR     "\033[91m"          ///< For error messages
+#define CCCT_COLOR_HIGHLIGHT "\033[92m"          ///< Extra bright for highlights
+#define CCCT_COLOR_BULLET    "\033[93m"          ///< Outstanding messages
+#define CCCT_COLOR_DEFAULT   "\033[39m\033[49m"  ///< Return to default terminal color
+
 /**
  * @union ccct_reversible_int64_t
  * @brief Store an int64 that can be reversed.
