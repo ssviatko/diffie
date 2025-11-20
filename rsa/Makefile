@@ -15,5 +15,6 @@ all:
 clean:
 	rm -f rsa-keygen
 	rm -f rsa-util
+	rm -f b64t
 	rm -f *.o
 
