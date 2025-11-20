@@ -1253,7 +1253,7 @@ void do_sign_verify(int a_mode)
         if (res == 0)
             continue; // got our EOF
             if (res < 0) {
-                fprintf(stderr, "rsa-util: unable to compute sha2-512 hash of input file: %s\n", strerror(errno));
+                fprintf(stderr, "%srsa-util: unable to compute sha2-512 hash of input file: %s%s\n", g_color_error, strerror(errno), g_color_default);
                 exit(EXIT_FAILURE);
             }
             sha512_update(&l_ctx, (const uint8_t *)l_buff, res);
@@ -1262,7 +1262,7 @@ void do_sign_verify(int a_mode)
     // rewind g_infile_fd
     res = lseek(g_infile_fd, 0, SEEK_SET);
     if (res < 0) {
-        fprintf(stderr, "res: unable to rewind input file after computing sha2-512 hash: %s\n", strerror(errno));
+        fprintf(stderr, "%sres: unable to rewind input file after computing sha2-512 hash: %s%s\n", g_color_error, strerror(errno), g_color_default);
         exit(EXIT_FAILURE);
     }
     if (g_debug > 0) {
@@ -1285,16 +1285,16 @@ void do_sign_verify(int a_mode)
         res = stat(g_signaturefile, &l_signaturefile_stat);
         if (res == 0) {
             if (g_outfile_overwrite == 0) {
-                fprintf(stderr, "rsa-util: signature file already exists (use -w or --overwrite to write to it anyway)\n");
+                fprintf(stderr, "%srsa-util:%s signature file already exists%s (use %s-w%s or %s--overwrite%s to write to it anyway)\n", g_color_heading, g_color_error, g_color_default, g_color_highlight, g_color_default, g_color_highlight, g_color_default);
                 exit(EXIT_FAILURE);
             } else {
-                printf("rsa-util: overwriting existing signature file %s\n", g_outfile);
+                printf("%srsa-util:%s overwriting existing signature file %s%s%s\n", g_color_heading, g_color_default, g_color_highlight, g_outfile, g_color_default);
             }
         } else if ((res < 0) && (errno == ENOENT)) {
             // this is what we want
         } else {
             // some other error from stat!
-            fprintf(stderr, "rsa-util: unable to stat signature file to check its existence: %s\n", strerror(errno));
+            fprintf(stderr, "%srsa-util: unable to stat signature file to check its existence: %s%s\n", g_color_error, strerror(errno), g_color_default);
             exit(EXIT_FAILURE);
         }
 
@@ -1302,7 +1302,7 @@ void do_sign_verify(int a_mode)
         if (g_debug) printf("do_sign_verify: opening and truncating signature file\n");
         g_signaturefile_fd = open(g_signaturefile, O_RDWR | O_TRUNC | O_CREAT, (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH));
         if (g_signaturefile_fd < 0) {
-            fprintf(stderr, "rsa-util: error opening signature file for writing: %s\n", strerror(errno));
+            fprintf(stderr, "%srsa-util: error opening signature file for writing: %s%s\n", g_color_error, strerror(errno), g_color_default);
             exit(EXIT_FAILURE);
         }
         // create a block in g_buff
@@ -1310,8 +1310,8 @@ void do_sign_verify(int a_mode)
         g_buff[0] = 0;
         // copy our digest into this block, after the random padding
         memcpy(g_buff + 8, l_digest, 64);
-        printf("rsa-util: embedding GMT time stamp: %s", asctime(gmtime((time_t *)&l_time.ll)));
-        printf("rsa-util: embedding geolocation: latitude %.4f, longitude %.4f\n", l_lat.f, l_long.f);
+        printf("%srsa-util:%s embedding GMT time stamp: %s%s%s", g_color_heading, g_color_default, g_color_highlight, asctime(gmtime((time_t *)&l_time.ll)), g_color_default);
+        printf("%srsa-util:%s embedding geolocation: latitude %s%.4f%s, longitude %s%.4f%s\n", g_color_heading, g_color_default, g_color_highlight, l_lat.f, g_color_default, g_color_highlight,  l_long.f, g_color_default);
         ccct_reverse_int64(&l_time);
         ccct_reverse_float(&l_lat);
         ccct_reverse_float(&l_long);
@@ -1358,20 +1358,20 @@ void do_sign_verify(int a_mode)
 
         size_t l_sig_write_size;
         if (g_pem) {
-            printf("rsa-util: converting signature to privacy-enhanced mail format...\n");
+            printf("%srsa-util:%s converting signature to %sprivacy-enhanced mail%s format...\n", g_color_heading, g_color_default, g_color_highlight, g_color_default);
             memcpy(g_buff, g_buff2, g_block_size);
             ccct_base64_encode(g_buff, g_block_size, g_buff2);
             memcpy(g_buff, g_buff2, strlen(g_buff2));
             ccct_base64_format(g_buff, g_buff2, "BEGIN SIGNATURE", "END SIGNATURE");
             l_sig_write_size = strlen(g_buff2);
         } else {
-            printf("rsa-util: creating signature as native binary format...\n");
+            printf("%srsa-util:%s creating signature as %snative binary%s format...\n", g_color_heading, g_color_default, g_color_highlight, g_color_default);
             l_sig_write_size = g_block_size;
         }
-        printf("rsa-util: writing signature file...\n");
+        printf("%srsa-util:%s writing signature file...\n", g_color_heading, g_color_default);
         res = write(g_signaturefile_fd, g_buff2, l_sig_write_size);
         if (res < 0) {
-            fprintf(stderr, "rsa-util: problems writing to signature file: %s\n", strerror(errno));
+            fprintf(stderr, "%srsa-util: problems writing to signature file: %s%s\n", g_color_error, strerror(errno), g_color_default);
             exit(EXIT_FAILURE);
         }
         close(g_signaturefile_fd);
@@ -1385,14 +1385,14 @@ void do_sign_verify(int a_mode)
         // read in and decrypt signature file
         g_signaturefile_fd = open(g_signaturefile, O_RDONLY);
         if (g_signaturefile_fd < 0) {
-            fprintf(stderr, "rsa-util: problems opening signature file: %s\n", strerror(errno));
+            fprintf(stderr, "%srsa-util: problems opening signature file: %s%s\n", g_color_error, strerror(errno), g_color_default);
             exit(EXIT_FAILURE);
         }
         // auto-detect key format: PEM or BIN
         char l_buff[16];
         res = read(g_signaturefile_fd, l_buff, 16);
         if (res < 0) {
-            fprintf(stderr, "rsa-util: can't read signature file: %s\n", strerror(errno));
+            fprintf(stderr, "%srsa-util: can't read signature file: %s%s\n", g_color_error, strerror(errno), g_color_default);
             exit(EXIT_FAILURE);
         }
         // there must be 5 dash characters contained within the first 16 bytes of the file to be a PEM
@@ -1406,29 +1406,29 @@ void do_sign_verify(int a_mode)
         // irrespective of type, we need to rewind it now
         res = lseek(g_signaturefile_fd, 0, SEEK_SET);
         if (res < 0) {
-            fprintf(stderr, "rsa-util: can't rewind signature file: %s\n", strerror(errno));
+            fprintf(stderr, "%srsa-util: can't rewind signature file: %s%s\n", g_color_error, strerror(errno), g_color_default);
             exit(EXIT_FAILURE);
         }
         if (l_dashcnt == 5) {
             struct stat l_stat;
             res = stat(g_signaturefile, &l_stat);
             if (res < 0) {
-                fprintf(stderr, "rsa-util: can't stat signature file: %s\n", strerror(errno));
+                fprintf(stderr, "%srsa-util: can't stat signature file: %s%s\n", g_color_error, strerror(errno), g_color_default);
                 exit(EXIT_FAILURE);
             }
-            printf("rsa-util: reading privacy-enhanced mail format signature...\n");
+            printf("%srsa-util:%s reading %sprivacy-enhanced mail%s format signature...\n", g_color_heading, g_color_default, g_color_highlight, g_color_default);
             l_sig_read_size = l_stat.st_size;
         } else {
-            printf("rsa-util: reading native binary format signature...\n");
+            printf("%srsa-util:%s reading %snative binary%s format signature...\n", g_color_heading, g_color_default, g_color_highlight, g_color_default);
             l_sig_read_size = g_block_size;
         }
         res = read(g_signaturefile_fd, g_buff, l_sig_read_size);
         if (res < 0) {
-            fprintf(stderr, "rsa-util: problems reading signature file: %s\n", strerror(errno));
+            fprintf(stderr, "%srsa-util: problems reading signature file: %s%s\n", g_color_error, strerror(errno), g_color_default);
             exit(EXIT_FAILURE);
         }
         if (res != l_sig_read_size) {
-            fprintf(stderr, "rsa-util: block size mismatch in signature, wrong key file or damaged key.\n");
+            fprintf(stderr, "%srsa-util: block size mismatch in signature, wrong key file or damaged key.%s\n", g_color_error, g_color_default);
             exit(EXIT_FAILURE);
         }
         close(g_signaturefile_fd);
@@ -1441,7 +1441,7 @@ void do_sign_verify(int a_mode)
             uint32_t l_decode_len;
             ccct_base64_decode(g_buff, g_buff2, &l_decode_len);
             if (l_decode_len != g_block_size) {
-                fprintf(stderr, "rsa-util: block size mismatch when decoding PEM format signature.\n");
+                fprintf(stderr, "%srsa-util: block size mismatch when decoding PEM format signature.%s\n", g_color_error, g_color_default);
                 exit(EXIT_FAILURE);
             }
             memcpy(g_buff, g_buff2, g_block_size);
@@ -1485,17 +1485,17 @@ void do_sign_verify(int a_mode)
             ccct_print_hex(l_digest, 64);
         }
         if (memcmp(l_digest_dec, l_digest, 64) == 0) {
-            printf("rsa-util: verify OK\n");
+            printf("%srsa-util:%s verify %sOK%s\n", g_color_heading, g_color_default, g_color_bullet, g_color_default);
             memcpy(&l_time.ll, g_buff2 + 72, 8);
             ccct_reverse_int64(&l_time);
-            printf("rsa-util: GMT timestamp of signature: %s", asctime(gmtime((time_t *)&l_time.ll)));
+            printf("%srsa-util:%s GMT timestamp of signature: %s%s%s", g_color_heading, g_color_default, g_color_highlight, asctime(gmtime((time_t *)&l_time.ll)), g_color_default);
             memcpy(&l_lat.f, g_buff2 + 80, 4);
             memcpy(&l_long.f, g_buff2 + 84, 4);
             ccct_reverse_float(&l_lat);
             ccct_reverse_float(&l_long);
-            printf("rsa-util: geolocation: latitude %.4f, longitude %.4f\n", l_lat.f, l_long.f);
+            printf("%srsa-util:%s geolocation: latitude %s%.4f%s, longitude %s%.4f%s\n", g_color_heading, g_color_default, g_color_highlight, l_lat.f, g_color_default, g_color_highlight, l_long.f, g_color_default);
         } else {
-            printf("rsa-util: verify FAILED\n");
+            printf("%srsa-util:%s verify %sFAILED%s\n", g_color_heading, g_color_default, g_color_error, g_color_default);
         }
 
         mpz_clear(l_block);
@@ -1603,7 +1603,7 @@ int main(int argc, char **argv)
             case 'e':
             {
                 if (g_mode != MODE_NONE) {
-                    fprintf(stderr, "rsa-util: please select only one operational mode.\n");
+                    fprintf(stderr, "%srsa-util: please select only one operational mode.%s\n", g_color_error, g_color_default);
                     exit(EXIT_FAILURE);
                 }
                 g_mode = MODE_ENCRYPT;
@@ -1612,7 +1612,7 @@ int main(int argc, char **argv)
             case 'd':
             {
                 if (g_mode != MODE_NONE) {
-                    fprintf(stderr, "rsa-util: please select only one operational mode.\n");
+                    fprintf(stderr, "%srsa-util: please select only one operational mode.%s\n", g_color_error, g_color_default);
                     exit(EXIT_FAILURE);
                 }
                 g_mode = MODE_DECRYPT;
@@ -1621,7 +1621,7 @@ int main(int argc, char **argv)
             case 's':
             {
                 if (g_mode != MODE_NONE) {
-                    fprintf(stderr, "rsa-util: please select only one operational mode.\n");
+                    fprintf(stderr, "%srsa-util: please select only one operational mode.%s\n", g_color_error, g_color_default);
                     exit(EXIT_FAILURE);
                 }
                 g_mode = MODE_SIGN;
@@ -1630,7 +1630,7 @@ int main(int argc, char **argv)
             case 'v':
             {
                 if (g_mode != MODE_NONE) {
-                    fprintf(stderr, "rsa-util: please select only one operational mode.\n");
+                    fprintf(stderr, "%srsa-util: please select only one operational mode.%s\n", g_color_error, g_color_default);
                     exit(EXIT_FAILURE);
                 }
                 g_mode = MODE_VERIFY;
@@ -1639,7 +1639,7 @@ int main(int argc, char **argv)
             case 't':
             {
                 if (g_mode != MODE_NONE) {
-                    fprintf(stderr, "rsa-util: please select only one operational mode.\n");
+                    fprintf(stderr, "%srsa-util: please select only one operational mode.%s\n", g_color_error, g_color_default);
                     exit(EXIT_FAILURE);
                 }
                 g_mode = MODE_TELL;
@@ -1648,7 +1648,7 @@ int main(int argc, char **argv)
             case 'b':
             {
                 if (g_mode != MODE_NONE) {
-                    fprintf(stderr, "rsa-util: please select only one operational mode.\n");
+                    fprintf(stderr, "%srsa-util: please select only one operational mode.%s\n", g_color_error, g_color_default);
                     exit(EXIT_FAILURE);
                 }
                 g_mode = MODE_BASE64ENCODE;
@@ -1657,7 +1657,7 @@ int main(int argc, char **argv)
             case 'c':
             {
                 if (g_mode != MODE_NONE) {
-                    fprintf(stderr, "rsa-util: please select only one operational mode.\n");
+                    fprintf(stderr, "%srsa-util: please select only one operational mode.%s\n", g_color_error, g_color_default);
                     exit(EXIT_FAILURE);
                 }
                 g_mode = MODE_BASE64DECODE;
@@ -1680,9 +1680,9 @@ int main(int argc, char **argv)
                 } else if (strcmp(g_format_spec, "none") == 0) {
                     g_format = FORMAT_NONE;
                 } else {
-                    fprintf(stderr, "rsa-util: unrecognized base64 format specifier \"%s\".\n", g_format_spec);
-                    fprintf(stderr, "rsa-util: allowed formats are: priv, pub, message, sig, raw, or none.\n");
-                    fprintf(stderr, "rsa-util: use -? or --help for usage info.\n");
+                    fprintf(stderr, "%srsa-util: unrecognized base64 format specifier \"%s%s%s\".%s\n", g_color_error, g_color_highlight, g_format_spec, g_color_error, g_color_default);
+                    fprintf(stderr, "%srsa-util: allowed formats are: priv, pub, message, sig, raw, or none.%s\n", g_color_error, g_color_default);
+                    fprintf(stderr, "%srsa-util: use -? or --help for usage info.%s\n", g_color_error, g_color_default);
                     exit(EXIT_FAILURE);
                 }
             }
@@ -1876,52 +1876,52 @@ int main(int argc, char **argv)
         break;
         case MODE_SIGN:
         {
-            printf("rsa-util: selected sign mode.\n");
+            printf("%srsa-util:%s selected %ssign%s mode.\n", g_color_heading, g_color_default, g_color_highlight, g_color_default);
             load_key();
             if (g_n_loaded == 0) {
-                fprintf(stderr, "rsa-util: this function requires the key file to contain a modulus.\n");
+                fprintf(stderr, "%srsa-util: this function requires the key file to contain a modulus.%s\n", g_color_error, g_color_default);
                 exit(EXIT_FAILURE);
             }
             if (g_d_loaded == 0) {
-                fprintf(stderr, "rsa-util: this function requires the key file to contain a private exponent.\n");
+                fprintf(stderr, "%srsa-util: this function requires the key file to contain a private exponent.%s\n", g_color_error, g_color_default);
                 exit(EXIT_FAILURE);
             }
             if (g_infile_specified == 0) {
-                fprintf(stderr, "rsa-util: this function requires that you specify an input file.\n");
+                fprintf(stderr, "%srsa-util: this function requires that you specify an input file.%s\n", g_color_error, g_color_default);
                 exit(EXIT_FAILURE);
             }
             prepare_infile();
             if (g_signaturefile_specified == 0) {
-                fprintf(stderr, "rsa-util: this function requires that you specify a signature file.\n");
+                fprintf(stderr, "%srsa-util: this function requires that you specify a signature file.%s\n", g_color_error, g_color_default);
                 exit(EXIT_FAILURE);
             }
             if (g_pem == 1) {
-                printf("rsa-util: selecting privacy-enhanced mail format for digital signature.\n");
+                printf("%srsa-util:%s selecting %sprivacy-enhanced mail%s format for digital signature.\n", g_color_heading, g_color_default, g_color_highlight, g_color_default);
             } else {
-                printf("rsa-util: selecting native binary format for digital signature.\n");
+                printf("%srsa-util:%s selecting %snative binary%s format for digital signature.\n", g_color_heading, g_color_default, g_color_highlight, g_color_default);
             }
             do_sign_verify(0);
         }
         break;
         case MODE_VERIFY:
         {
-            printf("rsa-util: selected verify mode.\n");
+            printf("%srsa-util:%s selected %sverify%s mode.\n", g_color_heading, g_color_default, g_color_highlight, g_color_default);
             load_key();
             if (g_n_loaded == 0) {
-                fprintf(stderr, "rsa-util: this function requires the key file to contain a modulus.\n");
+                fprintf(stderr, "%srsa-util: this function requires the key file to contain a modulus.%s\n", g_color_error, g_color_default);
                 exit(EXIT_FAILURE);
             }
             if (g_e_loaded == 0) {
-                fprintf(stderr, "rsa-util: this function requires the key file to contain a public exponent.\n");
+                fprintf(stderr, "%srsa-util: this function requires the key file to contain a public exponent.%s\n", g_color_error, g_color_default);
                 exit(EXIT_FAILURE);
             }
             if (g_infile_specified == 0) {
-                fprintf(stderr, "rsa-util: this function requires that you specify an input file.\n");
+                fprintf(stderr, "%srsa-util: this function requires that you specify an input file.%s\n", g_color_error, g_color_default);
                 exit(EXIT_FAILURE);
             }
             prepare_infile();
             if (g_signaturefile_specified == 0) {
-                fprintf(stderr, "rsa-util: this function requires that you specify a signature file.\n");
+                fprintf(stderr, "%srsa-util: this function requires that you specify a signature file.%s\n", g_color_error, g_color_default);
                 exit(EXIT_FAILURE);
             }
             do_sign_verify(1);
@@ -2086,7 +2086,7 @@ int main(int argc, char **argv)
         break;
         default:
         {
-            printf("I don't know what to do!\n");
+            printf("%sI don't know what to do!%s\n", g_color_bullet, g_color_default);
         }
         break;
     }
