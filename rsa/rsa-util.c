@@ -1967,16 +1967,16 @@ int main(int argc, char **argv)
         break;
         case MODE_BASE64ENCODE:
         {
-            printf("rsa-util: selected base64 encode mode.\n");
+            printf("%srsa-util:%s selected %sbase64 encode%s mode.\n", g_color_heading, g_color_default, g_color_highlight, g_color_default);
             // set g_bits to something to satisfy prepare_infile: otherwise there will be errors
             g_bits = 4096;
             prepare_infile();
             if (g_infile_length > PEMLIMIT) {
-                fprintf(stderr, "rsa-util: input file length exceeds maximum length of %d for base64 file conversion.\n", PEMLIMIT);
+                fprintf(stderr, "%srsa-util:%s input file length exceeds maximum length of %s%d%s for base64 file conversion.\n", g_color_heading, g_color_default, g_color_highlight, PEMLIMIT, g_color_default);
                 exit(EXIT_FAILURE);
             }
             if (g_outfile_specified == 0) {
-                fprintf(stderr, "rsa-util: this function requires that you specify an output file.\n");
+                fprintf(stderr, "%srsa-util: this function requires that you specify an output file.%s\n", g_color_error, g_color_default);
                 exit(EXIT_FAILURE);
             }
             prepare_outfile();
@@ -1984,11 +1984,11 @@ int main(int argc, char **argv)
             int res;
             res = read(g_infile_fd, g_buff, g_infile_length);
             if (res < 0) {
-                fprintf(stderr, "rsa-util: unable to load input file for conversion: %s\n", strerror(errno));
+                fprintf(stderr, "%srsa-util: unable to load input file for conversion: %s%s\n", g_color_error, strerror(errno), g_color_default);
                 exit(EXIT_FAILURE);
             }
             if (res < g_infile_length) {
-                fprintf(stderr, "rsa-util: unable to load input file for conversion. expected %d got %d\n", g_infile_length, res);
+                fprintf(stderr, "%srsa-util: unable to load input file for conversion. expected %d got %d%s\n", g_color_error, g_infile_length, res, g_color_default);
                 exit(EXIT_FAILURE);
             }
             ccct_base64_encode(g_buff, g_infile_length, g_buff2);
@@ -1996,31 +1996,31 @@ int main(int argc, char **argv)
                 switch(g_format) {
                     case FORMAT_KEY_PRIVATE:
                     {
-                        printf("rsa-util: formatting as private key...\n");
+                        printf("%srsa-util:%s formatting as private key...\n", g_color_heading, g_color_default);
                         ccct_base64_format(g_buff2, g_buff, "BEGIN PRIVATE KEY", "END PRIVATE KEY");
                     }
                     break;
                     case FORMAT_KEY_PUBLIC:
                     {
-                        printf("rsa-util: formatting as public key...\n");
+                        printf("%srsa-util:%s formatting as public key...\n", g_color_heading, g_color_default);
                         ccct_base64_format(g_buff2, g_buff, "BEGIN PUBLIC KEY", "END PUBLIC KEY");
                     }
                     break;
                     case FORMAT_SIGNATURE:
                     {
-                        printf("rsa-util: formatting as signature...\n");
+                        printf("%srsa-util:%s formatting as signature...\n", g_color_heading, g_color_default);
                         ccct_base64_format(g_buff2, g_buff, "BEGIN SIGNATURE", "END SIGNATURE");
                     }
                     break;
                     case FORMAT_MESSAGE:
                     {
-                        printf("rsa-util: formatting as message...\n");
+                        printf("%srsa-util:%s formatting as message...\n", g_color_heading, g_color_default);
                         ccct_base64_format(g_buff2, g_buff, "BEGIN MESSAGE", "END MESSAGE");
                     }
                     break;
                     case FORMAT_RAWBIN:
                     {
-                        printf("rsa-util: formatting as raw binary...\n");
+                        printf("%srsa-util:%s formatting as raw binary...\n", g_color_heading, g_color_default);
                         ccct_base64_format(g_buff2, g_buff, "BEGIN RAW BINARY DATA", "END RAW BINARY DATA");
                     }
                     break;
@@ -2034,23 +2034,23 @@ int main(int argc, char **argv)
             // write string in g_buff to outfile
             res = write(g_outfile_fd, g_buff, strlen(g_buff));
             if (res < 0) {
-                fprintf(stderr, "rsa-util: unable to write converted file to output file: %s\n", strerror(errno));
+                fprintf(stderr, "%srsa-util: unable to write converted file to output file: %s%s\n", g_color_error, strerror(errno), g_color_default);
                 exit(EXIT_FAILURE);
             }
         }
         break;
         case MODE_BASE64DECODE:
         {
-            printf("rsa-util: selected base64 decode mode.\n");
+            printf("%srsa-util:%s selected %sbase64 decode%s mode.\n", g_color_heading, g_color_default, g_color_highlight, g_color_default);
             // set g_bits to something to satisfy prepare_infile: otherwise there will be errors
             g_bits = 4096;
             prepare_infile();
             if (g_infile_length > (PEMLIMIT * 4 / 3)) {
-                fprintf(stderr, "rsa-util: input file length exceeds maximum length of %d for base64 file decode.\n", (PEMLIMIT * 4 / 3));
+                fprintf(stderr, "%srsa-util:%s input file length exceeds maximum length of %s%d%s for base64 file decode.\n", g_color_heading, g_color_default, g_color_highlight, (PEMLIMIT * 4 / 3), g_color_default);
                 exit(EXIT_FAILURE);
             }
             if (g_outfile_specified == 0) {
-                fprintf(stderr, "rsa-util: this function requires that you specify an output file.\n");
+                fprintf(stderr, "%srsa-util: this function requires that you specify an output file.%s\n", g_color_error, g_color_default);
                 exit(EXIT_FAILURE);
             }
             prepare_outfile();
@@ -2058,11 +2058,11 @@ int main(int argc, char **argv)
             int res;
             res = read(g_infile_fd, g_buff, g_infile_length);
             if (res < 0) {
-                fprintf(stderr, "rsa-util: unable to load input file for conversion: %s\n", strerror(errno));
+                fprintf(stderr, "%srsa-util: unable to load input file for conversion: %s%s\n", g_color_error, strerror(errno), g_color_default);
                 exit(EXIT_FAILURE);
             }
             if (res < g_infile_length) {
-                fprintf(stderr, "rsa-util: unable to load input file for conversion. expected %d got %d\n", g_infile_length, res);
+                fprintf(stderr, "%srsa-util: unable to load input file for conversion. expected %d got %d%s\n", g_color_error, g_infile_length, res, g_color_default);
                 exit(EXIT_FAILURE);
             }
             int l_dashcnt = 0;
@@ -2079,7 +2079,7 @@ int main(int argc, char **argv)
             ccct_base64_decode(g_buff, g_buff2, &decode_len);
             res = write(g_outfile_fd, g_buff2, decode_len);
             if (res < 0) {
-                fprintf(stderr, "rsa-util: unable to write converted file to output file: %s\n", strerror(errno));
+                fprintf(stderr, "%srsa-util: unable to write converted file to output file: %s%s\n", g_color_error, strerror(errno), g_color_default);
                 exit(EXIT_FAILURE);
             }
         }
