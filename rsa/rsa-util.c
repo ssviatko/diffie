@@ -80,6 +80,13 @@
 
 struct timeval g_start_time, g_end_time;
 
+char g_color_default[16];
+char g_color_highlight[16];
+char g_color_error[16];
+char g_color_heading[16];
+char g_color_bullet[16];
+int g_nocolor = 0;
+
 uint8_t g_n[MAXBYTEBUFF];
 int g_n_loaded = 0;
 uint8_t g_e[sizeof(uint32_t)];
@@ -204,6 +211,7 @@ struct option g_options[] = {
     { "base64encode", no_argument, NULL, 'b' },
     { "base64decode", no_argument, NULL, 'c' },
     { "format", required_argument, NULL, 'f' },
+    { "nocolor", no_argument, NULL, 1007 },
     { NULL, 0, NULL, 0 }
 };
 
@@ -1509,6 +1517,18 @@ int main(int argc, char **argv)
         g_threads = l_tcnt;
     }
 
+    // set up colors
+    g_color_default[0] = 0;
+    g_color_highlight[0] = 0;
+    g_color_bullet[0] = 0;
+    g_color_error[0] = 0;
+    g_color_heading[0] = 0;
+    strcpy(g_color_default, CCCT_COLOR_DEFAULT);
+    strcpy(g_color_highlight, CCCT_COLOR_HIGHLIGHT);
+    strcpy(g_color_bullet, CCCT_COLOR_BULLET);
+    strcpy(g_color_error, CCCT_COLOR_ERROR);
+    strcpy(g_color_heading, CCCT_COLOR_HEADING);
+
     while ((opt = getopt_long(argc, argv, "i:o:k:g:edsv?twbcf:", g_options, NULL)) != -1) {
         switch (opt) {
             case 1001:
@@ -1540,6 +1560,15 @@ int main(int argc, char **argv)
             case 1006: // pem
             {
                 g_pem = 1;
+            }
+            break;
+            case 1007: // nocolor
+            {
+                g_color_default[0] = 0;
+                g_color_highlight[0] = 0;
+                g_color_bullet[0] = 0;
+                g_color_error[0] = 0;
+                g_color_heading[0] = 0;
             }
             break;
             case 'i':
@@ -1660,44 +1689,45 @@ int main(int argc, char **argv)
             break;
             case '?':
             {
-                printf("RSA file encryptor/digital signature utility\n");
-                printf("by Stephen Sviatko - (C) 2025 Good Neighbors LLC\n");
+                printf("%sRSA file encryptor/digital signature utility%s\n", g_color_highlight, g_color_default);
+                printf("%sby Stephen Sviatko - (C) 2025 Good Neighbors LLC%s\n", g_color_heading, g_color_default);
                 printf("revision 0.80 alpha - 2025/Nov/15\n");
-                printf("usage: rsa-util <options>\n");
-                printf("  -i (--in) <name> specify input file\n");
-                printf("  -o (--out) <name> specify output file\n");
-                printf("  -w (--overwrite) force overwrite of existing output file or signature file\n");
-                printf("  -k (--key) <name> specify full name of key file to use\n");
-                printf("  -g (--signature) <name> specify signature file\n");
-                printf("     (--latitude) <value> specify your latitude\n");
-                printf("     (--longitude) <value> specify your longitude\n");
+                printf("%susage: rsa-util <options>%s\n", g_color_highlight, g_color_default);
+                printf("%s  -i (--in) <name>%s specify input file\n", g_color_heading, g_color_default);
+                printf("%s  -o (--out) <name>%s specify output file\n", g_color_heading, g_color_default);
+                printf("%s  -w (--overwrite)%s force overwrite of existing output file or signature file\n", g_color_heading, g_color_default);
+                printf("%s  -k (--key) <name>%s specify full name of key file to use\n", g_color_heading, g_color_default);
+                printf("%s  -g (--signature) <name>%s specify signature file\n", g_color_heading, g_color_default);
+                printf("%s     (--latitude) <value>%s specify your latitude\n", g_color_heading, g_color_default);
+                printf("%s     (--longitude) <value>%s specify your longitude\n", g_color_heading, g_color_default);
                 printf("       latitude and longitude are specified as floating point numbers\n");
                 printf("       will be rounded to 4 decimal places (accuracy of 11.1 meters/36.4 feet)\n");
-                printf("     (--threads) <count> specify number of threads to use during decryption process\n");
-                printf("     (--nochinese) defeat chinese remainder theorem calculations during decryption\n");
-                printf("     (--pem) save encrypted files and signatures in privacy-enhanced mail format\n");
-                printf("  -f (--format) <priv, pub, message, sig, raw, none> choose format when using -b or --base64encode\n");
-                printf("     (--debug) use debug mode\n");
-                printf("  -? (--help) this screen\n");
-                printf("operational modes (select only one)\n");
-                printf("  -e (--encrypt) encrypt mode\n");
+                printf("%s     (--threads) <count>%s specify number of threads to use during decryption process\n", g_color_heading, g_color_default);
+                printf("%s     (--nochinese)%s defeat chinese remainder theorem calculations during decryption\n", g_color_heading, g_color_default);
+                printf("%s     (--pem)%s save encrypted files and signatures in privacy-enhanced mail format\n", g_color_heading, g_color_default);
+                printf("%s  -f (--format) <priv, pub, message, sig, raw, none>%s choose format when using -b or --base64encode\n", g_color_heading, g_color_default);
+                printf("%s     (--debug)%s use debug mode\n", g_color_heading, g_color_default);
+                printf("%s     (--nocolor)%s defeat terminal colors\n", g_color_heading, g_color_default);
+                printf("%s  -? (--help)%s this screen\n", g_color_heading, g_color_default);
+                printf("%soperational modes (select only one)%s\n", g_color_highlight, g_color_default);
+                printf("%s  -e (--encrypt)%s encrypt mode\n", g_color_heading, g_color_default);
                 printf("       encrypts in->out with public key\n");
                 printf("       example: rsa-util -e -i plainfile -o encfile -k publickey\n");
-                printf("  -d (--decrypt) decrypt mode\n");
+                printf("%s  -d (--decrypt)%s decrypt mode\n", g_color_heading, g_color_default);
                 printf("       decrypts in->out with private key\n");
                 printf("       example: rsa-util -d -i encfile -o decfile -k privatekey\n");
-                printf("  -s (--sign) sign mode (SHA2-512)\n");
+                printf("%s  -s (--sign)%s sign mode (SHA2-512)\n", g_color_heading, g_color_default);
                 printf("       computes sha2-512 hash of in, encrypts the hash and writes to signature file\n");
                 printf("       example: rsa-util -s -i filetosign -g sigfile -k privatekey\n");
-                printf("  -v (--verify) verify mode\n");
+                printf("%s  -v (--verify)%s verify mode\n", g_color_heading, g_color_default);
                 printf("       computes sha2-512 hash of in, compares with hash in decrypted signature file\n");
                 printf("       example: rsa-util -v -i signedfile -g sigfile -k publickey\n");
-                printf("  -t (--tell) tell about key\n");
+                printf("%s  -t (--tell)%s tell about key\n", g_color_heading, g_color_default);
                 printf("       show details about key specified by -k or --key\n");
                 printf("       example: rsa-util -t -k keyfile\n");
-                printf("  -b (--base64encode) convert infile to base64 and save to outfile\n");
+                printf("%s  -b (--base64encode)%s convert infile to base64 and save to outfile\n", g_color_heading, g_color_default);
                 printf("       example: rsa-util -b -i infile -o outfile\n");
-                printf("  -c (--base64decode) convert infile back to binary and save to outfile\n");
+                printf("%s  -c (--base64decode)%s convert infile back to binary and save to outfile\n", g_color_heading, g_color_default);
                 printf("       example: rsa-util -c -i infile -o outfile\n");
                 exit(EXIT_SUCCESS);
             }

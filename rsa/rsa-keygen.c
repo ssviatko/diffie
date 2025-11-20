@@ -822,12 +822,13 @@ int main(int argc, char **argv)
 					printf("%sRSA key pair generator%s\n", g_color_highlight, g_color_default);
 					printf("%sby Stephen Sviatko - (C) 2025 Good Neighbors LLC%s\n", g_color_heading, g_color_default);
 					printf("revision 0.80 alpha - 2025/Nov/15\n");
-					printf("usage: rsa-keygen <options>\n");
+					printf("%susage: rsa-keygen <options>%s\n", g_color_highlight, g_color_default);
 					printf("%s  -b (--bits) <bit width>%s key modulus size\n", g_color_heading, g_color_default);
 					printf("%s  -t (--threads) <threads>%s number of threads to use\n", g_color_heading, g_color_default);
 					printf("%s  -o (--out) <name>%s filename specifier to write out keys\n", g_color_heading, g_color_default);
 					printf("     otherwise, key will be written to default-* filenames.\n");
 					printf("%s     (--pem)%s output key in privacy-enhanced mail format\n", g_color_heading, g_color_default);
+					printf("%s     (--nocolor)%s defeat terminal colors\n", g_color_heading, g_color_default);
 					printf("  RSA bit width must be between %s768%s and %s%d%s in 256 bit increments\n", g_color_bullet, g_color_default, g_color_bullet, MAXBITS, g_color_default);
 					printf("  default: %s%d%s bits\n", g_color_bullet, g_bits, g_color_default);
 					exit(EXIT_SUCCESS);
