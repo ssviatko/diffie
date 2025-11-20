@@ -451,16 +451,16 @@ void prepare_outfile()
     if (res == 0) {
         // successfully stat-ted the file. do we want to overwrite it?
         if (g_outfile_overwrite == 0) {
-            fprintf(stderr, "rsa-util: output file already exists (use -w or --overwrite to write to it anyway)\n");
+            fprintf(stderr, "%srsa-util:%s output file already exists%s (use %s-w%s or %s--overwrite%s to write to it anyway)\n", g_color_heading, g_color_error, g_color_default, g_color_highlight, g_color_default, g_color_highlight, g_color_default);
             exit(EXIT_FAILURE);
         } else {
-            printf("rsa-util: overwriting existing output file %s\n", g_outfile);
+            printf("%srsa-util:%s overwriting existing output file %s%s%s\n", g_color_heading, g_color_default, g_color_highlight, g_outfile, g_color_default);
         }
     } else if ((res < 0) && (errno == ENOENT)) {
         // this is what we want
     } else {
         // some other error from stat!
-        fprintf(stderr, "rsa-util: unable to stat output file to check its existence: %s\n", strerror(errno));
+        fprintf(stderr, "%srsa-util: unable to stat output file to check its existence: %s%s\n", g_color_error, strerror(errno), g_color_default);
         exit(EXIT_FAILURE);
     }
 
@@ -468,7 +468,7 @@ void prepare_outfile()
     if (g_debug) printf("prepare_outfile: opening and truncating output file\n");
     g_outfile_fd = open(g_outfile, O_RDWR | O_TRUNC | O_CREAT, (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH));
     if (g_outfile_fd < 0) {
-        fprintf(stderr, "rsa-util: error opening output file: %s\n", strerror(errno));
+        fprintf(stderr, "%rsa-util: error opening output file: %s%s\n", g_color_error, strerror(errno), g_color_default);
         exit(EXIT_FAILURE);
     }
 }
@@ -481,7 +481,7 @@ void prepare_infile()
     struct stat l_infile_stat;
     res = stat(g_infile, &l_infile_stat);
     if (res < 0) {
-        fprintf(stderr, "rsa-util: error calling stat on input file: %s\n", strerror(errno));
+        fprintf(stderr, "%srsa-util: error calling stat on input file: %s%s\n", g_color_error, strerror(errno), g_color_default);
         exit(EXIT_FAILURE);
     }
 
@@ -500,7 +500,7 @@ void prepare_infile()
     // open infile
     g_infile_fd = open(g_infile, O_RDONLY);
     if (g_infile_fd < 0) {
-        fprintf(stderr, "rsa-util: problems opening input file: %s\n", strerror(errno));
+        fprintf(stderr, "%srsa-util: problems opening input file: %s%s\n", g_color_error, strerror(errno), g_color_default);
         exit(EXIT_FAILURE);
     }
 }
@@ -565,7 +565,7 @@ uint32_t get_file_crc(int a_fd)
         if (res == 0)
             continue; // got our EOF
         if (res < 0) {
-            fprintf(stderr, "rsa-util: unable to compute CRC: %s\n", strerror(errno));
+            fprintf(stderr, "%srsa-util: unable to compute CRC: %s%s\n", g_color_error, strerror(errno), g_color_default);
             exit(EXIT_FAILURE);
         }
         // compute CRC for res number of bytes
@@ -584,7 +584,7 @@ void get_infile_crc()
     // rewind g_infile_fd
     res = lseek(g_infile_fd, 0, SEEK_SET);
     if (res < 0) {
-        fprintf(stderr, "rsa-util: unable to rewind input file after computing CRC: %s\n", strerror(errno));
+        fprintf(stderr, "%srsa-util: unable to rewind input file after computing CRC: %s%s\n", g_color_error, strerror(errno), g_color_default);
         exit(EXIT_FAILURE);
     }
     if (g_debug > 0) printf("get_infile_crc: CRC is %08X\n", g_infile_crc);
@@ -596,7 +596,7 @@ void get_outfile_crc()
     // rewind g_outfile_fd after writing data
     res = lseek(g_outfile_fd, 0, SEEK_SET);
     if (res < 0) {
-        fprintf(stderr, "rsa-util: unable to rewind input file after computing CRC: %s\n", strerror(errno));
+        fprintf(stderr, "%srsa-util: unable to rewind input file after computing CRC: %s%s\n", g_color_error, strerror(errno), g_color_default);
         exit(EXIT_FAILURE);
     }
     g_outfile_crc = get_file_crc(g_outfile_fd);
@@ -634,7 +634,7 @@ void do_encrypt()
     if (g_debug > 0) {
         printf("embedding geolocation: latitude %.4f, longitude %.4f\n", g_latitude, g_longitude);
     }
-    printf("rsa-util: encrypting ...");
+    printf("%srsa-util:%s encrypting ...", g_color_heading, g_color_default);
 
     memcpy(g_buff + 8, &l_fih, sizeof(fileinfo_header));
 
@@ -648,7 +648,7 @@ void do_encrypt()
     }
     if (res < 0) {
         // actual error
-        fprintf(stderr, "rsa-util: unable to read from input file (fd %d) during 1st block encrypt operation: %s\n",g_infile_fd, strerror(errno));
+        fprintf(stderr, "%srsa-util: unable to read from input file (fd %d) during 1st block encrypt operation: %s%s\n", g_color_error, g_infile_fd, strerror(errno), g_color_default);
         exit(EXIT_FAILURE);
     }
     if (res < g_1stblock_capacity) {
@@ -696,12 +696,12 @@ void do_encrypt()
     // write it to output file
     res = write(g_outfile_fd, g_buff2, g_block_size);
     if (res < 0) {
-        fprintf(stderr, "rsa-util: unable to write to output file during encrypt operation: %s\n", strerror(errno));
+        fprintf(stderr, "%srsa-util: unable to write to output file during encrypt operation: %s%s\n", g_color_error, strerror(errno), g_color_default);
         exit(EXIT_FAILURE);
     }
     if (res < g_block_size) {
         // lol what? didn't write the whole block?
-        fprintf(stderr, "rsa-util: unable to write entire block size of %d bytes to output file during encrypt operation\n", g_block_size);
+        fprintf(stderr, "%srsa-util: unable to write entire block size of %d bytes to output file during encrypt operation.%s\n", g_color_error, g_block_size, g_color_default);
     }
 
     // test our encryption (if d is loaded and debug flag is on)
@@ -741,7 +741,7 @@ void do_encrypt()
         }
         if (res < 0) {
             // actual error
-            fprintf(stderr, "rsa-util: unable to read from input file (fd %d) during subsequent block encrypt operation: %s\n", g_infile_fd, strerror(errno));
+            fprintf(stderr, "%srsa-util: unable to read from input file (fd %d) during subsequent block encrypt operation: %s%s\n", g_color_error, g_infile_fd, strerror(errno), g_color_default);
             exit(EXIT_FAILURE);
         }
         if (res < g_block_capacity) {
@@ -771,12 +771,12 @@ void do_encrypt()
         // write it to output file
         res = write(g_outfile_fd, g_buff2, g_block_size);
         if (res < 0) {
-            fprintf(stderr, "rsa-util: unable to write to output file during encrypt operation: %s\n", strerror(errno));
+            fprintf(stderr, "%srsa-util: unable to write to output file during encrypt operation: %s%s\n", g_color_error, strerror(errno), g_color_default);
             exit(EXIT_FAILURE);
         }
         if (res < g_block_size) {
             // lol what? didn't write the whole block?
-            fprintf(stderr, "rsa-util: unable to write entire block size of %d bytes to output file during encrypt operation\n", g_block_size);
+            fprintf(stderr, "%srsa-util: unable to write entire block size of %d bytes to output file during encrypt operation.%s\n", g_color_error, g_block_size, g_color_default);
         }
         // test our encryption (if d is loaded and debug flag is on)
         if ((g_d_loaded > 0) && (g_debug > 0)) {
@@ -805,18 +805,18 @@ void do_encrypt()
     mpz_clear(l_n);
 
     if (g_pem == 1) {
-        printf("rsa-util: converting to privacy-enhanced mail format ...");
+        printf("%srsa-util:%s converting to privacy-enhanced mail format ...", g_color_heading, g_color_default);
         // rewind g_outfile_fd, load it up and base64 encode it
         res = lseek(g_outfile_fd, 0, SEEK_SET);
         if (res < 0) {
-            fprintf(stderr, "rsa-util: can't rewind key file: %s\n", strerror(errno));
+            fprintf(stderr, "%srsa-util: can't rewind key file: %s%s\n", g_color_error, strerror(errno), g_color_default);
             exit(EXIT_FAILURE);
         }
         // find out how big what we just wrote happens to be
         struct stat l_stat;
         res = stat(g_outfile, &l_stat);
         if (res < 0) {
-            fprintf(stderr, "rsa-util: unable to output file: %s\n", strerror(errno));
+            fprintf(stderr, "%srsa-util: unable to output file: %s%s\n", g_color_error, strerror(errno), g_color_default);
             exit(EXIT_FAILURE);
         }
         // and create a buffer big enough to load it in, and another to hold the base64, and another to hold the format
@@ -825,19 +825,19 @@ void do_encrypt()
         char *buff_load = NULL;
         buff_load = malloc(l_buff_load_size);
         if (buff_load == NULL) {
-            fprintf(stderr, "rsa-util: unable to allocate buffer to load file.\n");
+            fprintf(stderr, "%srsa-util: unable to allocate buffer to load file.%s\n", g_color_error, g_color_default);
             exit(EXIT_FAILURE);
         }
         char *buff_enc = NULL;
         buff_enc = malloc(l_buff_enc_size);
         if (buff_enc == NULL) {
-            fprintf(stderr, "rsa-util: unable to allocate buffer to encrypt file.\n");
+            fprintf(stderr, "%srsa-util: unable to allocate buffer to encrypt file.%s\n", g_color_error, g_color_default);
             exit(EXIT_FAILURE);
         }
         char *buff_fmt = NULL;
         buff_fmt = malloc(l_buff_enc_size + 512);
         if (buff_fmt == NULL) {
-            fprintf(stderr, "rsa-util: unable to allocate buffer to hold formatted file.\n");
+            fprintf(stderr, "%srsa-util: unable to allocate buffer to hold formatted file.%s\n", g_color_error, g_color_default);
             exit(EXIT_FAILURE);
         }
         // load up what we just encrypted
@@ -845,7 +845,7 @@ void do_encrypt()
         do {
             res = read(g_outfile_fd, buff_load + buff_load_len, 4096);
             if (res < 0) {
-                fprintf(stderr, "rsa-util: problems reading file: %s\n", strerror(errno));
+                fprintf(stderr, "%srsa-util: problems reading file: %s%s\n", g_color_error, strerror(errno), g_color_default);
                 exit(EXIT_FAILURE);
             }
             buff_load_len += res;
@@ -859,15 +859,15 @@ void do_encrypt()
         unlink(g_outfile);
         g_outfile_fd = open(g_outfile, O_RDWR | O_TRUNC | O_CREAT, (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH));
         if (g_outfile_fd < 0) {
-            fprintf(stderr, "rsa-util: error opening output file: %s\n", strerror(errno));
+            fprintf(stderr, "%srsa-util: error opening output file: %s%s\n", g_color_error, strerror(errno), g_color_default);
             exit(EXIT_FAILURE);
         }
         res = write(g_outfile_fd, buff_fmt, strlen(buff_fmt));
         if (res < 0) {
-            fprintf(stderr, "rsa-util: unable to write output file: %s\n", strerror(errno));
+            fprintf(stderr, "%srsa-util: unable to write output file: %s%s\n", g_color_error, strerror(errno), g_color_default);
             exit(EXIT_FAILURE);
         } else if (res != strlen(buff_fmt)) {
-            fprintf(stderr, "rsa-util: unable to write entire contents of formatted buffer: wrote %d expected %d.\n", res, strlen(buff_fmt));
+            fprintf(stderr, "%srsa-util: unable to write entire contents of formatted buffer: wrote %d expected %d.%s\n", g_color_error, res, strlen(buff_fmt), g_color_default);
             exit(EXIT_FAILURE);
         }
         free(buff_fmt);
@@ -1743,16 +1743,16 @@ int main(int argc, char **argv)
         printf("rsa-util: debug mode enabled.\n");
 
     if (g_infile_specified > 0) {
-        printf("%srsa-util: input file : %s%s%s\n", g_color_heading, g_color_default, g_color_highlight, g_infile, g_color_default);
+        printf("%srsa-util:%s input file : %s%s%s\n", g_color_heading, g_color_default, g_color_highlight, g_infile, g_color_default);
     }
     if (g_outfile_specified > 0) {
-        printf("%srsa-util: output file: %s%s%s\n", g_color_heading, g_color_default, g_color_highlight, g_outfile, g_color_default);
+        printf("%srsa-util:%s output file: %s%s%s\n", g_color_heading, g_color_default, g_color_highlight, g_outfile, g_color_default);
     }
     if (g_keyfile_specified > 0) {
         printf("%srsa-util:%s key file   : %s%s%s\n", g_color_heading, g_color_default, g_color_highlight, g_keyfile, g_color_default);
     }
     if (g_signaturefile_specified > 0) {
-        printf("%srsa-util: signature  : %s%s%s\n", g_color_heading, g_color_default, g_color_highlight, g_signaturefile, g_color_default);
+        printf("%srsa-util:%s signature  : %s%s%s\n", g_color_heading, g_color_default, g_color_highlight, g_signaturefile, g_color_default);
     }
 
     // prepare urandom
@@ -1760,11 +1760,11 @@ int main(int argc, char **argv)
 
     // police thread count
     if (g_threads < 1) {
-        fprintf(stderr, "rsa-util: need to use at least 1 thread.\n");
+        fprintf(stderr, "%srsa-util: need to use at least 1 thread.%s\n", g_color_error, g_color_default);
         exit(EXIT_FAILURE);
     }
     if (g_threads > MAXTHREADS) {
-        fprintf(stderr, "rsa-util: thread limit: %d.\n", MAXTHREADS);;
+        fprintf(stderr, "%srsa-util: thread limit: %d.%s\n", g_color_error, MAXTHREADS, g_color_default);;
         exit(EXIT_FAILURE);
     }
 
@@ -1773,40 +1773,40 @@ int main(int argc, char **argv)
     switch (g_mode) {
         case MODE_NONE:
         {
-            fprintf(stderr, "rsa-util: you must select one operational mode.\n");
-            fprintf(stderr, "rsa-util: use -? or --help for usage info.\n");
+            fprintf(stderr, "%srsa-util: you must select one operational mode.%s\n", g_color_error, g_color_default);
+            fprintf(stderr, "%srsa-util: use -? or --help for usage info.%s\n", g_color_error, g_color_default);
             exit(EXIT_FAILURE);
         }
         break;
         case MODE_ENCRYPT:
         {
-            printf("rsa-util: selected encryption mode.\n");
+            printf("%srsa-util:%s selected %sencryption%s mode.\n", g_color_heading, g_color_default, g_color_highlight, g_color_default);
             load_key();
             if (g_n_loaded == 0) {
-                fprintf(stderr, "rsa-util: this function requires the key file to contain a modulus.\n");
+                fprintf(stderr, "%srsa-util: this function requires the key file to contain a modulus.%s\n", g_color_error, g_color_default);
                 exit(EXIT_FAILURE);
             }
             if (g_e_loaded == 0) {
-                fprintf(stderr, "rsa-util: this function requires the key file to contain a public exponent.\n");
+                fprintf(stderr, "%srsa-util: this function requires the key file to contain a public exponent.%s\n", g_color_error, g_color_default);
                 exit(EXIT_FAILURE);
             }
             if (g_infile_specified == 0) {
-                fprintf(stderr, "rsa-util: this function requires that you specify an input file.\n");
+                fprintf(stderr, "%srsa-util: this function requires that you specify an input file.%s\n", g_color_error, g_color_default);
                 exit(EXIT_FAILURE);
             }
             prepare_infile();
             get_infile_crc();
             if (g_pem == 1) {
-                printf("rsa-util: selecting privacy-enhanced mail format for encrypted message.\n");
+                printf("%srsa-util:%s selecting privacy-enhanced mail format for encrypted message.\n", g_color_heading, g_color_default);
                 if (g_infile_length > PEMLIMIT) {
-                    fprintf(stderr, "rsa-util: input file length exceeds maximum length of %d for pem formatted messages.\n", PEMLIMIT);
+                    fprintf(stderr, "%srsa-util: input file length exceeds maximum length of %d for pem formatted messages.%s\n", g_color_error, PEMLIMIT, g_color_default);
                     exit(EXIT_FAILURE);
                 }
             } else {
-                printf("rsa-util: selecting native binary format for encrypted message.\n");
+                printf("%srsa-util:%s selecting native binary format for encrypted message.\n", g_color_heading, g_color_default);
             }
             if (g_outfile_specified == 0) {
-                fprintf(stderr, "rsa-util: this function requires that you specify an output file.\n");
+                fprintf(stderr, "%srsa-util: this function requires that you specify an output file.%s\n", g_color_error, g_color_default);
                 exit(EXIT_FAILURE);
             }
             prepare_outfile();
