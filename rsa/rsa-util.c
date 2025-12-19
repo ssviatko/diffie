@@ -66,6 +66,7 @@
 
 #include "ccct.h"
 #include "sha2.h"
+#include "color_print.h"
 
 #pragma pack(1)
 
@@ -1518,6 +1519,10 @@ int main(int argc, char **argv)
     }
 
     // set up colors
+    color_init(g_nocolor, g_debug);
+    color_set_theme(3);
+
+    // delete these
     g_color_default[0] = 0;
     g_color_highlight[0] = 0;
     g_color_bullet[0] = 0;
@@ -1535,6 +1540,7 @@ int main(int argc, char **argv)
             {
                 g_debug = 1;
                 ccct_set_debug(1);
+                color_set_debug(g_debug);
             }
             break;
             case 1002: // latitude
@@ -1564,6 +1570,9 @@ int main(int argc, char **argv)
             break;
             case 1007: // nocolor
             {
+                g_nocolor = 1;
+                color_set_nocolor(g_nocolor);
+                // delete these
                 g_color_default[0] = 0;
                 g_color_highlight[0] = 0;
                 g_color_bullet[0] = 0;
@@ -1603,7 +1612,7 @@ int main(int argc, char **argv)
             case 'e':
             {
                 if (g_mode != MODE_NONE) {
-                    fprintf(stderr, "%srsa-util: please select only one operational mode.%s\n", g_color_error, g_color_default);
+                    color_err_printf(0, "rsa-util: please select only one operational mode");
                     exit(EXIT_FAILURE);
                 }
                 g_mode = MODE_ENCRYPT;
@@ -1612,7 +1621,7 @@ int main(int argc, char **argv)
             case 'd':
             {
                 if (g_mode != MODE_NONE) {
-                    fprintf(stderr, "%srsa-util: please select only one operational mode.%s\n", g_color_error, g_color_default);
+                    color_err_printf(0, "rsa-util: please select only one operational mode");
                     exit(EXIT_FAILURE);
                 }
                 g_mode = MODE_DECRYPT;
@@ -1621,7 +1630,7 @@ int main(int argc, char **argv)
             case 's':
             {
                 if (g_mode != MODE_NONE) {
-                    fprintf(stderr, "%srsa-util: please select only one operational mode.%s\n", g_color_error, g_color_default);
+                    color_err_printf(0, "rsa-util: please select only one operational mode");
                     exit(EXIT_FAILURE);
                 }
                 g_mode = MODE_SIGN;
@@ -1630,7 +1639,7 @@ int main(int argc, char **argv)
             case 'v':
             {
                 if (g_mode != MODE_NONE) {
-                    fprintf(stderr, "%srsa-util: please select only one operational mode.%s\n", g_color_error, g_color_default);
+                    color_err_printf(0, "rsa-util: please select only one operational mode");
                     exit(EXIT_FAILURE);
                 }
                 g_mode = MODE_VERIFY;
@@ -1639,7 +1648,7 @@ int main(int argc, char **argv)
             case 't':
             {
                 if (g_mode != MODE_NONE) {
-                    fprintf(stderr, "%srsa-util: please select only one operational mode.%s\n", g_color_error, g_color_default);
+                    color_err_printf(0, "rsa-util: please select only one operational mode");
                     exit(EXIT_FAILURE);
                 }
                 g_mode = MODE_TELL;
@@ -1648,7 +1657,7 @@ int main(int argc, char **argv)
             case 'b':
             {
                 if (g_mode != MODE_NONE) {
-                    fprintf(stderr, "%srsa-util: please select only one operational mode.%s\n", g_color_error, g_color_default);
+                    color_err_printf(0, "rsa-util: please select only one operational mode");
                     exit(EXIT_FAILURE);
                 }
                 g_mode = MODE_BASE64ENCODE;
@@ -1657,7 +1666,7 @@ int main(int argc, char **argv)
             case 'c':
             {
                 if (g_mode != MODE_NONE) {
-                    fprintf(stderr, "%srsa-util: please select only one operational mode.%s\n", g_color_error, g_color_default);
+                    color_err_printf(0, "rsa-util: please select only one operational mode");
                     exit(EXIT_FAILURE);
                 }
                 g_mode = MODE_BASE64DECODE;
@@ -1680,55 +1689,55 @@ int main(int argc, char **argv)
                 } else if (strcmp(g_format_spec, "none") == 0) {
                     g_format = FORMAT_NONE;
                 } else {
-                    fprintf(stderr, "%srsa-util: unrecognized base64 format specifier \"%s%s%s\".%s\n", g_color_error, g_color_highlight, g_format_spec, g_color_error, g_color_default);
-                    fprintf(stderr, "%srsa-util: allowed formats are: priv, pub, message, sig, raw, or none.%s\n", g_color_error, g_color_default);
-                    fprintf(stderr, "%srsa-util: use -? or --help for usage info.%s\n", g_color_error, g_color_default);
+                    color_printf(0, "*ersa-util: unrecognized base64 format specifier \"*h%s*e\"*d.\n", g_format_spec);
+                    color_printf(0, "*ersa-util: allowed formats are: priv, pub, message, sig, raw, or none.*d\n");
+                    color_printf(0, "*ersa-util: use -? or --help for usage info.*d\n");
                     exit(EXIT_FAILURE);
                 }
             }
             break;
             case '?':
             {
-                printf("%sRSA file encryptor/digital signature utility%s\n", g_color_highlight, g_color_default);
-                printf("%sby Stephen Sviatko - (C) 2025 Good Neighbors LLC%s\n", g_color_heading, g_color_default);
-                printf("revision 0.80 alpha - 2025/Nov/15\n");
-                printf("%susage: rsa-util <options>%s\n", g_color_highlight, g_color_default);
-                printf("%s  -i (--in) <name>%s specify input file\n", g_color_heading, g_color_default);
-                printf("%s  -o (--out) <name>%s specify output file\n", g_color_heading, g_color_default);
-                printf("%s  -w (--overwrite)%s force overwrite of existing output file or signature file\n", g_color_heading, g_color_default);
-                printf("%s  -k (--key) <name>%s specify full name of key file to use\n", g_color_heading, g_color_default);
-                printf("%s  -g (--signature) <name>%s specify signature file\n", g_color_heading, g_color_default);
-                printf("%s     (--latitude) <value>%s specify your latitude\n", g_color_heading, g_color_default);
-                printf("%s     (--longitude) <value>%s specify your longitude\n", g_color_heading, g_color_default);
-                printf("       latitude and longitude are specified as floating point numbers\n");
-                printf("       will be rounded to 4 decimal places (accuracy of 11.1 meters/36.4 feet)\n");
-                printf("%s     (--threads) <count>%s specify number of threads to use during decryption process\n", g_color_heading, g_color_default);
-                printf("%s     (--nochinese)%s defeat chinese remainder theorem calculations during decryption\n", g_color_heading, g_color_default);
-                printf("%s     (--pem)%s save encrypted files and signatures in privacy-enhanced mail format\n", g_color_heading, g_color_default);
-                printf("%s  -f (--format) <priv, pub, message, sig, raw, none>%s choose format when using -b or --base64encode\n", g_color_heading, g_color_default);
-                printf("%s     (--debug)%s use debug mode\n", g_color_heading, g_color_default);
-                printf("%s     (--nocolor)%s defeat terminal colors\n", g_color_heading, g_color_default);
-                printf("%s  -? (--help)%s this screen\n", g_color_heading, g_color_default);
-                printf("%soperational modes (select only one)%s\n", g_color_highlight, g_color_default);
-                printf("%s  -e (--encrypt)%s encrypt mode\n", g_color_heading, g_color_default);
-                printf("       encrypts in->out with public key\n");
-                printf("       example: rsa-util -e -i plainfile -o encfile -k publickey\n");
-                printf("%s  -d (--decrypt)%s decrypt mode\n", g_color_heading, g_color_default);
-                printf("       decrypts in->out with private key\n");
-                printf("       example: rsa-util -d -i encfile -o decfile -k privatekey\n");
-                printf("%s  -s (--sign)%s sign mode (SHA2-512)\n", g_color_heading, g_color_default);
-                printf("       computes sha2-512 hash of in, encrypts the hash and writes to signature file\n");
-                printf("       example: rsa-util -s -i filetosign -g sigfile -k privatekey\n");
-                printf("%s  -v (--verify)%s verify mode\n", g_color_heading, g_color_default);
-                printf("       computes sha2-512 hash of in, compares with hash in decrypted signature file\n");
-                printf("       example: rsa-util -v -i signedfile -g sigfile -k publickey\n");
-                printf("%s  -t (--tell)%s tell about key\n", g_color_heading, g_color_default);
-                printf("       show details about key specified by -k or --key\n");
-                printf("       example: rsa-util -t -k keyfile\n");
-                printf("%s  -b (--base64encode)%s convert infile to base64 and save to outfile\n", g_color_heading, g_color_default);
-                printf("       example: rsa-util -b -i infile -o outfile\n");
-                printf("%s  -c (--base64decode)%s convert infile back to binary and save to outfile\n", g_color_heading, g_color_default);
-                printf("       example: rsa-util -c -i infile -o outfile\n");
+                color_printf("*hRSA file encryptor/digital signature utility*d\n");
+                color_printf("*aby Stephen Sviatko - (C) 2025 Good Neighbors LLC*d\n");
+                color_printf("*arevision *b0.90 beta*a built on *b2025/Dec/19*d\n");
+                color_printf("*husage: rsa-util <options>*d\n");
+                color_printf("*a  -i (--in) <name>*d specify input file\n");
+                color_printf("*a  -o (--out) <name>*d specify output file\n");
+                color_printf("*a  -w (--overwrite)*d force overwrite of existing output file or signature file\n");
+                color_printf("*a  -k (--key) <name>*d specify full name of key file to use\n");
+                color_printf("*a  -g (--signature) <name>*d specify signature file\n");
+                color_printf("*a     (--latitude) <value>*d specify your latitude\n");
+                color_printf("*a     (--longitude) <value>*d specify your longitude\n");
+                color_printf("       latitude and longitude are specified as floating point numbers\n");
+                color_printf("       will be rounded to 4 decimal places (accuracy of 11.1 meters/36.4 feet)\n");
+                color_printf("*a     (--threads) <count>*d specify number of threads to use during decryption process\n");
+                color_printf("*a     (--nochinese)*d defeat chinese remainder theorem calculations during decryption\n");
+                color_printf("*a     (--pem)*d save encrypted files and signatures in privacy-enhanced mail format\n");
+                color_printf("*a  -f (--format) <priv, pub, message, sig, raw, none>*d choose format when using -b or --base64encode\n");
+                color_printf("*a     (--debug)*d use debug mode\n");
+                color_printf("*a     (--nocolor)*d defeat terminal colors\n");
+                color_printf("*a  -? (--help)*d this screen\n");
+                color_printf("*hoperational modes (select only one)*d\n");
+                color_printf("*a  -e (--encrypt)*d encrypt mode\n");
+                color_printf("       encrypts in->out with public key\n");
+                color_printf("       example: rsa-util -e -i plainfile -o encfile -k publickey\n");
+                color_printf("*a  -d (--decrypt)*d decrypt mode\n");
+                color_printf("       decrypts in->out with private key\n");
+                color_printf("       example: rsa-util -d -i encfile -o decfile -k privatekey\n");
+                color_printf("*a  -s (--sign)*d sign mode (SHA2-512)\n");
+                color_printf("       computes sha2-512 hash of in, encrypts the hash and writes to signature file\n");
+                color_printf("       example: rsa-util -s -i filetosign -g sigfile -k privatekey\n");
+                color_printf("*a  -v (--verify)*d verify mode\n");
+                color_printf("       computes sha2-512 hash of in, compares with hash in decrypted signature file\n");
+                color_printf("       example: rsa-util -v -i signedfile -g sigfile -k publickey\n");
+                color_printf("*a  -t (--tell)*d tell about key\n");
+                color_printf("       show details about key specified by -k or --key\n");
+                color_printf("       example: rsa-util -t -k keyfile\n");
+                color_printf("*a  -b (--base64encode)*d convert infile to base64 and save to outfile\n");
+                color_printf("       example: rsa-util -b -i infile -o outfile\n");
+                color_printf("*a  -c (--base64decode)*d convert infile back to binary and save to outfile\n");
+                color_printf("       example: rsa-util -c -i infile -o outfile\n");
                 exit(EXIT_SUCCESS);
             }
             break;
@@ -1739,20 +1748,19 @@ int main(int argc, char **argv)
     ccct_get_term_size();
     ccct_discover_endianness();
 
-    if (g_debug > 0)
-        printf("rsa-util: debug mode enabled.\n");
+    color_debug("rsa-util: debug mode enabled.\n");
 
     if (g_infile_specified > 0) {
-        printf("%srsa-util:%s input file : %s%s%s\n", g_color_heading, g_color_default, g_color_highlight, g_infile, g_color_default);
+        color_printf("*arsa-util:*d input file : *h%s*d\n", g_infile);
     }
     if (g_outfile_specified > 0) {
-        printf("%srsa-util:%s output file: %s%s%s\n", g_color_heading, g_color_default, g_color_highlight, g_outfile, g_color_default);
+        color_printf("*arsa-util:*d output file: *h%s*d\n", g_outfile);
     }
     if (g_keyfile_specified > 0) {
-        printf("%srsa-util:%s key file   : %s%s%s\n", g_color_heading, g_color_default, g_color_highlight, g_keyfile, g_color_default);
+        color_printf("*arsa-util:*d key file   : *h%s*d\n", g_keyfile);
     }
     if (g_signaturefile_specified > 0) {
-        printf("%srsa-util:%s signature  : %s%s%s\n", g_color_heading, g_color_default, g_color_highlight, g_signaturefile, g_color_default);
+        color_printf("*arsa-util:*d signature  : *h%s*d\n", g_signaturefile);
     }
 
     // prepare urandom
@@ -1760,11 +1768,11 @@ int main(int argc, char **argv)
 
     // police thread count
     if (g_threads < 1) {
-        fprintf(stderr, "%srsa-util: need to use at least 1 thread.%s\n", g_color_error, g_color_default);
+        color_err_printf(0, "rsa-util: need to use at least 1 thread.");
         exit(EXIT_FAILURE);
     }
     if (g_threads > MAXTHREADS) {
-        fprintf(stderr, "%srsa-util: thread limit: %d.%s\n", g_color_error, MAXTHREADS, g_color_default);;
+        color_err_printf(0, "rsa-util: thread limit: %d.", MAXTHREADS);
         exit(EXIT_FAILURE);
     }
 
@@ -1773,8 +1781,8 @@ int main(int argc, char **argv)
     switch (g_mode) {
         case MODE_NONE:
         {
-            fprintf(stderr, "%srsa-util: you must select one operational mode.%s\n", g_color_error, g_color_default);
-            fprintf(stderr, "%srsa-util: use -? or --help for usage info.%s\n", g_color_error, g_color_default);
+            color_err_printf(0, "rsa-util: you must select one operational mode.");
+            color_err_printf(0, "rsa-util: use -? or --help for usage info.");
             exit(EXIT_FAILURE);
         }
         break;
@@ -2093,11 +2101,9 @@ int main(int argc, char **argv)
 
     gettimeofday(&g_end_time, NULL);
 
-    printf("%srsa-util:%s completed operation in %s%ld%s seconds %s%ld%s usecs.\n", g_color_heading, g_color_default, g_color_highlight,
+    color_printf("*arsa-util:*d completed operation in *h%ld*d seconds *h%ld*d usecs.\n",
            g_end_time.tv_sec - g_start_time.tv_sec - ((g_end_time.tv_usec - g_start_time.tv_usec < 0) ? 1 : 0), // subtract 1 if there was a usec rollover
-           g_color_default, g_color_highlight,
-           g_end_time.tv_usec - g_start_time.tv_usec + ((g_end_time.tv_usec - g_start_time.tv_usec < 0) ? 1000000 : 0),
-           g_color_default); // bump usecs by 1 million usec for rollover
+           g_end_time.tv_usec - g_start_time.tv_usec + ((g_end_time.tv_usec - g_start_time.tv_usec < 0) ? 1000000 : 0)); // bump usecs by 1 million usec for rollover
 
     close(g_infile_fd);
     close(g_outfile_fd);
