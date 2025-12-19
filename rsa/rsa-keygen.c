@@ -63,6 +63,7 @@
 #include <sys/stat.h>
 
 #include "ccct.h"
+#include "color_print.h"
 
 #pragma pack(1)
 
@@ -129,11 +130,6 @@ typedef struct {
 	uint32_t bit_width;
 } key_item_header;
 
-char g_color_default[16];
-char g_color_highlight[16];
-char g_color_error[16];
-char g_color_heading[16];
-char g_color_bullet[16];
 int g_nocolor = 0;
 
 void *gen_tf(void *arg)
@@ -194,8 +190,8 @@ void *gen_tf(void *arg)
 		}
 		pthread_mutex_unlock(&g_bell_mtx);
 
-		if (g_debug) printf("tid %d: attempt %d to generate key...\n", a_twa->id, l_attempt++);
-		else printf(".");
+		color_debug("tid %d: attempt %d to generate key...\n", a_twa->id, l_attempt++);
+		printf(".");
 
 		// prepare random n-bit odd number for p factor
 		ccct_get_random(a_twa->p, (g_pqbits / 8));
@@ -221,13 +217,9 @@ void *gen_tf(void *arg)
 
 		// top 4 bits of p equal to top 4 bits of q? if so, invert bits 4-5 to make it different
 		if ((a_twa->q[0] & 0xf0) == (a_twa->p[0] & 0xf0)) {
-			if (g_debug > 0) {
-				printf("tid %d: inversion: p[0]=%02X q[0]=%02X, inverting bits 4-5 of top byte of q: ", a_twa->id, a_twa->p[0], a_twa->q[0]);
-			}
+			color_debug("tid %d: inversion: p[0]=%02X q[0]=%02X, inverting bits 4-5 of top byte of q: ", a_twa->id, a_twa->p[0], a_twa->q[0]);
 			a_twa->q[0] ^= 0x30;
-			if (g_debug > 0) {
-				printf("%02X\n", a_twa->q[0]);
-			}
+			color_debug("%02X\n", a_twa->q[0]);
 		}
 
 		mpz_import(l_q_import, (g_pqbits / 8), 1, sizeof(unsigned char), 0, 0, a_twa->q);
@@ -312,7 +304,7 @@ void *gen_tf(void *arg)
 
 		// choose d
 		if (mpz_invert(l_d, l_e, l_ct) == 0) {
-			if (g_debug) fprintf(stderr, "tid %d: invert failed!\n", a_twa->id);
+			if (g_debug) color_err_printf(0, "tid %d: invert failed!", a_twa->id);
 			continue;
 		} else {
 			if (g_debug) gmp_printf("tid %d: d       = %Zx\n", a_twa->id, l_d);
@@ -322,10 +314,10 @@ void *gen_tf(void *arg)
 		// i.e. the top byte of d should not be zero
 		unsigned int l_sib = mpz_sizeinbase(l_d, 2);
 		if (l_sib < (g_bits - 4)) {
-			if (g_debug > 0) printf("tid %d: error: d bit size to low: %d bits.\n", a_twa->id, l_sib);
+			color_debug("tid %d: error: d bit size to low: %d bits.\n", a_twa->id, l_sib);
 			continue;
 		} else {
-			if (g_debug > 0) printf("tid %d: d bit size is %d.\n", a_twa->id, l_sib);
+			color_debug("tid %d: d bit size is %d.\n", a_twa->id, l_sib);
 		}
 
 		// set up for chinese remainder
@@ -350,13 +342,10 @@ void *gen_tf(void *arg)
 	g_bell = 1;
 	pthread_mutex_unlock(&g_bell_mtx);
 	//printf("\ntid %d: Done.\n", a_twa->id);
-	printf("\n%srsa-keygen:%s done.\n", g_color_heading, g_color_default);
+	color_printf("\n*arsa-keygen:*d done.\n");
 	gettimeofday(&g_end_time, NULL);
-	printf("%srsa-keygen:%s found key in %s%ld%s seconds %s%ld%s usecs.\n", g_color_heading, g_color_default, g_color_highlight,
-		   g_end_time.tv_sec - g_start_time.tv_sec - ((g_end_time.tv_usec - g_start_time.tv_usec < 0) ? 1 : 0), // subtract 1 if there was a usec rollover
-		   g_color_default, g_color_highlight,
-		   g_end_time.tv_usec - g_start_time.tv_usec + ((g_end_time.tv_usec - g_start_time.tv_usec < 0) ? 1000000 : 0),
-		   g_color_default); // bump usecs by 1 million usec for rollover
+	color_printf("*arsa-keygen:*d found key in *h%ld*d seconds *h%ld*d usecs.\n", g_end_time.tv_sec - g_start_time.tv_sec - ((g_end_time.tv_usec - g_start_time.tv_usec < 0) ? 1 : 0),
+		g_end_time.tv_usec - g_start_time.tv_usec + ((g_end_time.tv_usec - g_start_time.tv_usec < 0) ? 1000000 : 0));
 
 	// export
 	
@@ -364,16 +353,16 @@ void *gen_tf(void *arg)
 	int privkey_pem_fd, pubkey_pem_fd;
 
 	if (g_pem == 1) {
-		printf("%srsa-keygen:%s output mode: privacy-enhanced mail format\n", g_color_heading, g_color_default);
+		color_printf("*arsa-keygen:*d output mode: privacy-enhanced mail format\n");
 		strcat(g_private_filename, g_private_pem_suffix);
 		strcat(g_public_filename, g_public_pem_suffix);
 	} else {
-		printf("%srsa-keygen:%s output mode: native binary format\n", g_color_heading, g_color_default);
+		color_printf("*arsa-keygen:*d output mode: native binary format\n");
 		strcat(g_private_filename, g_private_suffix);
 		strcat(g_public_filename, g_public_suffix);
 	}
-	printf("%srsa-keygen:%s public key file : %s%s%s\n", g_color_heading, g_color_default, g_color_highlight, g_public_filename, g_color_default);
-	printf("%srsa-keygen:%s private key file: %s%s%s\n", g_color_heading, g_color_default, g_color_highlight, g_private_filename, g_color_default);
+	color_printf("*arsa-keygen:*d public key file : *h%s*d\n", g_public_filename);
+	color_printf("*arsa-keygen:*d private key file: *h%s*d\n", g_private_filename);
 
 	char l_priv_template[32];
 	char l_public_template[32];
@@ -381,12 +370,12 @@ void *gen_tf(void *arg)
 	if (g_pem == 0) {
 		privkey_fd = open(g_private_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 		if (privkey_fd < 0) {
-			fprintf(stderr, "%srsa-keygen: unable to open private key file for writing. error: %s%s\n", g_color_error, strerror(errno), g_color_default);
+			color_err_printf(1, "rsa-keygen: unable to open private key file for writing");
 			exit(EXIT_FAILURE);
 		}
 		pubkey_fd = open(g_public_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 		if (pubkey_fd < 0) {
-			fprintf(stderr, "%srsa-keygen: unable to open public key file for writing. error: %s%s\n", g_color_error, strerror(errno), g_color_default);
+			color_err_printf(1, "rsa-keygen: unable to open public key file for writing");
 			exit(EXIT_FAILURE);
 		}
 	} else {
@@ -394,18 +383,16 @@ void *gen_tf(void *arg)
 		strcpy(l_public_template, "/tmp/rsa-keygen-publicXXXXXX");
 		privkey_fd = mkstemp(l_priv_template);
 		if (privkey_fd < 0) {
-			fprintf(stderr, "%srsa-keygen: unable to open temporary private key file for writing. error: %s%s\n", g_color_error, strerror(errno), g_color_default);
+			color_err_printf(1, "rsa-keygen: unable to open temporary private key file for writing");
 			exit(EXIT_FAILURE);
 		}
 		pubkey_fd = mkstemp(l_public_template);
 		if (pubkey_fd < 0) {
-			fprintf(stderr, "%srsa-keygen: unable to open temporary public key file for writing. error: %s%s\n", g_color_error, strerror(errno), g_color_default);
+			color_err_printf(1, "rsa-keygen: unable to open temporary public key file for writing");
 			exit(EXIT_FAILURE);
 		}
-		if (g_debug > 0) {
-			printf("/tmp private template: %s\n", l_priv_template);
-			printf("/tmp public template: %s\n", l_public_template);
-		}
+		color_debug("/tmp private template: %s\n", l_priv_template);
+		color_debug("/tmp public template: %s\n", l_public_template);
 	}
 	size_t l_written = 0;
 
@@ -413,7 +400,7 @@ void *gen_tf(void *arg)
 	if (l_written != (g_bits / 8)) {
 		ccct_right_justify(l_written, (g_bits / 8) - l_written, (char *)a_twa->buff);
 	}
-	printf("%smodulus n (%s%d%s bits):%s", g_color_heading, g_color_bullet, g_bits, g_color_heading, g_color_default);
+	color_printf("*amodulus n (*b%d*a bits):*d", g_bits);
 	ccct_print_hex(a_twa->buff, (g_bits / 8));
 	if (g_filename_specified) {
 		key_item_header l_kih;
@@ -421,23 +408,23 @@ void *gen_tf(void *arg)
 		l_kih.bit_width = htonl(g_bits);
 		res = write(privkey_fd, &l_kih, sizeof(l_kih));
 		if (res != sizeof(l_kih)) {
-			fprintf(stderr, "%srsa-keygen: problems writing key data: %s%s\n", g_color_error, strerror(errno), g_color_default);
+			color_err_printf(1, "rsa-keygen: problems writing key data");
 			exit(EXIT_FAILURE);
 		}
 		res = write(privkey_fd, a_twa->buff, (g_bits / 8));
 		if (res != (g_bits / 8)) {
-			fprintf(stderr, "%srsa-keygen: problems writing key data: %s%s\n", g_color_error, strerror(errno), g_color_default);
+			color_err_printf(1, "rsa-keygen: problems writing key data");
 			exit(EXIT_FAILURE);
 		}
 
 		res = write(pubkey_fd, &l_kih, sizeof(l_kih));
 		if (res != sizeof(l_kih)) {
-			fprintf(stderr, "%srsa-keygen: problems writing key data: %s%s\n", g_color_error, strerror(errno), g_color_default);
+			color_err_printf(1, "rsa-keygen: problems writing key data");
 			exit(EXIT_FAILURE);
 		}
 		res = write(pubkey_fd, a_twa->buff, (g_bits / 8));
 		if (res != (g_bits / 8)) {
-			fprintf(stderr, "%srsa-keygen: problems writing key data: %s%s\n", g_color_error, strerror(errno), g_color_default);
+			color_err_printf(1, "rsa-keygen: problems writing key data");
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -446,7 +433,7 @@ void *gen_tf(void *arg)
 	if (l_written != 4) { // save e as a 32 bit value, big endian
 		ccct_right_justify(l_written, 4 - l_written, (char *)a_twa->buff);
 	}
-	printf("%spublic exponent e:%s", g_color_heading, g_color_default);
+	color_printf("*apublic exponent e:*d");
 	ccct_print_hex(a_twa->buff, 4);
 	if (g_filename_specified) {
 		key_item_header l_kih;
@@ -454,23 +441,23 @@ void *gen_tf(void *arg)
 		l_kih.bit_width = htonl(32);
 		res = write(privkey_fd, &l_kih, sizeof(l_kih));
 		if (res != sizeof(l_kih)) {
-			fprintf(stderr, "%srsa-keygen: problems writing key data: %s%s\n", g_color_error, strerror(errno), g_color_default);
+			color_err_printf(1, "rsa-keygen: problems writing key data");
 			exit(EXIT_FAILURE);
 		}
 		res = write(privkey_fd, a_twa->buff, 4);
 		if (res != 4) {
-			fprintf(stderr, "%srsa-keygen: problems writing key data: %s%s\n", g_color_error, strerror(errno), g_color_default);
+			color_err_printf(1, "rsa-keygen: problems writing key data");
 			exit(EXIT_FAILURE);
 		}
 
 		res = write(pubkey_fd, &l_kih, sizeof(l_kih));
 		if (res != sizeof(l_kih)) {
-			fprintf(stderr, "%srsa-keygen: problems writing key data: %s%s\n", g_color_error, strerror(errno), g_color_default);
+			color_err_printf(1, "rsa-keygen: problems writing key data");
 			exit(EXIT_FAILURE);
 		}
 		res = write(pubkey_fd, a_twa->buff, 4);
 		if (res != 4) {
-			fprintf(stderr, "%srsa-keygen: problems writing key data: %s%s\n", g_color_error, strerror(errno), g_color_default);
+			color_err_printf(1, "rsa-keygen: problems writing key data");
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -479,7 +466,7 @@ void *gen_tf(void *arg)
 	if (l_written != (g_bits / 8)) {
 		ccct_right_justify(l_written, (g_bits / 8) - l_written, (char *)a_twa->buff);
 	}
-	printf("%sprivate exponent d:%s", g_color_heading, g_color_default);
+	color_printf("*aprivate exponent d:*d");
 	ccct_print_hex(a_twa->buff, (g_bits / 8));
 	if (g_filename_specified) {
 		key_item_header l_kih;
@@ -487,12 +474,12 @@ void *gen_tf(void *arg)
 		l_kih.bit_width = htonl(g_bits);
 		res = write(privkey_fd, &l_kih, sizeof(l_kih));
 		if (res != sizeof(l_kih)) {
-			fprintf(stderr, "%srsa-keygen: problems writing key data: %s%s\n", g_color_error, strerror(errno), g_color_default);
+			color_err_printf(1, "rsa-keygen: problems writing key data");
 			exit(EXIT_FAILURE);
 		}
 		res = write(privkey_fd, a_twa->buff, (g_bits / 8));
 		if (res != (g_bits / 8)) {
-			fprintf(stderr, "%srsa-keygen: problems writing key data: %s%s\n", g_color_error, strerror(errno), g_color_default);
+			color_err_printf(1, "rsa-keygen: problems writing key data");
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -501,7 +488,7 @@ void *gen_tf(void *arg)
 	if (l_written != (g_pqbits / 8)) {
 		ccct_right_justify(l_written, (g_pqbits / 8) - l_written, (char *)a_twa->buff);
 	}
-	printf("%sprime p:%s", g_color_heading, g_color_default);
+	color_printf("*aprime p:*d");
 	ccct_print_hex(a_twa->buff, (g_pqbits / 8));
 	if (g_filename_specified) {
 		key_item_header l_kih;
@@ -509,12 +496,12 @@ void *gen_tf(void *arg)
 		l_kih.bit_width = htonl(g_pqbits);
 		res = write(privkey_fd, &l_kih, sizeof(l_kih));
 		if (res != sizeof(l_kih)) {
-			fprintf(stderr, "%srsa-keygen: problems writing key data: %s%s\n", g_color_error, strerror(errno), g_color_default);
+			color_err_printf(1, "rsa-keygen: problems writing key data");
 			exit(EXIT_FAILURE);
 		}
 		res = write(privkey_fd, a_twa->buff, (g_pqbits / 8));
 		if (res != (g_pqbits / 8)) {
-			fprintf(stderr, "%srsa-keygen: problems writing key data: %s%s\n", g_color_error, strerror(errno), g_color_default);
+			color_err_printf(1, "rsa-keygen: problems writing key data");
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -523,7 +510,7 @@ void *gen_tf(void *arg)
 	if (l_written != (g_pqbits / 8)) {
 		ccct_right_justify(l_written, (g_pqbits / 8) - l_written, (char *)a_twa->buff);
 	}
-	printf("%sprime q:%s", g_color_heading, g_color_default);
+	color_printf("*aprime q:*d");
 	ccct_print_hex(a_twa->buff, (g_pqbits / 8));
 	if (g_filename_specified) {
 		key_item_header l_kih;
@@ -531,12 +518,12 @@ void *gen_tf(void *arg)
 		l_kih.bit_width = htonl(g_pqbits);
 		res = write(privkey_fd, &l_kih, sizeof(l_kih));
 		if (res != sizeof(l_kih)) {
-			fprintf(stderr, "%srsa-keygen: problems writing key data: %s%s\n", g_color_error, strerror(errno), g_color_default);
+			color_err_printf(1, "rsa-keygen: problems writing key data");
 			exit(EXIT_FAILURE);
 		}
 		res = write(privkey_fd, a_twa->buff, (g_pqbits / 8));
 		if (res != (g_pqbits / 8)) {
-			fprintf(stderr, "%srsa-keygen: problems writing key data: %s%s\n", g_color_error, strerror(errno), g_color_default);
+			color_err_printf(1, "rsa-keygen: problems writing key data");
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -545,7 +532,7 @@ void *gen_tf(void *arg)
 	if (l_written != (g_pqbits / 8)) {
 		ccct_right_justify(l_written, (g_pqbits / 8) - l_written, (char *)a_twa->buff);
 	}
-	printf("%sexponent dp:%s", g_color_heading, g_color_default);
+	color_printf("*aexponent dp:*d");
 	ccct_print_hex(a_twa->buff, (g_pqbits / 8));
 	if (g_filename_specified) {
 		key_item_header l_kih;
@@ -553,12 +540,12 @@ void *gen_tf(void *arg)
 		l_kih.bit_width = htonl(g_pqbits);
 		res = write(privkey_fd, &l_kih, sizeof(l_kih));
 		if (res != sizeof(l_kih)) {
-			fprintf(stderr, "%srsa-keygen: problems writing key data: %s%s\n", g_color_error, strerror(errno), g_color_default);
+			color_err_printf(1, "rsa-keygen: problems writing key data");
 			exit(EXIT_FAILURE);
 		}
 		res = write(privkey_fd, a_twa->buff, (g_pqbits / 8));
 		if (res != (g_pqbits / 8)) {
-			fprintf(stderr, "%srsa-keygen: problems writing key data: %s%s\n", g_color_error, strerror(errno), g_color_default);
+			color_err_printf(1, "rsa-keygen: problems writing key data");
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -567,7 +554,7 @@ void *gen_tf(void *arg)
 	if (l_written != (g_pqbits / 8)) {
 		ccct_right_justify(l_written, (g_pqbits / 8) - l_written, (char *)a_twa->buff);
 	}
-	printf("%sexponent dq:%s", g_color_heading, g_color_default);
+	color_printf("*aexponent dq:*d");
 	ccct_print_hex(a_twa->buff, (g_pqbits / 8));
 	if (g_filename_specified) {
 		key_item_header l_kih;
@@ -575,12 +562,12 @@ void *gen_tf(void *arg)
 		l_kih.bit_width = htonl(g_pqbits);
 		res = write(privkey_fd, &l_kih, sizeof(l_kih));
 		if (res != sizeof(l_kih)) {
-			fprintf(stderr, "%srsa-keygen: problems writing key data: %s%s\n", g_color_error, strerror(errno), g_color_default);
+			color_err_printf(1, "rsa-keygen: problems writing key data");
 			exit(EXIT_FAILURE);
 		}
 		res = write(privkey_fd, a_twa->buff, (g_pqbits / 8));
 		if (res != (g_pqbits / 8)) {
-			fprintf(stderr, "%srsa-keygen: problems writing key data: %s%s\n", g_color_error, strerror(errno), g_color_default);
+			color_err_printf(1, "rsa-keygen: problems writing key data");
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -589,7 +576,7 @@ void *gen_tf(void *arg)
 	if (l_written != (g_pqbits / 8)) {
 		ccct_right_justify(l_written, (g_pqbits / 8) - l_written, (char *)a_twa->buff);
 	}
-	printf("%scoefficient qinv:%s", g_color_heading, g_color_default);
+	color_printf("*acoefficient qinv:*d");
 	ccct_print_hex(a_twa->buff, (g_pqbits / 8));
 	if (g_filename_specified) {
 		key_item_header l_kih;
@@ -597,12 +584,12 @@ void *gen_tf(void *arg)
 		l_kih.bit_width = htonl(g_pqbits);
 		res = write(privkey_fd, &l_kih, sizeof(l_kih));
 		if (res != sizeof(l_kih)) {
-			fprintf(stderr, "%srsa-keygen: problems writing key data: %s%s\n", g_color_error, strerror(errno), g_color_default);
+			color_err_printf(1, "rsa-keygen: problems writing key data");
 			exit(EXIT_FAILURE);
 		}
 		res = write(privkey_fd, a_twa->buff, (g_pqbits / 8));
 		if (res != (g_pqbits / 8)) {
-			fprintf(stderr, "%srsa-keygen: problems writing key data: %s%s\n", g_color_error, strerror(errno), g_color_default);
+			color_err_printf(1, "rsa-keygen: problems writing key data");
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -612,19 +599,19 @@ void *gen_tf(void *arg)
 	if (g_pem == 1) {
 		res = lseek(privkey_fd, 0, SEEK_SET);
 		if (res < 0) {
-			fprintf(stderr, "%srsa-keygen: can't rewind temporary private key file: %s%s\n", g_color_error, strerror(errno), g_color_default);
+			color_err_printf(1, "rsa-keygen: can't rewind temporary private key file");
 			exit(EXIT_FAILURE);
 		}
 		res = lseek(pubkey_fd, 0, SEEK_SET);
 		if (res < 0) {
-			fprintf(stderr, "%srsa-keygen: can't rewind temporary public key file: %s%s\n", g_color_error, strerror(errno), g_color_default);
+			color_err_printf(1, "rsa-keygen: can't rewind temporary public key file");
 			exit(EXIT_FAILURE);
 		}
 		// find out how big our private key file is
 		struct stat l_privstat;
 		res = stat(l_priv_template, &l_privstat);
 		if (res < 0) {
-			fprintf(stderr, "%srsa-keygen: unable to stat temporary private key file: %s%s\n", g_color_error, strerror(errno), g_color_default);
+			color_err_printf(1, "rsa-keygen: unable to stat temporary private key file");
 			exit(EXIT_FAILURE);
 		}
 		// and create a buffer big enough to load it in, and another to hold the base64, and another to hold the format
@@ -633,19 +620,19 @@ void *gen_tf(void *arg)
 		char *buff_load = NULL;
 		buff_load = malloc(l_buff_load_size);
 		if (buff_load == NULL) {
-			fprintf(stderr, "%srsa-keygen: unable to allocate buffer to load temporary key files.%s\n", g_color_error, g_color_default);
+			color_err_printf(0, "rsa-keygen: unable to allocate buffer to load temporary key files");
 			exit(EXIT_FAILURE);
 		}
 		char *buff_enc = NULL;
 		buff_enc = malloc(l_buff_enc_size);
 		if (buff_enc == NULL) {
-			fprintf(stderr, "%srsa-keygen: unable to allocate buffer to encrypt temporary key files.%s\n", g_color_error, g_color_default);
+			color_err_printf(0, "rsa-keygen: unable to allocate buffer to encrypt temporary key files");
 			exit(EXIT_FAILURE);
 		}
 		char *buff_fmt = NULL;
 		buff_fmt = malloc(l_buff_enc_size + 512);
 		if (buff_fmt == NULL) {
-			fprintf(stderr, "%srsa-keygen: unable to allocate buffer to hold formatted temporary key files.%s\n", g_color_error, g_color_default);
+			color_err_printf(0, "rsa-keygen: unable to allocate buffer to hold formatted temporary key files");
 			exit(EXIT_FAILURE);
 		}
 
@@ -655,7 +642,7 @@ void *gen_tf(void *arg)
 		do {
 			res = read(privkey_fd, buff_load + buff_load_len, 4096);
 			if (res < 0) {
-				fprintf(stderr, "%srsa-keygen: problems reading temporary private key: %s%s\n", g_color_error, strerror(errno), g_color_default);
+				color_err_printf(1, "rsa-keygen: problems reading temporary private key");
 				exit(EXIT_FAILURE);
 			}
 			buff_load_len += res;
@@ -666,15 +653,15 @@ void *gen_tf(void *arg)
 		// write out key to user specified file
 		privkey_pem_fd = open(g_private_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 		if (privkey_pem_fd < 0) {
-			fprintf(stderr, "%srsa-keygen: unable to open private key file for writing. error: %s%s\n", g_color_error, strerror(errno), g_color_default);
+			color_err_printf(1, "rsa-keygen: unable to open private key file for writing");
 			exit(EXIT_FAILURE);
 		}
 		res = write(privkey_pem_fd, buff_fmt, strlen(buff_fmt));
 		if (res < 0) {
-			fprintf(stderr, "%srsa-keygen: unable to write to private key file: %s%s\n", strerror(errno));
+			color_err_printf(1, "rsa-keygen: unable to write to private key file");
 			exit(EXIT_FAILURE);
 		} else if (res != strlen(buff_fmt)) {
-			fprintf(stderr, "%srsa-keygen: unable to write entire contents of formatted buffer: wrote %d expected %d.%s\n", g_color_error, res, strlen(buff_fmt), g_color_default);
+			color_err_printf(0, "rsa-keygen: unable to write entire contents of formatted buffer: wrote %d expected %d.\n", res, strlen(buff_fmt));
 			exit(EXIT_FAILURE);
 		}
 		close(privkey_pem_fd);
@@ -684,7 +671,7 @@ void *gen_tf(void *arg)
 		do {
 			res = read(pubkey_fd, buff_load + buff_load_len, 4096);
 			if (res < 0) {
-				fprintf(stderr, "%srsa-keygen: problems reading temporary private key: %s%s\n", g_color_error, strerror(errno), g_color_default);
+				color_err_printf(1, "rsa-keygen: problems reading temporary private key");
 				exit(EXIT_FAILURE);
 			}
 			buff_load_len += res;
@@ -694,15 +681,15 @@ void *gen_tf(void *arg)
 		ccct_base64_format(buff_enc, buff_fmt, "BEGIN PUBLIC KEY", "END PUBLIC KEY");
 		pubkey_pem_fd = open(g_public_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 		if (pubkey_pem_fd < 0) {
-			fprintf(stderr, "%srsa-keygen: unable to open public key file for writing. error: %s%s\n", g_color_error, strerror(errno), g_color_default);
+			color_err_printf(1, "rsa-keygen: unable to open public key file for writing");
 			exit(EXIT_FAILURE);
 		}
 		res = write(pubkey_pem_fd, buff_fmt, strlen(buff_fmt));
 		if (res < 0) {
-			fprintf(stderr, "%srsa-keygen: unable to write to public key file: %s%s\n", g_color_error, strerror(errno), g_color_default);
+			color_err_printf(1, "rsa-keygen: unable to write to public key file");
 			exit(EXIT_FAILURE);
 		} else if (res != strlen(buff_fmt)) {
-			fprintf(stderr, "%srsa-keygen: unable to write entire contents of formatted buffer: wrote %d expected %d.%s\n", g_color_error, res, strlen(buff_fmt), g_color_default);
+			color_err_printf(0, "rsa-keygen: unable to write entire contents of formatted buffer: wrote %d expected %d.\n", res, strlen(buff_fmt));
 			exit(EXIT_FAILURE);
 		}
 		close(pubkey_pem_fd);
@@ -737,20 +724,8 @@ void *gen_tf(void *arg)
 	mpz_clear(l_dq);
 	mpz_clear(l_qinv);
 
-	// cancel everybody else
-//	for (i = 0; i < g_threads; ++i) {
-//		if (i != a_twa->id) {
-//			pthread_cancel(twa[i].thread);
-//		}
-//	}
-
 	// dirty, yes.. but I hate to wait
 	exit(EXIT_SUCCESS);
-
-	if (g_bits > 2048)
-		printf("\nPlease be patient while other threads terminate:\n(may take several seconds at large bit rates)\n");
-
-	pthread_exit(NULL);
 	return NULL;
 }
 
@@ -767,16 +742,8 @@ int main(int argc, char **argv)
 	}
 
 	// set up colors
-	g_color_default[0] = 0;
-	g_color_highlight[0] = 0;
-	g_color_bullet[0] = 0;
-	g_color_error[0] = 0;
-	g_color_heading[0] = 0;
-	strcpy(g_color_default, CCCT_COLOR_DEFAULT);
-	strcpy(g_color_highlight, CCCT_COLOR_HIGHLIGHT);
-	strcpy(g_color_bullet, CCCT_COLOR_BULLET);
-	strcpy(g_color_error, CCCT_COLOR_ERROR);
-	strcpy(g_color_heading, CCCT_COLOR_HEADING);
+	color_init(g_nocolor, g_debug);
+	color_set_theme(3);
 
 	while ((opt = getopt_long(argc, argv, "db:?t:o:", g_options, NULL)) != -1) {
 		switch (opt) {
@@ -787,17 +754,15 @@ int main(int argc, char **argv)
 			break;
 			case 1002: // nocolor
 				{
-					g_color_default[0] = 0;
-					g_color_highlight[0] = 0;
-					g_color_bullet[0] = 0;
-					g_color_error[0] = 0;
-					g_color_heading[0] = 0;
+					g_nocolor = 1;
+					color_set_nocolor(g_nocolor);
 				}
 			break;
 			case 'd':
 				{
 					g_debug = 1;
 					ccct_set_debug(1);
+					color_set_debug(g_debug);
 				}
 				break;
 			case 't':
@@ -819,33 +784,33 @@ int main(int argc, char **argv)
 				break;
 			case '?':
 				{
-					printf("%sRSA key pair generator%s\n", g_color_highlight, g_color_default);
-					printf("%sby Stephen Sviatko - (C) 2025 Good Neighbors LLC%s\n", g_color_heading, g_color_default);
-					printf("revision 0.80 alpha - 2025/Nov/15\n");
-					printf("%susage: rsa-keygen <options>%s\n", g_color_highlight, g_color_default);
-					printf("%s  -b (--bits) <bit width>%s key modulus size\n", g_color_heading, g_color_default);
-					printf("%s  -t (--threads) <threads>%s number of threads to use\n", g_color_heading, g_color_default);
-					printf("%s  -o (--out) <name>%s filename specifier to write out keys\n", g_color_heading, g_color_default);
-					printf("     otherwise, key will be written to default-* filenames.\n");
-					printf("%s     (--pem)%s output key in privacy-enhanced mail format\n", g_color_heading, g_color_default);
-					printf("%s     (--nocolor)%s defeat terminal colors\n", g_color_heading, g_color_default);
-					printf("  RSA bit width must be between %s768%s and %s%d%s in 256 bit increments\n", g_color_bullet, g_color_default, g_color_bullet, MAXBITS, g_color_default);
-					printf("  default: %s%d%s bits\n", g_color_bullet, g_bits, g_color_default);
+					color_printf("*hRSA key pair generator*d\n");
+					color_printf("*aby Stephen Sviatko - (C) 2025 Good Neighbors LLC*d\n");
+					color_printf("revision 0.80 alpha - 2025/Nov/15\n");
+					color_printf("*husage: rsa-keygen <options>*d\n");
+					color_printf("*a  -b (--bits) <bit width>*d key modulus size\n");
+					color_printf("*a  -t (--threads) <threads>*d number of threads to use\n");
+					color_printf("*a  -o (--out) <name>*d filename specifier to write out keys\n");
+					color_printf("     otherwise, key will be written to default-* filenames.\n");
+					color_printf("*a     (--pem)*d output key in privacy-enhanced mail format\n");
+					color_printf("*a     (--nocolor)*d defeat terminal colors\n");
+					color_printf("  RSA bit width must be between *b768*d and *b%d*d in 256 bit increments\n", MAXBITS);
+					color_printf("  default: *b%d*d bits\n", g_bits);
 					exit(EXIT_SUCCESS);
 				}
 				break;
 		}
 	}
 	if (g_bits > MAXBITS) {
-		fprintf(stderr, "%srsa-keygen: bit width too big for practical purposes.%s\n", g_color_error, g_color_default);
+		color_err_printf(0, "rsa-keygen: bit width too big for practical purposes.");
 		exit(EXIT_FAILURE);
 	}
 	if (g_bits < 768) {
-		fprintf(stderr, "%srsa-keygen: bit width too small for practical purposes.%s\n", g_color_error, g_color_default);
+		color_err_printf(0, "rsa-keygen: bit width too small for practical purposes.");
 		exit(EXIT_FAILURE);
 	}
 	if ((g_bits % 256) != 0) {
-		fprintf(stderr, "%srsa-keygen: bit width should be divisible by 256.%s\n", g_color_error, g_color_default);
+		color_err_printf(0, "rsa-keygen: bit width should be divisible by 256.");
 		exit(EXIT_FAILURE);
 	}
 
@@ -858,23 +823,21 @@ int main(int argc, char **argv)
 
 	// police thread count
 	if (g_threads < 1) {
-		fprintf(stderr, "%srsa-keygen: need to use at least 1 thread.%s\n", g_color_error, g_color_default);
+		color_err_printf(0, "rsa-keygen: need to use at least 1 thread.");
 		exit(EXIT_FAILURE);
 	}
 	if (g_threads > MAXTHREADS) {
-		fprintf(stderr, "%srsa-keygen: thread limit: %d.%s\n", g_color_error, MAXTHREADS, g_color_default);;
+		color_err_printf(0, "rsa-keygen: thread limit: %d.", MAXTHREADS);
 		exit(EXIT_FAILURE);
 	}
 	pthread_mutex_init(&g_bell_mtx, NULL);
 	pthread_mutex_init(&g_urandom_mtx, NULL);
 
 	g_pqbits = g_bits / 2;
-	printf("%srsa-keygen:%s block bit width: %s%d%s\n", g_color_heading, g_color_default, g_color_bullet, g_bits, g_color_highlight);
-	if (g_debug > 0) {
-		printf("debug mode enabled\n");
-	}
+	color_printf("*arsa-keygen:*d block bit width: *b%d*d\n", g_bits);
+	color_debug("debug mode enabled\n");
 	if (g_threads > 1)
-		printf("%srsa-keygen:%s enabling %s%d%s threads.\n", g_color_heading, g_color_default, g_color_highlight, g_threads, g_color_default);
+		color_printf("*arsa-keygen:*d enabling *h%d*d threads.\n", g_threads);
 
 	// open urandom
 	ccct_open_urandom();
@@ -885,7 +848,7 @@ int main(int argc, char **argv)
 
 	gettimeofday(&g_start_time, NULL);
 
-	printf("%srsa-keygen:%s searching for key ...", g_color_heading, g_color_default);
+	color_printf("*arsa-keygen:*d searching for key ...");
 
 	for (i = 0; i < g_threads; ++i) {
 		twa[i].id = i;
