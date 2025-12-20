@@ -1685,9 +1685,9 @@ int main(int argc, char **argv)
                 } else if (strcmp(g_format_spec, "none") == 0) {
                     g_format = FORMAT_NONE;
                 } else {
-                    color_printf(0, "*ersa-util: unrecognized base64 format specifier \"*h%s*e\"*d.\n", g_format_spec);
-                    color_printf(0, "*ersa-util: allowed formats are: priv, pub, message, sig, raw, or none.*d\n");
-                    color_printf(0, "*ersa-util: use -? or --help for usage info.*d\n");
+                    color_printf("*ersa-util: unrecognized base64 format specifier \"*h%s*e\"*d.\n", g_format_spec);
+                    color_printf("*ersa-util: allowed formats are: priv, pub, message, sig, raw, or none.*d\n");
+                    color_printf("*ersa-util: use -? or --help for usage info.*d\n");
                     exit(EXIT_FAILURE);
                 }
             }
