@@ -52,6 +52,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <stdarg.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -235,6 +236,23 @@ pthread_mutex_t g_tally_mtx;
 pthread_cond_t g_tally_cond;
 int g_tally = 0;
 pthread_mutex_t g_debug_mtx; // protect debug messages in multithreaded environment
+
+void color_gmp_printf(const char *format, ...)
+{
+    if (g_debug == 0)
+        return; // don't print anything if debug isn't turned on
+    char edited_format[BUFFLEN];
+    edited_format[0] = 0;
+    if (!g_nocolor)
+        strcat(edited_format, "\033[34m");
+    strcat(edited_format, format);
+    if (!g_nocolor)
+        strcat(edited_format, "\033[39m\033[49m");
+    va_list args;
+    va_start(args, format);
+    gmp_vprintf(edited_format, args);
+    va_end(args);
+}
 
 void load_key()
 {
@@ -676,9 +694,7 @@ void do_encrypt()
 
     // and encrypt it
     mpz_powm(l_cipher, l_block, l_e, l_n);
-    if (g_debug > 0) {
-        gmp_printf("n      = %Zx\ne      = %Zx\nblock  = %Zx\ncipher = %Zx\n", l_n, l_e, l_block, l_cipher);
-    }
+    color_gmp_printf("n      = %Zx\ne      = %Zx\nblock  = %Zx\ncipher = %Zx\n", l_n, l_e, l_block, l_cipher);
 
     // and export it to aux block
     mpz_export(g_buff2, &l_written, 1, sizeof(unsigned char), 0, 0, l_cipher);
@@ -709,7 +725,7 @@ void do_encrypt()
         mpz_t l_decrypted;
         mpz_init(l_decrypted);
         mpz_powm(l_decrypted, l_cipher, l_d, l_n);
-        gmp_printf("decr.  = %Zx\n", l_decrypted);
+        color_gmp_printf("decr.  = %Zx\n", l_decrypted);
         mpz_export(g_buff2, &l_written, 1, sizeof(unsigned char), 0, 0, l_decrypted);
         if (l_written != g_block_size) {
             ccct_right_justify(l_written, g_block_size - l_written, (char *)g_buff2);
@@ -753,9 +769,7 @@ void do_encrypt()
 
         // and encrypt it
         mpz_powm(l_cipher, l_block, l_e, l_n);
-        if (g_debug > 0) {
-            gmp_printf("n      = %Zx\ne      = %Zx\nblock  = %Zx\ncipher = %Zx\n", l_n, l_e, l_block, l_cipher);
-        }
+        color_gmp_printf("n      = %Zx\ne      = %Zx\nblock  = %Zx\ncipher = %Zx\n", l_n, l_e, l_block, l_cipher);
         // and export it to aux block
         mpz_export(g_buff2, &l_written, 1, sizeof(unsigned char), 0, 0, l_cipher);
         if (l_written != g_block_size) {
@@ -783,7 +797,7 @@ void do_encrypt()
             mpz_t l_decrypted;
             mpz_init(l_decrypted);
             mpz_powm(l_decrypted, l_cipher, l_d, l_n);
-            gmp_printf("decr.  = %Zx\n", l_decrypted);
+            color_gmp_printf("decr.  = %Zx\n", l_decrypted);
             mpz_export(g_buff2, &l_written, 1, sizeof(unsigned char), 0, 0, l_decrypted);
             if (l_written != g_block_size) {
                 ccct_right_justify(l_written, g_block_size - l_written, (char *)g_buff2);
@@ -960,7 +974,7 @@ void *decrypt_tf(void *arg)
 
         if (g_debug > 0) {
             pthread_mutex_lock(&g_debug_mtx);
-            gmp_printf("tid %d: n      = %Zx\nd      = %Zx\ncipher = %Zx\nblock  = %Zx\n", a_twa->id, l_n, l_d, l_cipher, l_block);
+            color_gmp_printf("tid %d: n      = %Zx\nd      = %Zx\ncipher = %Zx\nblock  = %Zx\n", a_twa->id, l_n, l_d, l_cipher, l_block);
             pthread_mutex_unlock(&g_debug_mtx);
         }
 
@@ -1339,9 +1353,7 @@ void do_sign_verify(int a_mode)
 
         // and encrypt it with the private exponent
         mpz_powm(l_cipher, l_block, l_d, l_n);
-        if (g_debug > 0) {
-            gmp_printf("n      = %Zx\nd      = %Zx\ncipher = %Zx\nblock  = %Zx\n", l_n, l_d, l_cipher, l_block);
-        }
+        color_gmp_printf("n      = %Zx\nd      = %Zx\ncipher = %Zx\nblock  = %Zx\n", l_n, l_d, l_cipher, l_block);
 
         // and export it to aux block
         mpz_export(g_buff2, &l_written, 1, sizeof(unsigned char), 0, 0, l_cipher);
@@ -1463,9 +1475,7 @@ void do_sign_verify(int a_mode)
 
         // and decrypt it with the public exponent
         mpz_powm(l_block, l_cipher, l_e, l_n);
-        if (g_debug > 0) {
-            gmp_printf("n      = %Zx\ne      = %Zx\ncipher = %Zx\nblock  = %Zx\n", l_n, l_e, l_cipher, l_block);
-        }
+        color_gmp_printf("n      = %Zx\ne      = %Zx\ncipher = %Zx\nblock  = %Zx\n", l_n, l_e, l_cipher, l_block);
 
         // and export it to aux block
         mpz_export(g_buff2, &l_written, 1, sizeof(unsigned char), 0, 0, l_block);
