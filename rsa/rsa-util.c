@@ -82,11 +82,6 @@
 
 struct timeval g_start_time, g_end_time;
 
-char g_color_default[16];
-char g_color_highlight[16];
-char g_color_error[16];
-char g_color_heading[16];
-char g_color_bullet[16];
 int g_nocolor = 0;
 
 uint8_t g_n[MAXBYTEBUFF];
@@ -1041,19 +1036,19 @@ void do_decrypt()
         char *buff_load = NULL;
         buff_load = malloc(l_buff_load_size);
         if (buff_load == NULL) {
-            fprintf(stderr, "%srsa-util: unable to allocate buffer to load inputfile.%s\n", g_color_error, g_color_default);
+            color_err_printf(0, "rsa-util: unable to allocate buffer to load inputfile.");
             exit(EXIT_FAILURE);
         }
         char *buff_dec = NULL;
         buff_dec = malloc(l_buff_dec_size);
         if (buff_dec == NULL) {
-            fprintf(stderr, "%srsa-util: unable to allocate buffer to decrypt inputfile.%s\n", g_color_error, g_color_default);
+            color_err_printf(0, "rsa-util: unable to allocate buffer to decrypt inputfile.");
             exit(EXIT_FAILURE);
         }
         char *buff_unfmt = NULL;
         buff_unfmt = malloc(l_buff_dec_size + 512);
         if (buff_unfmt == NULL) {
-            fprintf(stderr, "%srsa-util: unable to allocate buffer to hold unformatted input file.%s\n", g_color_error, g_color_default);
+            color_err_printf(0, "rsa-util: unable to allocate buffer to hold unformatted input file.");
             exit(EXIT_FAILURE);
         }
 
@@ -1062,39 +1057,39 @@ void do_decrypt()
         do {
             res = read(g_infile_fd, buff_load + buff_load_len, 4096);
             if (res < 0) {
-                fprintf(stderr, "%srsa-util: problems reading input file: %s%s\n", g_color_error, strerror(errno), g_color_default);
+                color_err_printf(1, "rsa-util: problems reading input file");
                 exit(EXIT_FAILURE);
             }
             buff_load_len += res;
         } while (res != 0);
 //        printf("buff_load: %s\n", buff_load);
-        if (g_debug > 0) printf("do_decrypt: buff_load_len %d\n", buff_load_len);
+        color_debug("do_decrypt: buff_load_len %d\n", buff_load_len);
         ccct_base64_unformat(buff_load, buff_unfmt);
         uint32_t buff_dec_len = 0;
 //        printf("buff_unfnt: %s\n", buff_unfmt);
         ccct_base64_decode(buff_unfmt, buff_dec, &buff_dec_len);
-        if (g_debug > 0) printf("do_decrypt: buff_dec_len %d\n", buff_dec_len);
+        color_debug("do_decrypt: buff_dec_len %d\n", buff_dec_len);
         close(g_infile_fd);
         // now open tmp file and point g_infile_fd there
         strcpy(l_template, "/tmp/rsa-infileXXXXXX");
         g_infile_fd = mkstemp(l_template);
         if (g_infile_fd < 0) {
-            fprintf(stderr, "%srsa-util: unable to open temporary input file for writing. error: %s%s\n", g_color_error, strerror(errno), g_color_default);
+            color_err_printf(1, "rsa-util: unable to open temporary input file for writing");
             exit(EXIT_FAILURE);
         }
         // write decoded binary format key to temp file
         res = write(g_infile_fd, buff_dec, buff_dec_len);
         if (res < 0) {
-            fprintf(stderr, "%srsa-util: unable to write to temporary input file: %s%s\n", g_color_error, strerror(errno), g_color_default);
+            color_err_printf(1, "rsa-util: unable to write to temporary input file");
             exit(EXIT_FAILURE);
         } else if (res != buff_dec_len) {
-            fprintf(stderr, "%srsa-util: unable to write entire contents of input buffer: wrote %d expected %d.%s\n", g_color_error, res, buff_dec_len, g_color_default);
+            color_err_printf(0, "rsa-util: unable to write entire contents of input buffer: wrote %d expected %d.", res, buff_dec_len);
             exit(EXIT_FAILURE);
         }
         // rewind it so the rest of this function can read it, as if nothing happened
         res = lseek(g_infile_fd, 0, SEEK_SET);
         if (res < 0) {
-            fprintf(stderr, "%srsa-util: can't rewind temporary input file: %s%s\n", g_color_error, strerror(errno), g_color_default);
+            color_err_printf(1, "rsa-util: can't rewind temporary input file");
             exit(EXIT_FAILURE);
         }
         // clean up
@@ -1102,7 +1097,7 @@ void do_decrypt()
         free(buff_dec);
         free(buff_unfmt);
     } else {
-        printf("%srsa-util:%s decryption mode: %snative binary%s format\n", g_color_heading, g_color_default, g_color_highlight, g_color_default);
+        color_printf("*arsa-util:*d decryption mode: *hnative binary*d format\n");
         // .... and proceed as normal
     }
 
@@ -1113,22 +1108,22 @@ void do_decrypt()
             l_block_ctr++;
             res = read(g_infile_fd, twa[i].cipher, g_block_size);
             if (res == 0) {
-                if (g_debug > 0) printf("do_decrypt: EOF on input file, bailing out\n");
+                color_debug("do_decrypt: EOF on input file, bailing out\n");
                 l_eof = 1;
                 if (i == 0)
                     l_docontinue = 1;
                 break;
                 // at this point, i contains the number of blocks successfully read
             } else if (res < 0) {
-                fprintf(stderr, "%srsa-util: unable to read from input file during decrypt operation: %s%s\n", g_color_error, strerror(errno), g_color_default);
+                color_err_printf(1, "rsa-util: unable to read from input file during decrypt operation");
                 exit(EXIT_FAILURE);
             } else if (res < g_block_size) {
                 // file is already supposed to be a multiple of our block size, so this should never happen
-                fprintf(stderr, "%srsa-util: unable to read full block from input file during decrypt operation: expected %d got %d%s\n", g_color_error, g_block_size, res, g_color_default);
+                color_err_printf(0, "rsa-util: unable to read full block from input file during decrypt operation: expected %d got %d", g_block_size, res);
                 exit(EXIT_FAILURE);
             }
-            if (g_debug > 0) {
-                printf("\ndo_decrypt: block %d from input file", l_block_ctr);
+            if (g_debug) {
+                color_debug("\ndo_decrypt: block %d from input file", l_block_ctr);
                 ccct_print_hex(twa[i].cipher, g_block_size);
             }
             // populate a thread and signal it
@@ -1171,31 +1166,31 @@ void do_decrypt()
                     goto do_decrypt_keyerror;
                 }
                 // assumed good fileinfo_header now
-                printf("%srsa-util:%s data length in input file is %s%d%s bytes.\n", g_color_heading, g_color_default, g_color_highlight, l_fih.size, g_color_default);
-                if (g_debug > 0) printf("do_decrypt: input file data CRC is %08X\n", l_fih.crc);
-                printf("%srsa-util:%s GMT time stamp: %s%s%s", g_color_heading, g_color_default, g_color_highlight, asctime(gmtime((time_t *)&l_fih.time.ll)), g_color_default);
-                printf("%srsa-util:%s geolocation: latitude %s%.4f%s, longitude %s%.4f%s\n", g_color_heading, g_color_default, g_color_highlight, l_fih.latitude.f, g_color_default, g_color_highlight, l_fih.longitude.f, g_color_default);
+                color_printf("*arsa-util:*d data length in input file is *h%d*d bytes.\n", l_fih.size);
+                color_debug("do_decrypt: input file data CRC is %08X\n", l_fih.crc);
+                color_printf("*arsa-util:*d GMT time stamp: *h%s*d", asctime(gmtime((time_t *)&l_fih.time.ll)));
+                color_printf("*arsa-util:*d geolocation: latitude *h%.4f*d, longitude *h%.4f*d\n", l_fih.latitude.f, l_fih.longitude.f);
 
                 // write any data contained in first block to output file
                 uint32_t l_bytes_expected = g_1stblock_capacity;
                 if (l_fih.size < g_1stblock_capacity)
                     l_bytes_expected = l_fih.size;
-                if (g_debug > 0) printf("do_decrypt: expecting to write %d bytes in write operation\n", l_bytes_expected);
+                color_debug("do_decrypt: expecting to write %d bytes in write operation\n", l_bytes_expected);
                 res = write(g_outfile_fd, g_buff2 + 8 + sizeof(fileinfo_header), l_bytes_expected);
                 if (res < 0) {
-                    fprintf(stderr, "%srsa-util: unable to write to output file during decrypt operation: %s%s\n", g_color_error, strerror(errno), g_color_default);
+                    color_err_printf(1, "rsa-util: unable to write to output file during decrypt operation");
                     exit(EXIT_FAILURE);
                 }
                 if (res < l_bytes_expected) {
-                    fprintf(stderr, "%srsa-util: problems writing to output file, wrote %d bytes, expected %d%s\n", g_color_error, res, l_bytes_expected, g_color_default);
+                    color_err_printf(0, "rsa-util: problems writing to output file, wrote %d bytes, expected %d", res, l_bytes_expected);
                     exit(EXIT_FAILURE);
                 }
                 l_bytes_written_tab += res;
             } else {
                 // subsequent block, so just write it out
                 if (l_block_index == 2) {
-                    printf("%srsa-util:%s decrypting ", g_color_heading, g_color_default);
-                    ccct_progress(l_bytes_written_tab, l_fih.size);
+                    color_printf("*arsa-util:*d decrypting ");
+                    color_progress(l_bytes_written_tab, l_fih.size);
                 }
 //            } else {
 //                // print ccct_progress dot every eight blocks
@@ -1204,18 +1199,18 @@ void do_decrypt()
                 uint32_t l_bytes_expected = g_block_capacity;
                 if (l_fih.size - l_bytes_written_tab < g_block_capacity)
                     l_bytes_expected = l_fih.size - l_bytes_written_tab;
-                if (g_debug > 0) printf("do_decrypt: expecting to write %d bytes in write operation\n", l_bytes_expected);
+                color_debug("do_decrypt: expecting to write %d bytes in write operation\n", l_bytes_expected);
                 res = write(g_outfile_fd, g_buff2 + 8, l_bytes_expected);
                 if (res < 0) {
-                    fprintf(stderr, "%srsa-util: unable to write to output file during decrypt operation: %s%s\n", g_color_error, strerror(errno), g_color_default);
+                    color_err_printf(1, "rsa-util: unable to write to output file during decrypt operation");
                     exit(EXIT_FAILURE);
                 }
                 if (res < l_bytes_expected) {
-                    fprintf(stderr, "%srsa-util: problems writing to output file, wrote %d bytes, expected %d%s\n", g_color_error, res, l_bytes_expected, g_color_default);
+                    color_err_printf(0, "rsa-util: problems writing to output file, wrote %d bytes, expected %d", res, l_bytes_expected);
                     exit(EXIT_FAILURE);
                 }
                 l_bytes_written_tab += res;
-                if (l_block_ctr % 8 == 0) ccct_progress(l_bytes_written_tab, l_fih.size);
+                if (l_block_ctr % 8 == 0) color_progress(l_bytes_written_tab, l_fih.size);
             }
         }
         // done writing output?
@@ -1223,17 +1218,17 @@ void do_decrypt()
             l_eof = 1;
             // don't leave our ccct_progress meter hanging
             if (l_block_index > 1) {
-                ccct_progress(l_bytes_written_tab, l_fih.size);
+                color_progress(l_bytes_written_tab, l_fih.size);
                 printf("\n");
             }
-            if (g_debug > 0) printf("do_decrypt: finished writing input data\n");
+            color_debug("do_decrypt: finished writing input data\n");
         }
     } while (l_eof == 0);
     get_outfile_crc();
     if (g_outfile_crc == l_fih.crc) {
-        printf("%srsa-util:%s CRC %sOK%s\n", g_color_heading, g_color_default, g_color_bullet, g_color_default);
+        color_printf("*arsa-util:*d CRC *bOK*d\n");
     } else {
-        printf("%srsa-util:%s CRC failure,%s expected %08X, got %08X.\n", g_color_heading, g_color_error, g_color_default, l_fih.crc, g_outfile_crc);
+        color_printf("*arsa-util:*d CRC failure,*e expected %08X, got %08X.*d\n", l_fih.crc, g_outfile_crc);
     }
     if (l_dashcnt == 5) {
         // clean /tmp
@@ -1243,7 +1238,7 @@ void do_decrypt()
     return;
 
 do_decrypt_keyerror:
-    fprintf(stderr, "%srsa-util:%s error decrypting first block, %swrong key file or damaged key.%s\n", g_color_heading, g_color_default, g_color_error, g_color_default);
+    color_printf("*arsa-util:*d error decrypting first block, *ewrong key file or damaged key.*d\n");
     exit(EXIT_FAILURE);
 }
 
@@ -1264,7 +1259,7 @@ void do_sign_verify(int a_mode)
         if (res == 0)
             continue; // got our EOF
             if (res < 0) {
-                fprintf(stderr, "%srsa-util: unable to compute sha2-512 hash of input file: %s%s\n", g_color_error, strerror(errno), g_color_default);
+                color_err_printf(1, "rsa-util: unable to compute sha2-512 hash of input file");
                 exit(EXIT_FAILURE);
             }
             sha512_update(&l_ctx, (const uint8_t *)l_buff, res);
@@ -1273,11 +1268,11 @@ void do_sign_verify(int a_mode)
     // rewind g_infile_fd
     res = lseek(g_infile_fd, 0, SEEK_SET);
     if (res < 0) {
-        fprintf(stderr, "%sres: unable to rewind input file after computing sha2-512 hash: %s%s\n", g_color_error, strerror(errno), g_color_default);
+        color_err_printf(1, "rsa-util: unable to rewind input file after computing sha2-512 hash");
         exit(EXIT_FAILURE);
     }
     if (g_debug > 0) {
-        printf("do_sign_verify: sha2-512 hash of input file");
+        color_debug("do_sign_verify: sha2-512 hash of input file");
         ccct_print_hex(l_digest, 64);
     }
 
@@ -1296,24 +1291,24 @@ void do_sign_verify(int a_mode)
         res = stat(g_signaturefile, &l_signaturefile_stat);
         if (res == 0) {
             if (g_outfile_overwrite == 0) {
-                fprintf(stderr, "%srsa-util:%s signature file already exists%s (use %s-w%s or %s--overwrite%s to write to it anyway)\n", g_color_heading, g_color_error, g_color_default, g_color_highlight, g_color_default, g_color_highlight, g_color_default);
+                color_printf("*arsa-util: *esignature file already exists*d (use *h-w*d or *h--overwrite*d to write to it anyway)\n");
                 exit(EXIT_FAILURE);
             } else {
-                printf("%srsa-util:%s overwriting existing signature file %s%s%s\n", g_color_heading, g_color_default, g_color_highlight, g_outfile, g_color_default);
+                color_printf("*arsa-util:*d overwriting existing signature file *h%s*d\n", g_outfile);
             }
         } else if ((res < 0) && (errno == ENOENT)) {
             // this is what we want
         } else {
             // some other error from stat!
-            fprintf(stderr, "%srsa-util: unable to stat signature file to check its existence: %s%s\n", g_color_error, strerror(errno), g_color_default);
+            color_err_printf(1, "rsa-util: unable to stat signature file to check its existence");
             exit(EXIT_FAILURE);
         }
 
         // open the output file
-        if (g_debug) printf("do_sign_verify: opening and truncating signature file\n");
+        color_debug("do_sign_verify: opening and truncating signature file\n");
         g_signaturefile_fd = open(g_signaturefile, O_RDWR | O_TRUNC | O_CREAT, (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH));
         if (g_signaturefile_fd < 0) {
-            fprintf(stderr, "%srsa-util: error opening signature file for writing: %s%s\n", g_color_error, strerror(errno), g_color_default);
+            color_err_printf(1, "rsa-util: error opening signature file for writing");
             exit(EXIT_FAILURE);
         }
         // create a block in g_buff
@@ -1321,8 +1316,8 @@ void do_sign_verify(int a_mode)
         g_buff[0] = 0;
         // copy our digest into this block, after the random padding
         memcpy(g_buff + 8, l_digest, 64);
-        printf("%srsa-util:%s embedding GMT time stamp: %s%s%s", g_color_heading, g_color_default, g_color_highlight, asctime(gmtime((time_t *)&l_time.ll)), g_color_default);
-        printf("%srsa-util:%s embedding geolocation: latitude %s%.4f%s, longitude %s%.4f%s\n", g_color_heading, g_color_default, g_color_highlight, l_lat.f, g_color_default, g_color_highlight,  l_long.f, g_color_default);
+        color_printf("*arsa-util:*d embedding GMT time stamp: *h%s*d", asctime(gmtime((time_t *)&l_time.ll)));
+        color_printf("*arsa-util:*d embedding geolocation: latitude *h%.4f*d, longitude *h%.4f*d\n", l_lat.f, l_long.f);
         ccct_reverse_int64(&l_time);
         ccct_reverse_float(&l_lat);
         ccct_reverse_float(&l_long);
@@ -1330,7 +1325,7 @@ void do_sign_verify(int a_mode)
         memcpy(g_buff + 80, &l_lat.f, 4);
         memcpy(g_buff + 84, &l_long.f, 4);
         if (g_debug > 0) {
-            printf("do_sign_verify: plaintext block with hash");
+            color_debug("do_sign_verify: plaintext block with hash");
             ccct_print_hex(g_buff, g_block_size);
         }
 
@@ -1361,26 +1356,26 @@ void do_sign_verify(int a_mode)
             ccct_right_justify(l_written, g_block_size - l_written, (char *)g_buff2);
         }
         if (g_debug > 0) {
-            printf("do_sign_verify: encrypted hash");
+            color_debug("do_sign_verify: encrypted hash");
             ccct_print_hex(g_buff2, g_block_size);
         }
 
         size_t l_sig_write_size;
         if (g_pem) {
-            printf("%srsa-util:%s converting signature to %sprivacy-enhanced mail%s format...\n", g_color_heading, g_color_default, g_color_highlight, g_color_default);
+            color_printf("*arsa-util:*d converting signature to *hprivacy-enhanced mail*d format...\n");
             memcpy(g_buff, g_buff2, g_block_size);
             ccct_base64_encode(g_buff, g_block_size, g_buff2);
             memcpy(g_buff, g_buff2, strlen(g_buff2));
             ccct_base64_format(g_buff, g_buff2, "BEGIN SIGNATURE", "END SIGNATURE");
             l_sig_write_size = strlen(g_buff2);
         } else {
-            printf("%srsa-util:%s creating signature as %snative binary%s format...\n", g_color_heading, g_color_default, g_color_highlight, g_color_default);
+            color_printf("*arsa-util:*d creating signature as *hnative binary*d format...\n");
             l_sig_write_size = g_block_size;
         }
-        printf("%srsa-util:%s writing signature file...\n", g_color_heading, g_color_default);
+        color_printf("*arsa-util:*d writing signature file...\n");
         res = write(g_signaturefile_fd, g_buff2, l_sig_write_size);
         if (res < 0) {
-            fprintf(stderr, "%srsa-util: problems writing to signature file: %s%s\n", g_color_error, strerror(errno), g_color_default);
+            color_err_printf(1, "rsa-util: problems writing to signature file");
             exit(EXIT_FAILURE);
         }
         close(g_signaturefile_fd);
@@ -1394,14 +1389,14 @@ void do_sign_verify(int a_mode)
         // read in and decrypt signature file
         g_signaturefile_fd = open(g_signaturefile, O_RDONLY);
         if (g_signaturefile_fd < 0) {
-            fprintf(stderr, "%srsa-util: problems opening signature file: %s%s\n", g_color_error, strerror(errno), g_color_default);
+            color_err_printf(1, "rsa-util: problems opening signature file");
             exit(EXIT_FAILURE);
         }
         // auto-detect key format: PEM or BIN
         char l_buff[16];
         res = read(g_signaturefile_fd, l_buff, 16);
         if (res < 0) {
-            fprintf(stderr, "%srsa-util: can't read signature file: %s%s\n", g_color_error, strerror(errno), g_color_default);
+            color_err_printf(1, "rsa-util: can't read signature file");
             exit(EXIT_FAILURE);
         }
         // there must be 5 dash characters contained within the first 16 bytes of the file to be a PEM
@@ -1415,29 +1410,29 @@ void do_sign_verify(int a_mode)
         // irrespective of type, we need to rewind it now
         res = lseek(g_signaturefile_fd, 0, SEEK_SET);
         if (res < 0) {
-            fprintf(stderr, "%srsa-util: can't rewind signature file: %s%s\n", g_color_error, strerror(errno), g_color_default);
+            color_err_printf(1, "rsa-util: can't rewind signature file");
             exit(EXIT_FAILURE);
         }
         if (l_dashcnt == 5) {
             struct stat l_stat;
             res = stat(g_signaturefile, &l_stat);
             if (res < 0) {
-                fprintf(stderr, "%srsa-util: can't stat signature file: %s%s\n", g_color_error, strerror(errno), g_color_default);
+                color_err_printf(1, "rsa-util: can't stat signature file");
                 exit(EXIT_FAILURE);
             }
-            printf("%srsa-util:%s reading %sprivacy-enhanced mail%s format signature...\n", g_color_heading, g_color_default, g_color_highlight, g_color_default);
+            color_printf("*arsa-util:*d reading *hprivacy-enhanced mail*d format signature...\n");
             l_sig_read_size = l_stat.st_size;
         } else {
-            printf("%srsa-util:%s reading %snative binary%s format signature...\n", g_color_heading, g_color_default, g_color_highlight, g_color_default);
+            color_printf("*arsa-util:*d reading *hnative binary*d format signature...\n");
             l_sig_read_size = g_block_size;
         }
         res = read(g_signaturefile_fd, g_buff, l_sig_read_size);
         if (res < 0) {
-            fprintf(stderr, "%srsa-util: problems reading signature file: %s%s\n", g_color_error, strerror(errno), g_color_default);
+            color_err_printf(1, "rsa-util: problems reading signature file");
             exit(EXIT_FAILURE);
         }
         if (res != l_sig_read_size) {
-            fprintf(stderr, "%srsa-util: block size mismatch in signature, wrong key file or damaged key.%s\n", g_color_error, g_color_default);
+            color_err_printf(0, "rsa-util: block size mismatch in signature, wrong key file or damaged key.");
             exit(EXIT_FAILURE);
         }
         close(g_signaturefile_fd);
@@ -1450,7 +1445,7 @@ void do_sign_verify(int a_mode)
             uint32_t l_decode_len;
             ccct_base64_decode(g_buff, g_buff2, &l_decode_len);
             if (l_decode_len != g_block_size) {
-                fprintf(stderr, "%srsa-util: block size mismatch when decoding PEM format signature.%s\n", g_color_error, g_color_default);
+                color_err_printf(0, "rsa-util: block size mismatch when decoding PEM format signature.");
                 exit(EXIT_FAILURE);
             }
             memcpy(g_buff, g_buff2, g_block_size);
@@ -1486,23 +1481,23 @@ void do_sign_verify(int a_mode)
         uint8_t l_digest_dec[64];
         memcpy(l_digest_dec, g_buff2 + 8, 64);
         if (g_debug > 0) {
-            printf("do_sign_verify: decrypted hash from signature file");
+            color_debug("do_sign_verify: decrypted hash from signature file");
             ccct_print_hex(l_digest_dec, 64);
-            printf("do_sign_verify: computed hash of input file");
+            color_debug("do_sign_verify: computed hash of input file");
             ccct_print_hex(l_digest, 64);
         }
         if (memcmp(l_digest_dec, l_digest, 64) == 0) {
-            printf("%srsa-util:%s verify %sOK%s\n", g_color_heading, g_color_default, g_color_bullet, g_color_default);
+            color_printf("*arsa-util:*d verify *bOK*d\n");
             memcpy(&l_time.ll, g_buff2 + 72, 8);
             ccct_reverse_int64(&l_time);
-            printf("%srsa-util:%s GMT timestamp of signature: %s%s%s", g_color_heading, g_color_default, g_color_highlight, asctime(gmtime((time_t *)&l_time.ll)), g_color_default);
+            color_printf("*arsa-util:*d GMT timestamp of signature: *h%s*d", asctime(gmtime((time_t *)&l_time.ll)));
             memcpy(&l_lat.f, g_buff2 + 80, 4);
             memcpy(&l_long.f, g_buff2 + 84, 4);
             ccct_reverse_float(&l_lat);
             ccct_reverse_float(&l_long);
-            printf("%srsa-util:%s geolocation: latitude %s%.4f%s, longitude %s%.4f%s\n", g_color_heading, g_color_default, g_color_highlight, l_lat.f, g_color_default, g_color_highlight, l_long.f, g_color_default);
+            color_printf("*arsa-util:*d geolocation: latitude *h%.4f*d, longitude *h%.4f*d\n", l_lat.f, l_long.f);
         } else {
-            printf("%srsa-util:%s verify %sFAILED%s\n", g_color_heading, g_color_default, g_color_error, g_color_default);
+            color_printf("*arsa-util:*d verify *eFAILED*d\n");
         }
 
         mpz_clear(l_block);
@@ -1527,18 +1522,6 @@ int main(int argc, char **argv)
     // set up colors
     color_init(g_nocolor, g_debug);
     color_set_theme(3);
-
-    // delete these
-    g_color_default[0] = 0;
-    g_color_highlight[0] = 0;
-    g_color_bullet[0] = 0;
-    g_color_error[0] = 0;
-    g_color_heading[0] = 0;
-    strcpy(g_color_default, CCCT_COLOR_DEFAULT);
-    strcpy(g_color_highlight, CCCT_COLOR_HIGHLIGHT);
-    strcpy(g_color_bullet, CCCT_COLOR_BULLET);
-    strcpy(g_color_error, CCCT_COLOR_ERROR);
-    strcpy(g_color_heading, CCCT_COLOR_HEADING);
 
     while ((opt = getopt_long(argc, argv, "i:o:k:g:edsv?twbcf:", g_options, NULL)) != -1) {
         switch (opt) {
@@ -1578,12 +1561,6 @@ int main(int argc, char **argv)
             {
                 g_nocolor = 1;
                 color_set_nocolor(g_nocolor);
-                // delete these
-                g_color_default[0] = 0;
-                g_color_highlight[0] = 0;
-                g_color_bullet[0] = 0;
-                g_color_error[0] = 0;
-                g_color_heading[0] = 0;
             }
             break;
             case 'i':
@@ -1829,31 +1806,27 @@ int main(int argc, char **argv)
         break;
         case MODE_DECRYPT:
         {
-            printf("%srsa-util:%s selected %sdecryption%s mode.\n", g_color_heading, g_color_default, g_color_highlight, g_color_default);
+            color_printf("*arsa-util:*d selected *hdecryption*d mode.\n");
             if (g_threads > 1)
-                printf("%srsa-util:%s enabling %s%d%s threads.\n", g_color_heading, g_color_default, g_color_highlight, g_threads, g_color_default);
+                color_printf("*arsa-util:*d enabling *h%d*d threads.\n", g_threads);
             if (g_nochinese > 0)
-                printf("%srsa-util:%s defeating chinese remainder theory calculations.\n", g_color_heading, g_color_default);
+                color_printf("*arsa-util:*d defeating chinese remainder theory calculations.\n");
             load_key();
             if (g_n_loaded == 0) {
-                fprintf(stderr, "%srsa-util: this function requires the key file to contain a modulus.%s\n", g_color_error, g_color_default);
+                color_err_printf(0, "rsa-util: this function requires the key file to contain a modulus.");
                 exit(EXIT_FAILURE);
             }
             if (g_d_loaded == 0) {
-                fprintf(stderr, "%srsa-util: this function requires the key file to contain a private exponent.%s\n", g_color_error, g_color_default);
+                color_err_printf(0, "rsa-util: this function requires the key file to contain a private exponent.");
                 exit(EXIT_FAILURE);
             }
             if (g_infile_specified == 0) {
-                fprintf(stderr, "%srsa-util: this function requires that you specify an input file.%s\n", g_color_error, g_color_default);
+                color_err_printf(0, "rsa-util: this function requires that you specify an input file.");
                 exit(EXIT_FAILURE);
             }
             prepare_infile();
-//            if (g_infile_block_multiple > 0) {
-//                fprintf(stderr, "rsa-util: input file must be a multiple of block size to decrypt.\n");
-//                exit(EXIT_FAILURE);
-//            }
             if (g_outfile_specified == 0) {
-                fprintf(stderr, "%srsa-util: this function requires that you specify an output file.%s\n", g_color_error, g_color_default);
+                color_err_printf(0, "rsa-util: this function requires that you specify an output file.");
                 exit(EXIT_FAILURE);
             }
             prepare_outfile();
@@ -1890,52 +1863,52 @@ int main(int argc, char **argv)
         break;
         case MODE_SIGN:
         {
-            printf("%srsa-util:%s selected %ssign%s mode.\n", g_color_heading, g_color_default, g_color_highlight, g_color_default);
+            color_printf("*arsa-util:*d selected *hsign*d mode.\n");
             load_key();
             if (g_n_loaded == 0) {
-                fprintf(stderr, "%srsa-util: this function requires the key file to contain a modulus.%s\n", g_color_error, g_color_default);
+                color_err_printf(0, "rsa-util: this function requires the key file to contain a modulus.");
                 exit(EXIT_FAILURE);
             }
             if (g_d_loaded == 0) {
-                fprintf(stderr, "%srsa-util: this function requires the key file to contain a private exponent.%s\n", g_color_error, g_color_default);
+                color_err_printf(0, "rsa-util: this function requires the key file to contain a private exponent.");
                 exit(EXIT_FAILURE);
             }
             if (g_infile_specified == 0) {
-                fprintf(stderr, "%srsa-util: this function requires that you specify an input file.%s\n", g_color_error, g_color_default);
+                color_err_printf(0, "rsa-util: this function requires that you specify an input file.");
                 exit(EXIT_FAILURE);
             }
             prepare_infile();
             if (g_signaturefile_specified == 0) {
-                fprintf(stderr, "%srsa-util: this function requires that you specify a signature file.%s\n", g_color_error, g_color_default);
+                color_err_printf(0, "rsa-util: this function requires that you specify a signature file.");
                 exit(EXIT_FAILURE);
             }
             if (g_pem == 1) {
-                printf("%srsa-util:%s selecting %sprivacy-enhanced mail%s format for digital signature.\n", g_color_heading, g_color_default, g_color_highlight, g_color_default);
+                color_printf("*arsa-util:*d selecting *hprivacy-enhanced mail*d format for digital signature.\n");
             } else {
-                printf("%srsa-util:%s selecting %snative binary%s format for digital signature.\n", g_color_heading, g_color_default, g_color_highlight, g_color_default);
+                color_printf("*arsa-util:*d selecting *hnative binary*d format for digital signature.\n");
             }
             do_sign_verify(0);
         }
         break;
         case MODE_VERIFY:
         {
-            printf("%srsa-util:%s selected %sverify%s mode.\n", g_color_heading, g_color_default, g_color_highlight, g_color_default);
+            color_printf("*arsa-util:*d selected *hverify*d mode.\n");
             load_key();
             if (g_n_loaded == 0) {
-                fprintf(stderr, "%srsa-util: this function requires the key file to contain a modulus.%s\n", g_color_error, g_color_default);
+                color_err_printf(0, "rsa-util: this function requires the key file to contain a modulus.");
                 exit(EXIT_FAILURE);
             }
             if (g_e_loaded == 0) {
-                fprintf(stderr, "%srsa-util: this function requires the key file to contain a public exponent.%s\n", g_color_error, g_color_default);
+                color_err_printf(0, "rsa-util: this function requires the key file to contain a public exponent.");
                 exit(EXIT_FAILURE);
             }
             if (g_infile_specified == 0) {
-                fprintf(stderr, "%srsa-util: this function requires that you specify an input file.%s\n", g_color_error, g_color_default);
+                color_err_printf(0, "rsa-util: this function requires that you specify an input file.");
                 exit(EXIT_FAILURE);
             }
             prepare_infile();
             if (g_signaturefile_specified == 0) {
-                fprintf(stderr, "%srsa-util: this function requires that you specify a signature file.%s\n", g_color_error, g_color_default);
+                color_err_printf(0, "rsa-util: this function requires that you specify a signature file.");
                 exit(EXIT_FAILURE);
             }
             do_sign_verify(1);
@@ -1943,54 +1916,54 @@ int main(int argc, char **argv)
         break;
         case MODE_TELL:
         {
-            printf("%srsa-util:%s selected %stell%s mode.\n", g_color_heading, g_color_default, g_color_highlight, g_color_default);
+            color_printf("*arsa-util:*d selected *htell*d mode.\n");
             load_key();
             if (g_n_loaded > 0) {
-                printf("%smodulus n (%s%d%s bits):%s", g_color_heading, g_color_bullet, g_bits, g_color_heading, g_color_default);
+                color_printf("*amodulus n (*b%d*a bits):*d", g_bits);
                 ccct_print_hex(g_n, (g_bits / 8));
             }
             if (g_e_loaded > 0) {
-                printf("%spublic exponent e:%s", g_color_heading, g_color_default);
+                color_printf("*apublic exponent e:*d");
                 ccct_print_hex(g_e, 4);
             }
             if (g_d_loaded > 0) {
-                printf("%sprivate exponent d:%s", g_color_heading, g_color_default);
+                color_printf("*aprivate exponent d:*d");
                 ccct_print_hex(g_d, (g_bits / 8));
             }
             if (g_p_loaded > 0) {
-                printf("%sprime p:%s", g_color_heading, g_color_default);
+                color_printf("*aprime p:*d");
                 ccct_print_hex(g_p, (g_bits / 8) / 2);
             }
             if (g_q_loaded > 0) {
-                printf("%sprime q:%s", g_color_heading, g_color_default);
+                color_printf("*aprime q:*d");
                 ccct_print_hex(g_q, (g_bits / 8) / 2);
             }
             if (g_dp_loaded > 0) {
-                printf("%sexponent dp:%s", g_color_heading, g_color_default);
+                color_printf("*aexponent dp:*d");
                 ccct_print_hex(g_dp, (g_bits / 8) / 2);
             }
             if (g_dq_loaded > 0) {
-                printf("%sexponent dq:%s", g_color_heading, g_color_default);
+                color_printf("*aexponent dq:*d");
                 ccct_print_hex(g_dq, (g_bits / 8) / 2);
             }
             if (g_qinv_loaded > 0) {
-                printf("%scoefficient qinv:%s", g_color_heading, g_color_default);
+                color_printf("*acoefficient qinv:*d");
                 ccct_print_hex(g_qinv, (g_bits / 8) / 2);
             }
         }
         break;
         case MODE_BASE64ENCODE:
         {
-            printf("%srsa-util:%s selected %sbase64 encode%s mode.\n", g_color_heading, g_color_default, g_color_highlight, g_color_default);
+            color_printf("*arsa-util:*d selected *hbase64 encode*d mode.\n");
             // set g_bits to something to satisfy prepare_infile: otherwise there will be errors
             g_bits = 4096;
             prepare_infile();
             if (g_infile_length > PEMLIMIT) {
-                fprintf(stderr, "%srsa-util:%s input file length exceeds maximum length of %s%d%s for base64 file conversion.\n", g_color_heading, g_color_default, g_color_highlight, PEMLIMIT, g_color_default);
+                color_printf("*arsa-util:*d input file length exceeds maximum length of *h%d*d for base64 file conversion.\n", PEMLIMIT);
                 exit(EXIT_FAILURE);
             }
             if (g_outfile_specified == 0) {
-                fprintf(stderr, "%srsa-util: this function requires that you specify an output file.%s\n", g_color_error, g_color_default);
+                color_err_printf(0, "rsa-util: this function requires that you specify an output file.");
                 exit(EXIT_FAILURE);
             }
             prepare_outfile();
@@ -1998,11 +1971,11 @@ int main(int argc, char **argv)
             int res;
             res = read(g_infile_fd, g_buff, g_infile_length);
             if (res < 0) {
-                fprintf(stderr, "%srsa-util: unable to load input file for conversion: %s%s\n", g_color_error, strerror(errno), g_color_default);
+                color_err_printf(1, "rsa-util: unable to load input file for conversion");
                 exit(EXIT_FAILURE);
             }
             if (res < g_infile_length) {
-                fprintf(stderr, "%srsa-util: unable to load input file for conversion. expected %d got %d%s\n", g_color_error, g_infile_length, res, g_color_default);
+                color_err_printf(0, "rsa-util: unable to load input file for conversion. expected %d got %d", g_infile_length, res);
                 exit(EXIT_FAILURE);
             }
             ccct_base64_encode(g_buff, g_infile_length, g_buff2);
@@ -2010,31 +1983,31 @@ int main(int argc, char **argv)
                 switch(g_format) {
                     case FORMAT_KEY_PRIVATE:
                     {
-                        printf("%srsa-util:%s formatting as private key...\n", g_color_heading, g_color_default);
+                        color_printf("*arsa-util:*d formatting as private key...\n");
                         ccct_base64_format(g_buff2, g_buff, "BEGIN PRIVATE KEY", "END PRIVATE KEY");
                     }
                     break;
                     case FORMAT_KEY_PUBLIC:
                     {
-                        printf("%srsa-util:%s formatting as public key...\n", g_color_heading, g_color_default);
+                        color_printf("*arsa-util:*d formatting as public key...\n");
                         ccct_base64_format(g_buff2, g_buff, "BEGIN PUBLIC KEY", "END PUBLIC KEY");
                     }
                     break;
                     case FORMAT_SIGNATURE:
                     {
-                        printf("%srsa-util:%s formatting as signature...\n", g_color_heading, g_color_default);
+                        color_printf("*arsa-util:*d formatting as signature...\n");
                         ccct_base64_format(g_buff2, g_buff, "BEGIN SIGNATURE", "END SIGNATURE");
                     }
                     break;
                     case FORMAT_MESSAGE:
                     {
-                        printf("%srsa-util:%s formatting as message...\n", g_color_heading, g_color_default);
+                        color_printf("*arsa-util:*d formatting as message...\n");
                         ccct_base64_format(g_buff2, g_buff, "BEGIN MESSAGE", "END MESSAGE");
                     }
                     break;
                     case FORMAT_RAWBIN:
                     {
-                        printf("%srsa-util:%s formatting as raw binary...\n", g_color_heading, g_color_default);
+                        color_printf("*arsa-util:*d formatting as raw binary...\n");
                         ccct_base64_format(g_buff2, g_buff, "BEGIN RAW BINARY DATA", "END RAW BINARY DATA");
                     }
                     break;
@@ -2048,23 +2021,23 @@ int main(int argc, char **argv)
             // write string in g_buff to outfile
             res = write(g_outfile_fd, g_buff, strlen(g_buff));
             if (res < 0) {
-                fprintf(stderr, "%srsa-util: unable to write converted file to output file: %s%s\n", g_color_error, strerror(errno), g_color_default);
+                color_err_printf(1, "rsa-util: unable to write converted file to output file");
                 exit(EXIT_FAILURE);
             }
         }
         break;
         case MODE_BASE64DECODE:
         {
-            printf("%srsa-util:%s selected %sbase64 decode%s mode.\n", g_color_heading, g_color_default, g_color_highlight, g_color_default);
+            color_printf("*arsa-util:*d selected *hbase64 decode*d mode.\n");
             // set g_bits to something to satisfy prepare_infile: otherwise there will be errors
             g_bits = 4096;
             prepare_infile();
             if (g_infile_length > (PEMLIMIT * 4 / 3)) {
-                fprintf(stderr, "%srsa-util:%s input file length exceeds maximum length of %s%d%s for base64 file decode.\n", g_color_heading, g_color_default, g_color_highlight, (PEMLIMIT * 4 / 3), g_color_default);
+                color_printf("*arsa-util:*d input file length exceeds maximum length of *h%d*d for base64 file decode.\n", (PEMLIMIT * 4 / 3));
                 exit(EXIT_FAILURE);
             }
             if (g_outfile_specified == 0) {
-                fprintf(stderr, "%srsa-util: this function requires that you specify an output file.%s\n", g_color_error, g_color_default);
+                color_err_printf(0, "rsa-util: this function requires that you specify an output file.");
                 exit(EXIT_FAILURE);
             }
             prepare_outfile();
@@ -2072,11 +2045,11 @@ int main(int argc, char **argv)
             int res;
             res = read(g_infile_fd, g_buff, g_infile_length);
             if (res < 0) {
-                fprintf(stderr, "%srsa-util: unable to load input file for conversion: %s%s\n", g_color_error, strerror(errno), g_color_default);
+                color_err_printf(1, "rsa-util: unable to load input file for conversion");
                 exit(EXIT_FAILURE);
             }
             if (res < g_infile_length) {
-                fprintf(stderr, "%srsa-util: unable to load input file for conversion. expected %d got %d%s\n", g_color_error, g_infile_length, res, g_color_default);
+                color_err_printf(0, "rsa-util: unable to load input file for conversion. expected %d got %d\n", g_infile_length, res);
                 exit(EXIT_FAILURE);
             }
             int l_dashcnt = 0;
@@ -2093,14 +2066,14 @@ int main(int argc, char **argv)
             ccct_base64_decode(g_buff, g_buff2, &decode_len);
             res = write(g_outfile_fd, g_buff2, decode_len);
             if (res < 0) {
-                fprintf(stderr, "%srsa-util: unable to write converted file to output file: %s%s\n", g_color_error, strerror(errno), g_color_default);
+                color_err_printf(1, "rsa-util: unable to write converted file to output file");
                 exit(EXIT_FAILURE);
             }
         }
         break;
         default:
         {
-            printf("%sI don't know what to do!%s\n", g_color_bullet, g_color_default);
+            color_err_printf(0, "I don't know what to do!");
         }
         break;
     }

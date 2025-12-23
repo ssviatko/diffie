@@ -50,6 +50,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdarg.h>
 #include <errno.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -132,6 +133,23 @@ typedef struct {
 
 int g_nocolor = 0;
 
+void color_gmp_printf(const char *format, ...)
+{
+	if (g_debug == 0)
+		return; // don't print anything if debug isn't turned on
+		char edited_format[BUFFLEN];
+	edited_format[0] = 0;
+	if (!g_nocolor)
+		strcat(edited_format, "\033[34m");
+	strcat(edited_format, format);
+	if (!g_nocolor)
+		strcat(edited_format, "\033[39m\033[49m");
+	va_list args;
+	va_start(args, format);
+	gmp_vprintf(edited_format, args);
+	va_end(args);
+}
+
 void *gen_tf(void *arg)
 {
 	thread_work_area *a_twa;
@@ -204,7 +222,7 @@ void *gen_tf(void *arg)
 			mpz_nextprime(l_p_import, l_p_import);
 		}
 
-		if (g_debug) gmp_printf("tid %d: p       = %Zx\n", a_twa->id, l_p_import);
+		color_gmp_printf("tid %d: p       = %Zx\n", a_twa->id, l_p_import);
 
 		l_pp = mpz_probab_prime_p(l_p_import, 50);
 
@@ -228,7 +246,7 @@ void *gen_tf(void *arg)
 			mpz_nextprime(l_q_import, l_q_import);
 		}
 
-		if (g_debug) gmp_printf("tid %d: q       = %Zx\n",a_twa->id, l_q_import);
+		color_gmp_printf("tid %d: q       = %Zx\n",a_twa->id, l_q_import);
 
 		l_pp = mpz_probab_prime_p(l_q_import, 50);
 
@@ -250,8 +268,8 @@ void *gen_tf(void *arg)
 		// establish p-1 and q-1
 		mpz_sub_ui(l_p1, l_p_import, 1);
 		mpz_sub_ui(l_q1, l_q_import, 1);
-		if (g_debug) gmp_printf("tid %d: (p - 1) = %Zx\n", a_twa->id, l_p1);
-		if (g_debug) gmp_printf("tid %d: (q - 1) = %Zx\n", a_twa->id, l_q1);
+		color_gmp_printf("tid %d: (p - 1) = %Zx\n", a_twa->id, l_p1);
+		color_gmp_printf("tid %d: (q - 1) = %Zx\n", a_twa->id, l_q1);
 
 		// p-1 and q-1 should not have small prime factors. Check both of them for all primes <100
 		mpz_set_ui(l_counter, 2); // start with 3 as all even numbers are divisible by 2
@@ -266,7 +284,7 @@ void *gen_tf(void *arg)
 			}
 		} while (mpz_cmp_ui(l_counter, 100) <= 0);
 		if (l_bailout == 1) {
-			if (g_debug) gmp_printf("tid %d: error: (p - 1) value has small prime factor of %Zd.\n", a_twa->id, l_counter);
+			color_gmp_printf("tid %d: error: (p - 1) value has small prime factor of %Zd.\n", a_twa->id, l_counter);
 			continue;
 		}
 
@@ -282,23 +300,23 @@ void *gen_tf(void *arg)
 			}
 		} while (mpz_cmp_ui(l_counter, 100) <= 0);
 		if (l_bailout == 1) {
-			if (g_debug) gmp_printf("tid %d: error: (q - 1) value has small prime factor of %Zd.\n", a_twa->id, l_counter);
+			color_gmp_printf("tid %d: error: (q - 1) value has small prime factor of %Zd.\n", a_twa->id, l_counter);
 			continue;
 		}
 
 		// prepare n = p * q
 		mpz_mul(l_n, l_p_import, l_q_import);
-		if (g_debug) gmp_printf("tid %d: n       = %Zx\n", a_twa->id, l_n);
+		color_gmp_printf("tid %d: n       = %Zx\n", a_twa->id, l_n);
 
 		// prepare carmichael totient
 		mpz_lcm(l_ct, l_p1, l_q1);
-		if (g_debug) gmp_printf("tid %d: ct      = %Zx\n", a_twa->id, l_ct);
+		color_gmp_printf("tid %d: ct      = %Zx\n", a_twa->id, l_ct);
 
 		// choose e, so that e is coprime with ct
 		mpz_set_ui(l_e, 65536); // start at 65537 after nextprime is called
 		do {
 			mpz_nextprime(l_e, l_e);
-			if (g_debug) gmp_printf("tid %d: testing e = %Zd...\n", a_twa->id, l_e);
+			color_gmp_printf("tid %d: testing e = %Zd...\n", a_twa->id, l_e);
 			mpz_gcd(l_tmp, l_e, l_ct);
 		} while (mpz_cmp_ui(l_tmp, 1) != 0);
 
@@ -307,7 +325,7 @@ void *gen_tf(void *arg)
 			if (g_debug) color_err_printf(0, "tid %d: invert failed!", a_twa->id);
 			continue;
 		} else {
-			if (g_debug) gmp_printf("tid %d: d       = %Zx\n", a_twa->id, l_d);
+			color_gmp_printf("tid %d: d       = %Zx\n", a_twa->id, l_d);
 		}
 
 		// make sure d isn't too small: we want it to be at least bits - 7 in size.
@@ -322,11 +340,11 @@ void *gen_tf(void *arg)
 
 		// set up for chinese remainder
 		mpz_mod(l_dp, l_d, l_p1);
-		if (g_debug > 0) gmp_printf("tid %d: chinese: dp = %Zx\n", a_twa->id, l_dp);
+		color_gmp_printf("tid %d: chinese: dp = %Zx\n", a_twa->id, l_dp);
 		mpz_mod(l_dq, l_d, l_q1);
-		if (g_debug > 0) gmp_printf("tid %d: chinese: dq = %Zx\n", a_twa->id, l_dq);
+		color_gmp_printf("tid %d: chinese: dq = %Zx\n", a_twa->id, l_dq);
 		mpz_invert(l_qinv, l_q_import, l_p_import);
-		if (g_debug > 0) gmp_printf("tid %d: chinese: qinv = %Zx\n", a_twa->id, l_qinv);
+		color_gmp_printf("tid %d: chinese: qinv = %Zx\n", a_twa->id, l_qinv);
 
 		l_success = 1; // made it this far, we generated a key pair!
 	}
