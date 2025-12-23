@@ -198,7 +198,6 @@ void ccct_reverse_int64(ccct_reversible_int64_t *a_val)
 
 void ccct_reverse_float(ccct_reversible_float_t *a_val)
 {
-    int i;
     char ch;
 
     if (g_endianness > 0) {
@@ -257,7 +256,7 @@ void ccct_base64_encode(const uint8_t *a_data, size_t a_len, char *a_textout)
 
 int ccct_base64_decode(const char *a_textin, char *a_binout, uint32_t *a_binout_len)
 {
-    size_t i, io, j;
+    size_t i, io;
     size_t l_textin_len = strlen(a_textin);
     // bail out if we're not justified on a 4 character boundary
     if ((l_textin_len % 4) != 0) {
@@ -316,7 +315,7 @@ int ccct_base64_decode(const char *a_textin, char *a_binout, uint32_t *a_binout_
 
 void ccct_base64_format(const char *a_textin, char *a_textout, char *a_header_text, char *a_footer_text)
 {
-    size_t i, l_textout_ptr;
+    size_t i;
 
     a_textout[0] = 0;
     strcpy(a_textout, "-----");
@@ -381,6 +380,7 @@ int ccct_open_urandom()
         exit(EXIT_FAILURE);
     }
     pthread_mutex_init(&g_urandom_mtx, NULL);
+    return g_urandom_fd;
 }
 
 /**
@@ -410,4 +410,5 @@ int ccct_close_urandom()
 {
     close(g_urandom_fd);
     pthread_mutex_destroy(&g_urandom_mtx);
+    return 0;
 }

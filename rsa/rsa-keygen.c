@@ -137,7 +137,7 @@ void color_gmp_printf(const char *format, ...)
 {
 	if (g_debug == 0)
 		return; // don't print anything if debug isn't turned on
-		char edited_format[BUFFLEN];
+	char edited_format[BUFFLEN];
 	edited_format[0] = 0;
 	if (!g_nocolor)
 		strcat(edited_format, "\033[34m");
@@ -195,7 +195,6 @@ void *gen_tf(void *arg)
 	int l_success = 0;
 	unsigned int l_attempt = 1;
 	int res;
-	unsigned int i;
 
 	while (l_success == 0) {
 		pthread_mutex_lock(&g_bell_mtx);
@@ -666,7 +665,7 @@ void *gen_tf(void *arg)
 			buff_load_len += res;
 		} while (res != 0);
 		// convert it to base64
-		ccct_base64_encode(buff_load, buff_load_len, buff_enc);
+		ccct_base64_encode((uint8_t *)buff_load, buff_load_len, buff_enc);
 		ccct_base64_format(buff_enc, buff_fmt, "BEGIN PRIVATE KEY", "END PRIVATE KEY");
 		// write out key to user specified file
 		privkey_pem_fd = open(g_private_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
@@ -695,7 +694,7 @@ void *gen_tf(void *arg)
 			buff_load_len += res;
 		} while (res != 0);
 		// convert it to base64
-		ccct_base64_encode(buff_load, buff_load_len, buff_enc);
+		ccct_base64_encode((uint8_t *)buff_load, buff_load_len, buff_enc);
 		ccct_base64_format(buff_enc, buff_fmt, "BEGIN PUBLIC KEY", "END PUBLIC KEY");
 		pubkey_pem_fd = open(g_public_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 		if (pubkey_pem_fd < 0) {
@@ -750,7 +749,6 @@ void *gen_tf(void *arg)
 int main(int argc, char **argv)
 {
 	unsigned int i;
-	int res; // result variable for UNIX reads
 	int opt;
 
 	// try to determine hardware concurrency
@@ -803,8 +801,8 @@ int main(int argc, char **argv)
 			case '?':
 				{
 					color_printf("*hRSA key pair generator*d\n");
+					color_printf("build *b%s*d release *b%s*d built on *b%s*d\n", BUILD_NUMBER, RELEASE_NUMBER, BUILD_DATE);
 					color_printf("*aby Stephen Sviatko - (C) 2025 Good Neighbors LLC*d\n");
-					color_printf("revision 0.80 alpha - 2025/Nov/15\n");
 					color_printf("*husage: rsa-keygen <options>*d\n");
 					color_printf("*a  -b (--bits) <bit width>*d key modulus size\n");
 					color_printf("*a  -t (--threads) <threads>*d number of threads to use\n");

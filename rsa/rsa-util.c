@@ -857,7 +857,7 @@ void do_encrypt()
             buff_load_len += res;
         } while (res != 0);
         // convert it to base64
-        ccct_base64_encode(buff_load, buff_load_len, buff_enc);
+        ccct_base64_encode((uint8_t *)buff_load, buff_load_len, buff_enc);
         ccct_base64_format(buff_enc, buff_fmt, "BEGIN MESSAGE", "END MESSAGE");
 
         // close, delete, and reopen our output file
@@ -1143,7 +1143,7 @@ void do_decrypt()
         pthread_mutex_unlock(&g_tally_mtx);
 
         // all our threads are done and the plains are all contained in the twa data structures
-        int l_block_index;
+        int l_block_index = 0;
         for (j = 0; j < i; j++) {
             memcpy(g_buff2, twa[j].plain, g_block_size);
             l_block_index = twa[j].curblock;
@@ -1258,11 +1258,11 @@ void do_sign_verify(int a_mode)
         res = read(g_infile_fd, l_buff, 4096);
         if (res == 0)
             continue; // got our EOF
-            if (res < 0) {
-                color_err_printf(1, "rsa-util: unable to compute sha2-512 hash of input file");
-                exit(EXIT_FAILURE);
-            }
-            sha512_update(&l_ctx, (const uint8_t *)l_buff, res);
+        if (res < 0) {
+            color_err_printf(1, "rsa-util: unable to compute sha2-512 hash of input file");
+            exit(EXIT_FAILURE);
+        }
+        sha512_update(&l_ctx, (const uint8_t *)l_buff, res);
     } while (res != 0);
     sha512_final(&l_ctx, l_digest);
     // rewind g_infile_fd
@@ -1364,10 +1364,10 @@ void do_sign_verify(int a_mode)
         if (g_pem) {
             color_printf("*arsa-util:*d converting signature to *hprivacy-enhanced mail*d format...\n");
             memcpy(g_buff, g_buff2, g_block_size);
-            ccct_base64_encode(g_buff, g_block_size, g_buff2);
-            memcpy(g_buff, g_buff2, strlen(g_buff2));
-            ccct_base64_format(g_buff, g_buff2, "BEGIN SIGNATURE", "END SIGNATURE");
-            l_sig_write_size = strlen(g_buff2);
+            ccct_base64_encode((uint8_t *)g_buff, g_block_size, (char *)g_buff2);
+            memcpy(g_buff, g_buff2, strlen((char *)g_buff2));
+            ccct_base64_format((char *)g_buff, (char *)g_buff2, "BEGIN SIGNATURE", "END SIGNATURE");
+            l_sig_write_size = strlen((char *)g_buff2);
         } else {
             color_printf("*arsa-util:*d creating signature as *hnative binary*d format...\n");
             l_sig_write_size = g_block_size;
@@ -1440,10 +1440,10 @@ void do_sign_verify(int a_mode)
         if (l_dashcnt == 5) {
             // null terminate our formatted string
             g_buff[l_sig_read_size] = 0;
-            ccct_base64_unformat(g_buff, g_buff2);
-            memcpy(g_buff, g_buff2, strlen(g_buff2) + 1); // copy the null terminator too
+            ccct_base64_unformat((char *)g_buff, (char *)g_buff2);
+            memcpy(g_buff, g_buff2, strlen((char *)g_buff2) + 1); // copy the null terminator too
             uint32_t l_decode_len;
-            ccct_base64_decode(g_buff, g_buff2, &l_decode_len);
+            ccct_base64_decode((char *)g_buff, (char *)g_buff2, &l_decode_len);
             if (l_decode_len != g_block_size) {
                 color_err_printf(0, "rsa-util: block size mismatch when decoding PEM format signature.");
                 exit(EXIT_FAILURE);
@@ -1510,7 +1510,6 @@ void do_sign_verify(int a_mode)
 int main(int argc, char **argv)
 {
     unsigned int i;
-    int res; // result variable for UNIX reads
     int opt;
 
     // try to determine hardware concurrency
@@ -1682,8 +1681,8 @@ int main(int argc, char **argv)
             case '?':
             {
                 color_printf("*hRSA file encryptor/digital signature utility*d\n");
+                color_printf("build *b%s*d release *b%s*d built on *b%s*d\n", BUILD_NUMBER, RELEASE_NUMBER, BUILD_DATE);
                 color_printf("*aby Stephen Sviatko - (C) 2025 Good Neighbors LLC*d\n");
-                color_printf("*arevision *b0.90 beta*a built on *b2025/Dec/19*d\n");
                 color_printf("*husage: rsa-util <options>*d\n");
                 color_printf("*a  -i (--in) <name>*d specify input file\n");
                 color_printf("*a  -o (--out) <name>*d specify output file\n");
@@ -1978,37 +1977,37 @@ int main(int argc, char **argv)
                 color_err_printf(0, "rsa-util: unable to load input file for conversion. expected %d got %d", g_infile_length, res);
                 exit(EXIT_FAILURE);
             }
-            ccct_base64_encode(g_buff, g_infile_length, g_buff2);
+            ccct_base64_encode((uint8_t *)g_buff, g_infile_length, (char *)g_buff2);
             if (g_format != FORMAT_NONE) {
                 switch(g_format) {
                     case FORMAT_KEY_PRIVATE:
                     {
                         color_printf("*arsa-util:*d formatting as private key...\n");
-                        ccct_base64_format(g_buff2, g_buff, "BEGIN PRIVATE KEY", "END PRIVATE KEY");
+                        ccct_base64_format((char *)g_buff2, (char *)g_buff, "BEGIN PRIVATE KEY", "END PRIVATE KEY");
                     }
                     break;
                     case FORMAT_KEY_PUBLIC:
                     {
                         color_printf("*arsa-util:*d formatting as public key...\n");
-                        ccct_base64_format(g_buff2, g_buff, "BEGIN PUBLIC KEY", "END PUBLIC KEY");
+                        ccct_base64_format((char *)g_buff2, (char *)g_buff, "BEGIN PUBLIC KEY", "END PUBLIC KEY");
                     }
                     break;
                     case FORMAT_SIGNATURE:
                     {
                         color_printf("*arsa-util:*d formatting as signature...\n");
-                        ccct_base64_format(g_buff2, g_buff, "BEGIN SIGNATURE", "END SIGNATURE");
+                        ccct_base64_format((char *)g_buff2, (char *)g_buff, "BEGIN SIGNATURE", "END SIGNATURE");
                     }
                     break;
                     case FORMAT_MESSAGE:
                     {
                         color_printf("*arsa-util:*d formatting as message...\n");
-                        ccct_base64_format(g_buff2, g_buff, "BEGIN MESSAGE", "END MESSAGE");
+                        ccct_base64_format((char *)g_buff2, (char *)g_buff, "BEGIN MESSAGE", "END MESSAGE");
                     }
                     break;
                     case FORMAT_RAWBIN:
                     {
                         color_printf("*arsa-util:*d formatting as raw binary...\n");
-                        ccct_base64_format(g_buff2, g_buff, "BEGIN RAW BINARY DATA", "END RAW BINARY DATA");
+                        ccct_base64_format((char *)g_buff2, (char *)g_buff, "BEGIN RAW BINARY DATA", "END RAW BINARY DATA");
                     }
                     break;
                     default:
@@ -2016,10 +2015,10 @@ int main(int argc, char **argv)
                 }
             } else {
                 // no format, copy g_buff2 to g_buff as is
-                memcpy(g_buff, g_buff2, strlen(g_buff2) + 1);
+                memcpy(g_buff, g_buff2, strlen((char *)g_buff2) + 1);
             }
             // write string in g_buff to outfile
-            res = write(g_outfile_fd, g_buff, strlen(g_buff));
+            res = write(g_outfile_fd, g_buff, strlen((char *)g_buff));
             if (res < 0) {
                 color_err_printf(1, "rsa-util: unable to write converted file to output file");
                 exit(EXIT_FAILURE);
@@ -2059,11 +2058,11 @@ int main(int argc, char **argv)
             }
             if (l_dashcnt == 5) {
                 // formatted, so get rid of it
-                ccct_base64_unformat(g_buff, g_buff2);
-                memcpy(g_buff, g_buff2, strlen(g_buff2) + 1);
+                ccct_base64_unformat((char *)g_buff, (char *)g_buff2);
+                memcpy(g_buff, g_buff2, strlen((char *)g_buff2) + 1);
             }
             uint32_t decode_len = 0;
-            ccct_base64_decode(g_buff, g_buff2, &decode_len);
+            ccct_base64_decode((char *)g_buff, (char *)g_buff2, &decode_len);
             res = write(g_outfile_fd, g_buff2, decode_len);
             if (res < 0) {
                 color_err_printf(1, "rsa-util: unable to write converted file to output file");
