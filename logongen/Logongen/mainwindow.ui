@@ -53,7 +53,7 @@
      <rect>
       <x>10</x>
       <y>130</y>
-      <width>601</width>
+      <width>541</width>
       <height>26</height>
      </rect>
     </property>
@@ -66,7 +66,7 @@
      <bool>true</bool>
     </property>
     <property name="placeholderText">
-     <string>Password</string>
+     <string>First Generated Password Appears Here</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="lePassphrase">
@@ -79,7 +79,7 @@
      </rect>
     </property>
     <property name="placeholderText">
-     <string>Passphrase</string>
+     <string>Enter A Passphrase Here</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="leBaseHash">
@@ -183,14 +183,14 @@
    <widget class="QPushButton" name="btnCopy">
     <property name="geometry">
      <rect>
-      <x>630</x>
+      <x>565</x>
       <y>130</y>
-      <width>86</width>
+      <width>151</width>
       <height>26</height>
      </rect>
     </property>
     <property name="text">
-     <string>Copy</string>
+     <string>Copy To Clipboard</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_2">
